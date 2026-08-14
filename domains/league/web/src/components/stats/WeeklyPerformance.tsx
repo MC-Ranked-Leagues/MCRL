@@ -4,20 +4,20 @@ import {
   ChevronDown,
   CircleMinus,
   Flag,
-} from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { Card } from "@/components/ui/card"
-import { cn } from "@/lib/utils"
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import {
   formatDuration,
   movementLabel,
   type MatchDetail,
   type Movement,
   type WeeklyPerformance as WeeklyPerformanceData,
-} from "./stats-utils"
+} from "./stats-utils";
 
 function MovementBadge({ movement }: { movement: Movement }) {
-  const label = movementLabel(movement)
+  const label = movementLabel(movement);
 
   if (movement === "promoted") {
     return (
@@ -25,7 +25,7 @@ function MovementBadge({ movement }: { movement: Movement }) {
         <ArrowUp data-icon="inline-start" aria-hidden />
         {label}
       </Badge>
-    )
+    );
   }
 
   if (movement === "demoted") {
@@ -34,7 +34,7 @@ function MovementBadge({ movement }: { movement: Movement }) {
         <ArrowDown data-icon="inline-start" aria-hidden />
         {label}
       </Badge>
-    )
+    );
   }
 
   return (
@@ -42,26 +42,26 @@ function MovementBadge({ movement }: { movement: Movement }) {
       <CircleMinus data-icon="inline-start" aria-hidden />
       {label}
     </Badge>
-  )
+  );
 }
 
 function getMatchStatus(match: MatchDetail) {
   if (match.missed) {
-    return { label: "Missed", className: "text-muted-foreground" }
+    return { label: "Missed", className: "text-muted-foreground" };
   }
   if (match.dnf) {
-    return { label: "DNF", className: "text-destructive" }
+    return { label: "DNF", className: "text-destructive" };
   }
   if (match.placement !== null) {
-    return { label: `#${match.placement}`, className: "text-foreground" }
+    return { label: `#${match.placement}`, className: "text-foreground" };
   }
-  return { label: "—", className: "text-muted-foreground" }
+  return { label: "—", className: "text-muted-foreground" };
 }
 
 function MatchRow({ match }: { match: MatchDetail }) {
-  const status = getMatchStatus(match)
-  const hasFinish = !match.missed && !match.dnf
-  const finishTime = hasFinish ? formatDuration(match.timeMs) : "—"
+  const status = getMatchStatus(match);
+  const hasFinish = !match.missed && !match.dnf;
+  const finishTime = hasFinish ? formatDuration(match.timeMs) : "—";
 
   return (
     <li className="grid min-h-12 grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-t border-border/60 py-2.5 first:border-t-0 sm:grid-cols-[minmax(0,1fr)_5rem_7.5rem_5rem]">
@@ -88,15 +88,15 @@ function MatchRow({ match }: { match: MatchDetail }) {
         +{match.pointsWon} pts
       </span>
     </li>
-  )
+  );
 }
 
 export function WeeklyPerformance({
   weeks,
 }: {
-  weeks: WeeklyPerformanceData[]
+  weeks: WeeklyPerformanceData[];
 }) {
-  const newestFirst = [...weeks].reverse()
+  const newestFirst = [...weeks].reverse();
 
   return (
     <section aria-labelledby="weekly-performance-heading">
@@ -201,5 +201,5 @@ export function WeeklyPerformance({
         </Card>
       )}
     </section>
-  )
+  );
 }

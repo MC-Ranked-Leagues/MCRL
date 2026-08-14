@@ -7,12 +7,12 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function sortLeaguesByNumberAndName(
-  leagues: Doc<"leagues">[],
+  leagues: Doc<"leagues">[]
 ): Doc<"leagues">[] {
   return [...leagues].sort(
     (a, b) =>
       a.leagueNumber - b.leagueNumber ||
-      a.leagueName.localeCompare(b.leagueName),
+      a.leagueName.localeCompare(b.leagueName)
   );
 }
 

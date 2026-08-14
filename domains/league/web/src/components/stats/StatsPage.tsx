@@ -4,46 +4,46 @@ import {
   useSyncExternalStore,
   type ErrorInfo,
   type ReactNode,
-} from "react"
-import { useQuery } from "convex/react"
-import { RotateCcw, Search, Trophy } from "lucide-react"
-import ConvexClientProvider from "@/components/ConvexClientProvider"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
-import { api } from "../../../../convex/_generated/api"
-import { PlayerStatsDashboard } from "./PlayerStatsDashboard"
-import { StatsPlayerBrowser } from "./StatsPlayerBrowser"
-import { buildPlayerUrl, type PlayerListEntry } from "./stats-utils"
+} from "react";
+import { useQuery } from "convex/react";
+import { RotateCcw, Search, Trophy } from "lucide-react";
+import ConvexClientProvider from "@/components/ConvexClientProvider";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { api } from "../../../../convex/_generated/api";
+import { PlayerStatsDashboard } from "./PlayerStatsDashboard";
+import { StatsPlayerBrowser } from "./StatsPlayerBrowser";
+import { buildPlayerUrl, type PlayerListEntry } from "./stats-utils";
 
-const LOCATION_CHANGE_EVENT = "stats:location-change"
+const LOCATION_CHANGE_EVENT = "stats:location-change";
 
 function subscribeToLocation(callback: () => void) {
-  window.addEventListener("popstate", callback)
-  window.addEventListener(LOCATION_CHANGE_EVENT, callback)
+  window.addEventListener("popstate", callback);
+  window.addEventListener(LOCATION_CHANGE_EVENT, callback);
 
   return () => {
-    window.removeEventListener("popstate", callback)
-    window.removeEventListener(LOCATION_CHANGE_EVENT, callback)
-  }
+    window.removeEventListener("popstate", callback);
+    window.removeEventListener(LOCATION_CHANGE_EVENT, callback);
+  };
 }
 
 function getLocationSnapshot() {
-  return typeof window === "undefined" ? "" : window.location.search
+  return typeof window === "undefined" ? "" : window.location.search;
 }
 
 class StatsErrorBoundary extends Component<
   { children: ReactNode },
   { hasError: boolean }
 > {
-  state = { hasError: false }
+  state = { hasError: false };
 
   static getDerivedStateFromError() {
-    return { hasError: true }
+    return { hasError: true };
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error("Unable to render player statistics", error, info)
+    console.error("Unable to render player statistics", error, info);
   }
 
   render() {
@@ -67,10 +67,10 @@ class StatsErrorBoundary extends Component<
             </Button>
           </Card>
         </section>
-      )
+      );
     }
 
-    return this.props.children
+    return this.props.children;
   }
 }
 
@@ -90,7 +90,7 @@ function PageSkeleton() {
         <Skeleton className="h-64 rounded-xl" />
       </div>
     </div>
-  )
+  );
 }
 
 function NoPlayerSelected() {
@@ -106,19 +106,19 @@ function NoPlayerSelected() {
         </p>
       </div>
     </Card>
-  )
+  );
 }
 
 function GlobalStatsView({ locationSearch }: { locationSearch: string }) {
   const [locallySelectedPlayer, setLocallySelectedPlayer] =
-    useState<PlayerListEntry | null>(null)
-  const fastestPlayers = useQuery(api.leaderboard.getFastestPlayers)
-  const playerParam = new URLSearchParams(locationSearch).get("player")
-  const requestedPlayerName = playerParam?.trim() || null
+    useState<PlayerListEntry | null>(null);
+  const fastestPlayers = useQuery(api.leaderboard.getFastestPlayers);
+  const playerParam = new URLSearchParams(locationSearch).get("player");
+  const requestedPlayerName = playerParam?.trim() || null;
   const requestedPlayer = useQuery(
     api.players.findPlayerByName,
     requestedPlayerName ? { ign: requestedPlayerName } : "skip"
-  )
+  );
 
   const optimisticPlayer =
     requestedPlayerName !== null &&
@@ -126,21 +126,21 @@ function GlobalStatsView({ locationSearch }: { locationSearch: string }) {
       sensitivity: "base",
     }) === 0
       ? locallySelectedPlayer
-      : null
+      : null;
   const isResolvingRequestedPlayer =
     requestedPlayerName !== null &&
     requestedPlayer === undefined &&
-    optimisticPlayer === null
+    optimisticPlayer === null;
   const selectedPlayer = isResolvingRequestedPlayer
     ? undefined
-    : (optimisticPlayer ?? requestedPlayer ?? fastestPlayers?.[0] ?? null)
+    : (optimisticPlayer ?? requestedPlayer ?? fastestPlayers?.[0] ?? null);
   const stats = useQuery(
     api.playerStats.getPlayerStats,
     selectedPlayer ? { playerId: selectedPlayer.playerId } : "skip"
-  )
+  );
 
   if (fastestPlayers === undefined || isResolvingRequestedPlayer) {
-    return <PageSkeleton />
+    return <PageSkeleton />;
   }
 
   return (
@@ -154,13 +154,13 @@ function GlobalStatsView({ locationSearch }: { locationSearch: string }) {
         fastestPlayers={fastestPlayers}
         selectedPlayer={selectedPlayer ?? null}
         onSelect={(player) => {
-          setLocallySelectedPlayer(player)
+          setLocallySelectedPlayer(player);
           window.history.pushState(
             window.history.state,
             "",
             buildPlayerUrl(window.location.href, player.name)
-          )
-          window.dispatchEvent(new Event(LOCATION_CHANGE_EVENT))
+          );
+          window.dispatchEvent(new Event(LOCATION_CHANGE_EVENT));
         }}
       />
       {selectedPlayer ? (
@@ -169,7 +169,7 @@ function GlobalStatsView({ locationSearch }: { locationSearch: string }) {
         <NoPlayerSelected />
       )}
     </div>
-  )
+  );
 }
 
 function StatsContent() {
@@ -177,7 +177,7 @@ function StatsContent() {
     subscribeToLocation,
     getLocationSnapshot,
     () => ""
-  )
+  );
 
   return (
     <section className="mx-auto min-h-screen max-w-7xl px-4 pt-24 pb-20 md:px-8 md:pt-28 md:pb-24">
@@ -192,7 +192,7 @@ function StatsContent() {
 
       <GlobalStatsView locationSearch={locationSearch} />
     </section>
-  )
+  );
 }
 
 export function StatsPage() {
@@ -202,5 +202,5 @@ export function StatsPage() {
         <StatsContent />
       </StatsErrorBoundary>
     </ConvexClientProvider>
-  )
+  );
 }

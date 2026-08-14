@@ -37,7 +37,7 @@ export function sanitizeSeedNumber(value: string) {
 }
 
 export function preventNonNumericSeedInput(
-  event: KeyboardEvent<HTMLInputElement>,
+  event: KeyboardEvent<HTMLInputElement>
 ) {
   if (event.ctrlKey || event.metaKey) {
     return;
@@ -65,7 +65,7 @@ export function preventNonNumericSeedInput(
 }
 
 export function getManualSeedFormErrors(
-  issues: Array<{ message: string; path: PropertyKey[] }>,
+  issues: Array<{ message: string; path: PropertyKey[] }>
 ) {
   const errors: SeedFormErrors = {};
 

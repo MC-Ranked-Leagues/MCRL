@@ -14,7 +14,7 @@ const seedTypeValidator = v.union(
   v.literal("DESERT_TEMPLE"),
   v.literal("JUNGLE_PYRAMID"),
   v.literal("RUINED_PORTAL"),
-  v.literal("SHIPWRECK"),
+  v.literal("SHIPWRECK")
 );
 
 const seedValuesValidator = {
@@ -48,7 +48,7 @@ export const listSeeds = query({
       .withIndex("by_leagueId_and_assignedWeekNumber_and_seedNumber", (q) =>
         q
           .eq("leagueId", args.leagueId)
-          .eq("assignedWeekNumber", args.weekNumber),
+          .eq("assignedWeekNumber", args.weekNumber)
       )
       .take(MAX_LEAGUE_SEED_LIST_COUNT + 1);
 
@@ -98,7 +98,7 @@ export const addSeed = mutation({
     const seedNumber =
       group.reduce(
         (highest, seed) => Math.max(highest, seed.seedNumber ?? 0),
-        0,
+        0
       ) + 1;
     const now = Date.now();
     const seedId = await ctx.db.insert("seeds", {
@@ -197,7 +197,7 @@ export const updateSeed = mutation({
       await ctx.db.patch("leagues", league._id, {
         usedSeedCount: Math.max(
           0,
-          league.usedSeedCount + (args.isUsed ? 1 : -1),
+          league.usedSeedCount + (args.isUsed ? 1 : -1)
         ),
       });
     }
@@ -321,7 +321,7 @@ function validateWeekNumber(weekNumber: number, currentWeekNumber: number) {
 
 function validateHistoricalWeekNumber(
   weekNumber: number,
-  currentWeekNumber: number,
+  currentWeekNumber: number
 ) {
   validateWeekNumber(weekNumber, currentWeekNumber);
   if (weekNumber === currentWeekNumber) {
@@ -369,12 +369,12 @@ function validateNumericSeedString(value: string, label: string) {
 async function getSeedGroup(
   ctx: Parameters<typeof requireAdmin>[0],
   leagueId: Doc<"leagues">["_id"],
-  weekNumber: number,
+  weekNumber: number
 ) {
   const seeds = await ctx.db
     .query("seeds")
     .withIndex("by_leagueId_and_assignedWeekNumber_and_seedNumber", (q) =>
-      q.eq("leagueId", leagueId).eq("assignedWeekNumber", weekNumber),
+      q.eq("leagueId", leagueId).eq("assignedWeekNumber", weekNumber)
     )
     .take(MAX_LEAGUE_SEED_LIST_COUNT + 1);
   if (seeds.length > MAX_LEAGUE_SEED_LIST_COUNT) {
@@ -393,7 +393,7 @@ function formatSeedType(type: NonNullable<Doc<"seeds">["type"]>) {
 function getChangedFields(
   seed: Doc<"seeds">,
   values: ReturnType<typeof validateSeedValues>,
-  isUsed: boolean,
+  isUsed: boolean
 ) {
   const changedFields: string[] = [];
   if (seed.overworld !== values.overworld) changedFields.push("overworld");

@@ -19,7 +19,7 @@ export const logEventTypeValidator = v.union(
   v.literal("league.deleted"),
   v.literal("testing.paused"),
   v.literal("testing.resumed"),
-  v.literal("week.advanced"),
+  v.literal("week.advanced")
 );
 
 export const logActorTypeValidator = v.union(
@@ -27,7 +27,7 @@ export const logActorTypeValidator = v.union(
   v.literal("host"),
   v.literal("uploader"),
   v.literal("user"),
-  v.literal("system"),
+  v.literal("system")
 );
 
 export const logTargetTypeValidator = v.union(
@@ -35,7 +35,7 @@ export const logTargetTypeValidator = v.union(
   v.literal("comment"),
   v.literal("user"),
   v.literal("league"),
-  v.literal("settings"),
+  v.literal("settings")
 );
 
 export type LogEventType = Infer<typeof logEventTypeValidator>;

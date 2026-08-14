@@ -64,7 +64,7 @@ describe("public seed history API", () => {
     });
 
     const response = await t.fetch(
-      "/api/seeds/history?leagueNumber=1&weekNumber=3",
+      "/api/seeds/history?leagueNumber=1&weekNumber=3"
     );
 
     expect(response.status).toBe(200);
@@ -152,7 +152,7 @@ describe("public seed history API", () => {
     });
 
     const response = await t.fetch(
-      "/api/seeds/history?leagueNumber=2&weekNumber=3",
+      "/api/seeds/history?leagueNumber=2&weekNumber=3"
     );
 
     expect(response.status).toBe(200);
@@ -243,7 +243,7 @@ describe("public seed history API", () => {
     await admin.mutation(api.settings.advanceWeek, {});
 
     const response = await t.fetch(
-      "/api/seeds/history?leagueNumber=1&weekNumber=5",
+      "/api/seeds/history?leagueNumber=1&weekNumber=5"
     );
 
     expect(response.status).toBe(200);
@@ -285,7 +285,7 @@ describe("public seed history API", () => {
     });
 
     const response = await t.fetch(
-      "/api/seeds/history?leagueNumber=1&weekNumber=1",
+      "/api/seeds/history?leagueNumber=1&weekNumber=1"
     );
 
     expect(response.status).toBe(200);
@@ -321,7 +321,7 @@ describe("public seed history API", () => {
 
     expect([readResponse.status, writeResponse.status]).toEqual([401, 401]);
     expect(
-      await Promise.all([readResponse.json(), writeResponse.json()]),
+      await Promise.all([readResponse.json(), writeResponse.json()])
     ).toEqual([
       { error: "Unauthorized", status: 401 },
       { error: "Unauthorized", status: 401 },
@@ -340,7 +340,7 @@ describe("public seed history API", () => {
     });
 
     const response = await t.fetch(
-      "/api/seeds/history?leagueNumber=1&weekNumber=4",
+      "/api/seeds/history?leagueNumber=1&weekNumber=4"
     );
 
     expect(response.status).toBe(400);
@@ -362,7 +362,7 @@ describe("public seed history API", () => {
     });
 
     const response = await t.fetch(
-      "/api/seeds/history?leagueNumber=99&weekNumber=3",
+      "/api/seeds/history?leagueNumber=99&weekNumber=3"
     );
 
     expect(response.status).toBe(404);
@@ -408,13 +408,13 @@ describe("public seed history API", () => {
             isExpired: false,
             assignedWeekNumber: 1,
             commentCount: 0,
-          }),
-        ),
+          })
+        )
       );
     });
 
     const response = await t.fetch(
-      "/api/seeds/history?leagueNumber=1&weekNumber=1",
+      "/api/seeds/history?leagueNumber=1&weekNumber=1"
     );
 
     expect(response.status).toBe(500);

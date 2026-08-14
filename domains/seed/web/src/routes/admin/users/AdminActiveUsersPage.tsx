@@ -43,7 +43,7 @@ export function AdminActiveUsersPage() {
   const allLeagues = useQuery(api.leagues.listLeagues);
   const leagues = useMemo(
     () => sortLeaguesByNumberAndName(allLeagues ?? []),
-    [allLeagues],
+    [allLeagues]
   );
   const isLoading = activeUsers === undefined || allLeagues === undefined;
   const isUserSheetOpen = Boolean(userId);
@@ -145,7 +145,7 @@ function AdminActiveUsersTable({
               key={user._id}
               className={cn(
                 "cursor-pointer",
-                activeUserId === user._id && "bg-muted/50",
+                activeUserId === user._id && "bg-muted/50"
               )}
               onClick={() => onUserSelect(user._id)}
             >
@@ -171,7 +171,7 @@ function AdminActiveUsersTable({
               </TableCell>
 
               <TableCell className="border-r">
-                <div className="min-w-0 max-w-full">
+                <div className="max-w-full min-w-0">
                   <UserRoleBadges roles={user.roles} />
                 </div>
               </TableCell>

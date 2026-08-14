@@ -44,11 +44,11 @@ export function AdminPendingUserDetailsPage() {
   const allLeagues = useQuery(api.leagues.listLeagues);
   const leagues = useMemo(
     () => sortLeaguesByNumberAndName(allLeagues ?? []),
-    [allLeagues],
+    [allLeagues]
   );
   const selectedUserId = userId as Id<"users"> | undefined;
   const user = pendingUsers?.find(
-    (pendingUser) => pendingUser._id === selectedUserId,
+    (pendingUser) => pendingUser._id === selectedUserId
   );
 
   if (pendingUsers === undefined || allLeagues === undefined) {
@@ -128,10 +128,10 @@ function PendingActivationForm({
   const [roles, setRoles] = useState<ManagedRole[]>(savedValues.roles);
   const [makeAdmin, setMakeAdmin] = useState(user.roles.includes("admin"));
   const [uploaderLeagueIds, setUploaderleagueIds] = useState<Id<"leagues">[]>(
-    savedValues.uploaderLeagueIds,
+    savedValues.uploaderLeagueIds
   );
   const [hostLeagueId, setHostLeagueId] = useState<Id<"leagues">[]>(
-    savedValues.hostLeagueId,
+    savedValues.hostLeagueId
   );
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);

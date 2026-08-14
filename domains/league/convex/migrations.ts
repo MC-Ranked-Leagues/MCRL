@@ -1,10 +1,10 @@
-import { paginationOptsValidator } from "convex/server"
-import { internal } from "./_generated/api"
-import { internalMutation } from "./_generated/server"
-import type { Id } from "./_generated/dataModel"
-import { ensureRegistrationMatchOutcomes } from "./lib/matchOutcomes"
-import { getImprovedFastestTimeMs } from "./lib/playerFastestTime"
-import { calculateRegistrationAverageTimeMs } from "./lib/registrationAverage"
+import { paginationOptsValidator } from "convex/server";
+import { internal } from "./_generated/api";
+import { internalMutation } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
+import { ensureRegistrationMatchOutcomes } from "./lib/matchOutcomes";
+import { getImprovedFastestTimeMs } from "./lib/playerFastestTime";
+import { calculateRegistrationAverageTimeMs } from "./lib/registrationAverage";
 
 /**
  * Populates averageTimeMs for registrations that existed before that field was
@@ -19,15 +19,15 @@ export const backfillRegistrationAverageTimes = internalMutation({
   handler: async (ctx, args) => {
     const page = await ctx.db
       .query("registrations")
-      .paginate(args.paginationOpts)
+      .paginate(args.paginationOpts);
 
     for (const registration of page.page) {
-      const competition = await ctx.db.get(registration.competitionId)
+      const competition = await ctx.db.get(registration.competitionId);
       if (!competition) {
         console.warn(
           `Skipping registration ${registration._id}: competition ${registration.competitionId} was not found.`
-        )
-        continue
+        );
+        continue;
       }
 
       const results = await ctx.db
@@ -37,14 +37,14 @@ export const backfillRegistrationAverageTimes = internalMutation({
             .eq("playerId", registration.playerId)
             .eq("competitionId", registration.competitionId)
         )
-        .take(128)
+        .take(128);
 
       await ctx.db.patch(registration._id, {
         averageTimeMs: calculateRegistrationAverageTimeMs(
           results,
           competition.maxTimeLimitMs
         ),
-      })
+      });
     }
 
     if (!page.isDone) {
@@ -57,15 +57,15 @@ export const backfillRegistrationAverageTimes = internalMutation({
             cursor: page.continueCursor,
           },
         }
-      )
+      );
     }
 
     return {
       processed: page.page.length,
       isDone: page.isDone,
-    }
+    };
   },
-})
+});
 
 /**
  * Materializes explicit missed outcomes for imported matches, deduplicates and
@@ -81,22 +81,22 @@ export const backfillMissedMatchResults = internalMutation({
   handler: async (ctx, args) => {
     const page = await ctx.db
       .query("registrations")
-      .paginate(args.paginationOpts)
+      .paginate(args.paginationOpts);
 
     for (const registration of page.page) {
-      const competition = await ctx.db.get(registration.competitionId)
+      const competition = await ctx.db.get(registration.competitionId);
       if (!competition) {
         console.warn(
           `Skipping registration ${registration._id}: competition ${registration.competitionId} was not found.`
-        )
-        continue
+        );
+        continue;
       }
 
       await ensureRegistrationMatchOutcomes(
         ctx,
         competition,
         registration.playerId
-      )
+      );
 
       const results = await ctx.db
         .query("matchResults")
@@ -105,14 +105,14 @@ export const backfillMissedMatchResults = internalMutation({
             .eq("playerId", registration.playerId)
             .eq("competitionId", registration.competitionId)
         )
-        .take(128)
+        .take(128);
 
       await ctx.db.patch(registration._id, {
         averageTimeMs: calculateRegistrationAverageTimeMs(
           results,
           competition.maxTimeLimitMs
         ),
-      })
+      });
     }
 
     if (!page.isDone) {
@@ -125,15 +125,15 @@ export const backfillMissedMatchResults = internalMutation({
             cursor: page.continueCursor,
           },
         }
-      )
+      );
     }
 
     return {
       processed: page.page.length,
       isDone: page.isDone,
-    }
+    };
   },
-})
+});
 
 /**
  * Populates players.fastestTimeMs from completed historical match results.
@@ -148,33 +148,33 @@ export const backfillPlayerFastestTimes = internalMutation({
   handler: async (ctx, args) => {
     const page = await ctx.db
       .query("matchResults")
-      .paginate(args.paginationOpts)
-    const fastestTimesByPlayer = new Map<Id<"players">, number>()
+      .paginate(args.paginationOpts);
+    const fastestTimesByPlayer = new Map<Id<"players">, number>();
 
     for (const result of page.page) {
       const fastestTimeMs = getImprovedFastestTimeMs(
         fastestTimesByPlayer.get(result.playerId),
         result
-      )
+      );
 
       if (fastestTimeMs !== undefined) {
-        fastestTimesByPlayer.set(result.playerId, fastestTimeMs)
+        fastestTimesByPlayer.set(result.playerId, fastestTimeMs);
       }
     }
 
     for (const [playerId, fastestTimeMs] of fastestTimesByPlayer) {
-      const player = await ctx.db.get(playerId)
-      if (!player) continue
+      const player = await ctx.db.get(playerId);
+      if (!player) continue;
 
       const improvedFastestTimeMs = getImprovedFastestTimeMs(
         player.fastestTimeMs,
         { timeMs: fastestTimeMs, dnf: false }
-      )
-      if (improvedFastestTimeMs === undefined) continue
+      );
+      if (improvedFastestTimeMs === undefined) continue;
 
       await ctx.db.patch(playerId, {
         fastestTimeMs: improvedFastestTimeMs,
-      })
+      });
     }
 
     if (!page.isDone) {
@@ -187,12 +187,12 @@ export const backfillPlayerFastestTimes = internalMutation({
             cursor: page.continueCursor,
           },
         }
-      )
+      );
     }
 
     return {
       processed: page.page.length,
       isDone: page.isDone,
-    }
+    };
   },
-})
+});

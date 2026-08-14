@@ -1,5 +1,5 @@
-import { internalMutation, query } from "./_generated/server"
-import { v } from "convex/values"
+import { internalMutation, query } from "./_generated/server";
+import { v } from "convex/values";
 
 export const getCurrentWeek = query({
   args: {},
@@ -9,24 +9,24 @@ export const getCurrentWeek = query({
       .withIndex("by_active_comp_count", (q) =>
         q.gt("activeCompetitionCount", 0)
       )
-      .collect()
+      .collect();
 
-    if (activeWeeks.length === 0) return null
+    if (activeWeeks.length === 0) return null;
 
-    const weekNumber = Math.max(...activeWeeks.map((week) => week.weekNumber))
+    const weekNumber = Math.max(...activeWeeks.map((week) => week.weekNumber));
     const competitions = await ctx.db
       .query("competitions")
       .withIndex("by_week_number", (q) => q.eq("weekNumber", weekNumber))
-      .collect()
+      .collect();
 
     return {
       weekNumber,
       competitions: competitions.filter(
         (competition) => competition.status === "active"
       ),
-    }
+    };
   },
-})
+});
 
 export const transitionWeek = internalMutation({
   args: {
@@ -49,6 +49,6 @@ export const transitionWeek = internalMutation({
       weekNumber: args.weekNumber,
       newWeek: args.newWeek,
       playerCount: args.players.length,
-    }
+    };
   },
-})
+});

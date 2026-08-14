@@ -1,11 +1,11 @@
 ---
-import { TEAM } from "@/lib/credits-content"
-import Layout from "@/layouts/main.astro"
-import FooterCTA from "@/layouts/Footer.astro"
+import { TEAM } from "@/lib/credits-content";
+import Layout from "@/layouts/main.astro";
+import FooterCTA from "@/layouts/Footer.astro";
 
 const TOTAL_PEOPLE = new Set(
   TEAM.roles.flatMap((role) => [...role.leaders, ...role.members])
-).size
+).size;
 ---
 
 <Layout

@@ -1,21 +1,21 @@
-import { useCallback, useEffect, useState } from "react"
-import { Skeleton } from "@/components/ui/skeleton"
-import { cn } from "@/lib/utils"
+import { useCallback, useEffect, useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 type Seed = {
-  order: number
-  overworld: string
-  nether: string
-  end: string
-  rng: string
+  order: number;
+  overworld: string;
+  nether: string;
+  end: string;
+  rng: string;
   type:
     | "BURIED_TREASURE"
     | "VILLAGE"
     | "DESERT_TEMPLE"
     | "RUINED_PORTAL"
     | "SHIPWRECK"
-    | null
-}
+    | null;
+};
 
 const SEED_TYPE_LABELS: Record<NonNullable<Seed["type"]>, string> = {
   BURIED_TREASURE: "Buried Treasure",
@@ -23,49 +23,49 @@ const SEED_TYPE_LABELS: Record<NonNullable<Seed["type"]>, string> = {
   DESERT_TEMPLE: "Desert Temple",
   RUINED_PORTAL: "Ruined Portal",
   SHIPWRECK: "Shipwreck",
-}
+};
 
 const SeedList = ({
   weekNumber,
   leagueTier,
   showBorder = true,
 }: {
-  weekNumber: number | null
-  leagueTier: number | null
-  showBorder?: boolean
+  weekNumber: number | null;
+  leagueTier: number | null;
+  showBorder?: boolean;
 }) => {
-  const [seeds, setSeeds] = useState<Seed[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [hasError, setHasError] = useState(false)
+  const [seeds, setSeeds] = useState<Seed[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   const fetchSeeds = useCallback(async () => {
-    if (weekNumber === null || leagueTier === null) return
+    if (weekNumber === null || leagueTier === null) return;
 
-    setIsLoading(true)
-    setHasError(false)
+    setIsLoading(true);
+    setHasError(false);
 
     try {
       const res = await fetch(
         `https://pastel-shrimp-251.convex.site/api/seeds/history?weekNumber=${weekNumber}&leagueNumber=${leagueTier}`
-      )
-      if (!res.ok) throw new Error(`Request failed: ${res.status}`)
-      const data = await res.json()
-      setSeeds(data)
+      );
+      if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+      const data = await res.json();
+      setSeeds(data);
     } catch (err) {
-      console.error("Error fetching seeds:", err)
-      setSeeds([])
-      setHasError(true)
+      console.error("Error fetching seeds:", err);
+      setSeeds([]);
+      setHasError(true);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [weekNumber, leagueTier])
+  }, [weekNumber, leagueTier]);
 
   useEffect(() => {
-    fetchSeeds()
-  }, [fetchSeeds])
+    fetchSeeds();
+  }, [fetchSeeds]);
 
   if (weekNumber === null || leagueTier === null) {
-    return null
+    return null;
   }
 
   return (
@@ -123,7 +123,7 @@ const SeedList = ({
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default SeedList
+export default SeedList;

@@ -1,9 +1,9 @@
-import { describe, expect, test } from "vitest"
-import { calculateRegistrationAverageTimeMs } from "../convex/lib/registrationAverage"
+import { describe, expect, test } from "vitest";
+import { calculateRegistrationAverageTimeMs } from "../convex/lib/registrationAverage";
 
 describe("registration average", () => {
   test("keeps players with no played results unranked", () => {
-    expect(calculateRegistrationAverageTimeMs([], 120_000)).toBeNull()
+    expect(calculateRegistrationAverageTimeMs([], 120_000)).toBeNull();
     expect(
       calculateRegistrationAverageTimeMs(
         [
@@ -12,8 +12,8 @@ describe("registration average", () => {
         ],
         120_000
       )
-    ).toBeNull()
-  })
+    ).toBeNull();
+  });
 
   test("counts misses and DNFs at the competition time limit", () => {
     expect(
@@ -25,6 +25,6 @@ describe("registration average", () => {
         ],
         120_000
       )
-    ).toBe(100_000)
-  })
-})
+    ).toBe(100_000);
+  });
+});

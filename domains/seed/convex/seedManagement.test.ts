@@ -158,7 +158,7 @@ describe("admin seed management", () => {
       host.query(listSeeds, {
         leagueId: selectedLeagueId,
         weekNumber: 4,
-      }),
+      })
     ).rejects.toThrow("Admin access required");
   });
 
@@ -239,7 +239,7 @@ describe("admin seed management", () => {
         end: "203",
         rng: "204",
         type: "VILLAGE",
-      }),
+      })
     ).rejects.toThrow("current week");
   });
 
@@ -316,7 +316,7 @@ describe("admin seed management", () => {
       seed: await ctx.db.get("seeds", seedId),
       league: await ctx.db.get("leagues", leagueId),
       log: (await ctx.db.query("logs").collect()).find(
-        (log) => log.targetId === seedId,
+        (log) => log.targetId === seedId
       ),
     }));
 
@@ -348,7 +348,7 @@ describe("admin seed management", () => {
         rng: "204",
         type: "BURIED_TREASURE",
         isUsed: false,
-      }),
+      })
     ).rejects.toThrow("already exists");
 
     await admin.mutation(updateSeed, {
@@ -426,7 +426,7 @@ describe("admin seed management", () => {
         });
 
         return { adminId, leagueId, secondSeedId, otherWeekSeedId };
-      },
+      }
     );
     const admin = t.withIdentity({ subject: adminId });
 
@@ -442,7 +442,7 @@ describe("admin seed management", () => {
     const result = await t.run(async (ctx) => ({
       otherWeekSeed: await ctx.db.get("seeds", otherWeekSeedId),
       log: (await ctx.db.query("logs").collect()).find(
-        (log) => log.targetId === secondSeedId,
+        (log) => log.targetId === secondSeedId
       ),
     }));
 
@@ -536,12 +536,12 @@ describe("admin seed management", () => {
       comments: await ctx.db
         .query("comments")
         .withIndex("by_seedId_and_createdAt", (q) =>
-          q.eq("seedId", deletedSeedId),
+          q.eq("seedId", deletedSeedId)
         )
         .collect(),
       league: await ctx.db.get("leagues", leagueId),
       log: (await ctx.db.query("logs").collect()).find(
-        (log) => log.targetId === deletedSeedId,
+        (log) => log.targetId === deletedSeedId
       ),
     }));
 

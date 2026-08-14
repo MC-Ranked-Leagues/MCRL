@@ -126,7 +126,7 @@ function AdminPendingUsersTable({
               key={user._id}
               className={cn(
                 "cursor-pointer",
-                activeUserId === user._id && "bg-muted/50",
+                activeUserId === user._id && "bg-muted/50"
               )}
               onClick={() => onUserSelect(user._id)}
             >

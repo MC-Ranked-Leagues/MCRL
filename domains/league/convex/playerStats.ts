@@ -1,14 +1,14 @@
-import { v } from "convex/values"
-import { query } from "./_generated/server"
-import { getCompletedTimeMs } from "./lib/playerFastestTime"
+import { v } from "convex/values";
+import { query } from "./_generated/server";
+import { getCompletedTimeMs } from "./lib/playerFastestTime";
 
 export const getPlayerStats = query({
   args: {
     playerId: v.id("players"),
   },
   handler: async (ctx, args) => {
-    const player = await ctx.db.get(args.playerId)
-    if (!player) return null
+    const player = await ctx.db.get(args.playerId);
+    if (!player) return null;
 
     const [registrations, playerResults] = await Promise.all([
       ctx.db
@@ -19,11 +19,11 @@ export const getPlayerStats = query({
         .query("matchResults")
         .withIndex("by_player", (q) => q.eq("playerId", args.playerId))
         .collect(),
-    ])
+    ]);
 
     const resultsByMatchId = new Map(
       playerResults.map((result) => [result.matchId, result])
-    )
+    );
 
     const weeklyBreakdown = await Promise.all(
       registrations.map(async (registration) => {
@@ -32,11 +32,11 @@ export const getPlayerStats = query({
           .withIndex("by_competition_match", (q) =>
             q.eq("competitionId", registration.competitionId)
           )
-          .collect()
+          .collect();
 
         const matchDetails = matches.flatMap((match) => {
-          const result = resultsByMatchId.get(match._id)
-          if (!result) return []
+          const result = resultsByMatchId.get(match._id);
+          if (!result) return [];
 
           return [
             {
@@ -48,8 +48,8 @@ export const getPlayerStats = query({
               dnf: result.dnf,
               missed: result.missed === true,
             },
-          ]
-        })
+          ];
+        });
 
         return {
           weekNumber: registration.weekNumber,
@@ -61,9 +61,9 @@ export const getPlayerStats = query({
           ),
           averageTimeMs: registration.averageTimeMs,
           matchDetails,
-        }
+        };
       })
-    )
+    );
 
     const leagueHistory = registrations
       .map((registration) => ({
@@ -71,15 +71,15 @@ export const getPlayerStats = query({
         leagueNumber: registration.leagueTier,
         movement: registration.movementStatus ?? "none",
       }))
-      .sort((a, b) => a.weekNumber - b.weekNumber)
+      .sort((a, b) => a.weekNumber - b.weekNumber);
 
     const registrationAverageTimes = registrations
       .map((registration) => registration.averageTimeMs)
-      .filter((timeMs): timeMs is number => timeMs !== null)
+      .filter((timeMs): timeMs is number => timeMs !== null);
 
     const completedTimes = playerResults
       .map(getCompletedTimeMs)
-      .filter((timeMs): timeMs is number => timeMs !== null)
+      .filter((timeMs): timeMs is number => timeMs !== null);
 
     return {
       name: player.ign,
@@ -106,6 +106,6 @@ export const getPlayerStats = query({
           player.fastestTimeMs ??
           (completedTimes.length > 0 ? Math.min(...completedTimes) : 0),
       },
-    }
+    };
   },
-})
+});

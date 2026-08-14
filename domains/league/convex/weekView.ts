@@ -1,6 +1,6 @@
-import { v } from "convex/values"
-import { query, type QueryCtx } from "./_generated/server"
-import { compareWeekStandingRegistrations } from "./lib/weekStandings"
+import { v } from "convex/values";
+import { query, type QueryCtx } from "./_generated/server";
+import { compareWeekStandingRegistrations } from "./lib/weekStandings";
 
 async function getCompetitionByWeekAndLeague(
   ctx: QueryCtx,
@@ -12,7 +12,7 @@ async function getCompetitionByWeekAndLeague(
     .withIndex("by_league_and_week", (q) =>
       q.eq("leagueTier", leagueTier).eq("weekNumber", weekNumber)
     )
-    .unique()
+    .unique();
 }
 
 export const getAllWeeks = query({
@@ -24,7 +24,7 @@ export const getAllWeeks = query({
         isActive: week.activeCompetitionCount > 0,
       }))
       .sort((a, b) => b.weekNumber - a.weekNumber),
-})
+});
 
 export const getWeekMatches = query({
   args: {
@@ -36,15 +36,15 @@ export const getWeekMatches = query({
       ctx,
       args.weekNumber,
       args.leagueTier
-    )
-    if (!competition) return []
+    );
+    if (!competition) return [];
 
     const matches = await ctx.db
       .query("matches")
       .withIndex("by_competition_match", (q) =>
         q.eq("competitionId", competition._id)
       )
-      .collect()
+      .collect();
 
     return matches
       .map((match) => ({
@@ -53,9 +53,9 @@ export const getWeekMatches = query({
         rankedMatchId: match.rankedMatchId ?? null,
         winnerName: match.winnerName ?? "Unknown",
       }))
-      .sort((a, b) => a.matchNumber - b.matchNumber)
+      .sort((a, b) => a.matchNumber - b.matchNumber);
   },
-})
+});
 
 export const getWeekStandings = query({
   args: {
@@ -67,17 +67,17 @@ export const getWeekStandings = query({
       ctx,
       args.weekNumber,
       args.leagueTier
-    )
-    if (!competition) return []
+    );
+    if (!competition) return [];
 
     const registrations = await ctx.db
       .query("registrations")
       .withIndex("by_competition", (q) =>
         q.eq("competitionId", competition._id)
       )
-      .collect()
+      .collect();
 
-    registrations.sort(compareWeekStandingRegistrations)
+    registrations.sort(compareWeekStandingRegistrations);
 
     return registrations.map((registration, index) => ({
       rank: registration.averageTimeMs === null ? null : index + 1,
@@ -85,9 +85,9 @@ export const getWeekStandings = query({
       name: registration.playerIgn,
       totalPoints: registration.totalPoints,
       movement: registration.movementStatus ?? null,
-    }))
+    }));
   },
-})
+});
 
 export const getPlayerWeekPlacements = query({
   args: {
@@ -100,8 +100,8 @@ export const getPlayerWeekPlacements = query({
       ctx,
       args.weekNumber,
       args.leagueTier
-    )
-    if (!competition) return []
+    );
+    if (!competition) return [];
 
     return (
       await ctx.db
@@ -120,6 +120,6 @@ export const getPlayerWeekPlacements = query({
         dnf: result.dnf,
         missed: result.missed === true,
       }))
-      .sort((a, b) => a.matchNumber - b.matchNumber)
+      .sort((a, b) => a.matchNumber - b.matchNumber);
   },
-})
+});

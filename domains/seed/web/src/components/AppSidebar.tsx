@@ -92,7 +92,7 @@ export function AppSidebar({
   const allLeagues = useQuery(api.leagues.listLeagues);
   const leagues = useMemo(
     () => sortLeaguesByNumberAndName(allLeagues ?? []),
-    [allLeagues],
+    [allLeagues]
   );
   const isLeagueRoute = isActivePath(location.pathname, "/app/league");
   const isUsersRoute = isActivePath(location.pathname, "/app/admin/users");
@@ -150,7 +150,7 @@ export function AppSidebar({
                           <SidebarMenuSubButton
                             isActive={isActivePath(
                               location.pathname,
-                              `/app/league/${league._id}`,
+                              `/app/league/${league._id}`
                             )}
                             render={
                               <NavLink to={`/app/league/${league._id}`} />

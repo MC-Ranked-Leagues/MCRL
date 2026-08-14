@@ -10,6 +10,7 @@ At the end of each week, we promote and relegate players to ensure that the leag
 Players are listed on the leaderboard by total number of points. In most leagues, the top 15% are promoted and the bottom 15% are relegated, except for league 1 where bottom 20% are relegated. This is rounded to the nearest whole number.
 
 So for example, if 25 people played, the number of promotions and relegations would be:
+
 > 25 * 0.15 = 3.75 ≈ 4.
 
 Then the top 4 players would move to the higher league and the bottom 4 would move to the lower league. You can not be promoted from league 1 and you can not be relegated from league 6.

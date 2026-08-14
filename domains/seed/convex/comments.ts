@@ -27,13 +27,13 @@ export const listForSeed = query({
     const comments = [...newestComments].reverse();
 
     const authorIds = Array.from(
-      new Set(comments.map((comment) => comment.author)),
+      new Set(comments.map((comment) => comment.author))
     );
     const authors = await Promise.all(
-      authorIds.map((authorId) => ctx.db.get("users", authorId)),
+      authorIds.map((authorId) => ctx.db.get("users", authorId))
     );
     const authorsById = new Map(
-      authorIds.map((authorId, index) => [authorId, authors[index]]),
+      authorIds.map((authorId, index) => [authorId, authors[index]])
     );
 
     return comments.map((comment) => {
@@ -133,7 +133,7 @@ export function getCommentAuthorName(
         lowercaseName?: string;
       }
     | null
-    | undefined,
+    | undefined
 ) {
   return author?.name ?? author?.lowercaseName ?? "Unknown user";
 }

@@ -14,7 +14,7 @@ export async function getUser(ctx: QueryCtx | MutationCtx) {
 
 export function canViewLeague(
   user: Doc<"users">,
-  league: Doc<"leagues"> | undefined,
+  league: Doc<"leagues"> | undefined
 ) {
   const leagueId = league?._id;
 
@@ -41,7 +41,7 @@ export function canViewLeague(
 export async function getAccessibleSeed(
   ctx: QueryCtx | MutationCtx,
   user: Doc<"users">,
-  seedId: Id<"seeds">,
+  seedId: Id<"seeds">
 ) {
   const seed = await ctx.db.get("seeds", seedId);
 

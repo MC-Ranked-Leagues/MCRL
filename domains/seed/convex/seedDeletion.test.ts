@@ -77,13 +77,13 @@ describe("seed deletion", () => {
       comments: await ctx.db
         .query("comments")
         .withIndex("by_seedId_and_createdAt", (q) =>
-          q.eq("seedId", deletedSeedId),
+          q.eq("seedId", deletedSeedId)
         )
         .collect(),
       remainingSeeds: await ctx.db
         .query("seeds")
         .withIndex("by_leagueId_and_isExpired", (q) =>
-          q.eq("leagueId", leagueId).eq("isExpired", false),
+          q.eq("leagueId", leagueId).eq("isExpired", false)
         )
         .collect(),
       league: await ctx.db.get("leagues", leagueId),
@@ -118,7 +118,7 @@ describe("seed deletion", () => {
           rng: "4",
           type: "VILLAGE",
         },
-      }),
+      })
     ).resolves.toEqual(expect.any(String));
   });
 
@@ -195,18 +195,18 @@ describe("seed deletion", () => {
     await expect(
       t.withIdentity({ subject: otherUploaderId }).mutation(deleteSeed, {
         seedId: firstSeedId,
-      }),
+      })
     ).rejects.toThrow("You cannot delete this seed");
 
     await expect(
       t.withIdentity({ subject: hostId }).mutation(deleteSeed, {
         seedId: firstSeedId,
-      }),
+      })
     ).resolves.toBeNull();
     await expect(
       t.withIdentity({ subject: adminId }).mutation(deleteSeed, {
         seedId: secondSeedId,
-      }),
+      })
     ).resolves.toBeNull();
   });
 
@@ -274,7 +274,7 @@ describe("seed deletion", () => {
     const admin = t.withIdentity({ subject: adminId });
 
     await expect(
-      admin.mutation(deleteSeed, { seedId: activeSeedId }),
+      admin.mutation(deleteSeed, { seedId: activeSeedId })
     ).rejects.toThrow("Seed testing is currently paused");
 
     await t.run(async (ctx) => {
@@ -282,10 +282,10 @@ describe("seed deletion", () => {
     });
 
     await expect(
-      admin.mutation(deleteSeed, { seedId: usedSeedId }),
+      admin.mutation(deleteSeed, { seedId: usedSeedId })
     ).rejects.toThrow("Used seeds are read-only");
     await expect(
-      admin.mutation(deleteSeed, { seedId: expiredSeedId }),
+      admin.mutation(deleteSeed, { seedId: expiredSeedId })
     ).rejects.toThrow("Expired seeds are read-only");
   });
 });

@@ -1,6 +1,6 @@
 ---
-import { CustomButton } from "@/components/ui-custom/Button"
-import { ChevronDown } from "lucide-react"
+import { CustomButton } from "@/components/ui-custom/Button";
+import { ChevronDown } from "lucide-react";
 ---
 
 <section
@@ -94,19 +94,19 @@ import { ChevronDown } from "lucide-react"
 <script>
   const scrollIndicator = document.getElementById(
     "scroll-indicator"
-  ) as HTMLElement
+  ) as HTMLElement;
 
   setTimeout(() => {
     if (window.scrollY <= 20) {
-      scrollIndicator.style.opacity = "1"
+      scrollIndicator.style.opacity = "1";
     }
-  }, 500)
+  }, 500);
 
   window.addEventListener(
     "scroll",
     () => {
-      scrollIndicator.style.opacity = window.scrollY > 20 ? "0" : "1"
+      scrollIndicator.style.opacity = window.scrollY > 20 ? "0" : "1";
     },
     { passive: true }
-  )
+  );
 </script>

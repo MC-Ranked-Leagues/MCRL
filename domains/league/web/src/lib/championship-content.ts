@@ -1,46 +1,46 @@
-export const Z_SCORE_FORMULA = "(league_avg - player_avg) / league_std"
+export const Z_SCORE_FORMULA = "(league_avg - player_avg) / league_std";
 
 export const SWISS_RULES = [
   { label: "Rounds", value: "7" },
   { label: "Time limit", value: "13 min" },
   { label: "Win / loss", value: "1 / 0 pts" },
   { label: "Advance", value: "Top 4" },
-] as const
+] as const;
 
-export const TIEBREAKS = ["Opponent score", "Avg completion time"] as const
+export const TIEBREAKS = ["Opponent score", "Avg completion time"] as const;
 
 export const BRACKET_RULES = [
   { label: "Robin #1", value: "Picks R1 opponent" },
   { label: "Semis", value: "Bo5" },
   { label: "Grand final", value: "Bo7" },
-] as const
+] as const;
 
 type PrizeEntry = {
-  place: string
-  amount: number
-  each?: boolean
-}
+  place: string;
+  amount: number;
+  each?: boolean;
+};
 
 export const PRIZES: PrizeEntry[] = [
   { place: "1st", amount: 225 },
   { place: "2nd", amount: 125 },
   { place: "3rd-4th", amount: 20, each: true },
   { place: "Fastest seed", amount: 10 },
-]
+];
 
 type QualificationSlot = {
-  seed: number
-  title: string
-  type: "weekly" | "zscore" | "lcq"
-  week?: number
-  criteria: string
+  seed: number;
+  title: string;
+  type: "weekly" | "zscore" | "lcq";
+  week?: number;
+  criteria: string;
   player: {
-    name: string
-    status: string
-    twitchUsername?: string
-    avatarUrl?: string
-  } | null
-}
+    name: string;
+    status: string;
+    twitchUsername?: string;
+    avatarUrl?: string;
+  } | null;
+};
 
 export const QUAL_SLOTS: QualificationSlot[] = [
   {
@@ -137,17 +137,17 @@ export const QUAL_SLOTS: QualificationSlot[] = [
       twitchUsername: "cornflakesmcsr",
     },
   },
-]
+];
 
 type StreamCardData = {
-  platform: "twitch" | "youtube"
-  channelName: string
-  title: string
-  url: string
-  isLive: boolean
-  viewers?: number
-  caster?: string
-}
+  platform: "twitch" | "youtube";
+  channelName: string;
+  title: string;
+  url: string;
+  isLive: boolean;
+  viewers?: number;
+  caster?: string;
+};
 
 export const STREAMS: StreamCardData[] = [
   {
@@ -184,4 +184,4 @@ export const STREAMS: StreamCardData[] = [
     isLive: false,
     caster: "Feinberg",
   },
-]
+];

@@ -76,12 +76,12 @@ function AddSeedDialog({
   }));
   const [manualErrors, setManualErrors] = useState<SeedFormErrors>({});
   const selectedManualLeague = leagues.find(
-    (league) => league._id === manualValues.leagueId,
+    (league) => league._id === manualValues.leagueId
   );
   const selectedLeagueRestriction =
     selectedManualLeague?.seedUploadDisabledReason;
   const uploadSeedTypes = getUploadSeedTypes(
-    settings?.enableJunglePyramidSeeds ?? false,
+    settings?.enableJunglePyramidSeeds ?? false
   );
   const selectedSeedType =
     manualValues.type === "JUNGLE_PYRAMID" &&
@@ -104,7 +104,7 @@ function AddSeedDialog({
 
   const updateManualValue = <Key extends keyof SeedFormValues>(
     key: Key,
-    value: SeedFormValues[Key],
+    value: SeedFormValues[Key]
   ) => {
     setManualValues((current) => ({ ...current, [key]: value }));
   };

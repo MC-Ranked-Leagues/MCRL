@@ -134,7 +134,7 @@ export const advanceWeekInternal = internalMutation({
     const clearedUserCount = users.filter(
       (user) =>
         (user.hostLeagueId?.length ?? 0) > 0 ||
-        (user.uploaderLeagues?.length ?? 0) > 0,
+        (user.uploaderLeagues?.length ?? 0) > 0
     ).length;
 
     await Promise.all(
@@ -142,8 +142,8 @@ export const advanceWeekInternal = internalMutation({
         ctx.db.patch("users", u._id, {
           hostLeagueId: [],
           uploaderLeagues: [],
-        }),
-      ),
+        })
+      )
     );
 
     await ctx.db.patch("settings", settings._id, {
@@ -175,7 +175,7 @@ export const advanceWeek = mutation({
 
     const result: AdvanceWeekResult = await ctx.runMutation(
       internal.settings.advanceWeekInternal,
-      {},
+      {}
     );
 
     return result;

@@ -44,7 +44,7 @@ export async function writeLog(ctx: MutationCtx, args: WriteLogArgs) {
 }
 
 export function getPrimaryActorType(
-  user: Doc<"users">,
+  user: Doc<"users">
 ): Exclude<LogActorType, "system"> {
   if (user.roles.includes("admin")) return "admin";
   if (user.roles.includes("host")) return "host";

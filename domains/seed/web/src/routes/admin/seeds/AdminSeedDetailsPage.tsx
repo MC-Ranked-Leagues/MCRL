@@ -1,6 +1,6 @@
 export function AdminSeedDetailsPage() {
   return (
-    <section className="space-y-4 ">
+    <section className="space-y-4">
       <div>
         <h2 className="mt-2 text-2xl font-semibold">Seed details</h2>
       </div>

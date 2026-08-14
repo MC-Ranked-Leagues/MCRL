@@ -16,7 +16,7 @@ export function AdminLeaguesPage() {
   const allLeagues = useQuery(api.leagues.listLeagues);
   const leagues = useMemo(
     () => sortLeaguesByNumberAndName(allLeagues ?? []),
-    [allLeagues],
+    [allLeagues]
   );
   const isLoading = allLeagues === undefined;
   const [isDialogOpen, setIsDialogOpen] = useState(false);

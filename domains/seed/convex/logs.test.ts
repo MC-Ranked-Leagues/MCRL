@@ -70,7 +70,7 @@ describe("audit logs", () => {
     await expect(
       host.query(api.logs.list, {
         paginationOpts: { numItems: 25, cursor: null },
-      }),
+      })
     ).rejects.toThrow("Admin access required");
   });
 

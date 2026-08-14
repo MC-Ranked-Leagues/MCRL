@@ -42,22 +42,22 @@ export function AdminIndexPage() {
   const resumeSeedTesting = useMutation(api.settings.resumeSeedTesting);
   const advanceWeek = useMutation(api.settings.advanceWeek);
   const setJunglePyramidSeedsEnabled = useMutation(
-    api.settings.setJunglePyramidSeedsEnabled,
+    api.settings.setJunglePyramidSeedsEnabled
   );
 
   const [pendingAction, setPendingAction] = useState<AdminWeekAction | null>(
-    null,
+    null
   );
   const [error, setError] = useState<string | null>(null);
   const [isAdvanceDialogOpen, setIsAdvanceDialogOpen] = useState(false);
   const [experimentalError, setExperimentalError] = useState<string | null>(
-    null,
+    null
   );
   const [isSavingExperimental, setIsSavingExperimental] = useState(false);
 
   const runAction = async (
     action: AdminWeekAction,
-    callback: () => Promise<unknown>,
+    callback: () => Promise<unknown>
   ) => {
     setError(null);
     setPendingAction(action);
@@ -82,7 +82,7 @@ export function AdminIndexPage() {
       await setJunglePyramidSeedsEnabled({ enabled });
     } catch (actionError) {
       setExperimentalError(
-        getErrorMessage(actionError, "Could not update experimental features"),
+        getErrorMessage(actionError, "Could not update experimental features")
       );
     } finally {
       setIsSavingExperimental(false);

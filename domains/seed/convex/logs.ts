@@ -19,7 +19,7 @@ export const list = query({
       return await ctx.db
         .query("logs")
         .withIndex("by_eventType_and_actorType", (q) =>
-          q.eq("eventType", eventType).eq("actorType", actorType),
+          q.eq("eventType", eventType).eq("actorType", actorType)
         )
         .order("desc")
         .paginate(args.paginationOpts);

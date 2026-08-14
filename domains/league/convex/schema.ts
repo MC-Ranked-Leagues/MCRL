@@ -1,6 +1,6 @@
 // convex/schema.ts
-import { defineSchema, defineTable } from "convex/server"
-import { v } from "convex/values"
+import { defineSchema, defineTable } from "convex/server";
+import { v } from "convex/values";
 
 export default defineSchema({
   players: defineTable({
@@ -91,4 +91,4 @@ export default defineSchema({
     .index("by_player_and_competition", ["playerId", "competitionId"])
     .index("by_week_and_player", ["weekNumber", "playerId"])
     .index("by_match_and_player", ["matchId", "playerId"]),
-})
+});

@@ -1,6 +1,6 @@
-import { v } from "convex/values"
-import { query } from "./_generated/server"
-import { buildPlayerListEntry } from "./lib/playerListEntry"
+import { v } from "convex/values";
+import { query } from "./_generated/server";
+import { buildPlayerListEntry } from "./lib/playerListEntry";
 
 export const getLeagueStandings = query({
   args: {
@@ -12,13 +12,13 @@ export const getLeagueStandings = query({
       .withIndex("by_league", (q) =>
         q.eq("currentLeagueNumber", args.leagueTier)
       )
-      .collect()
+      .collect();
 
     players.sort((a, b) => {
-      const eloDiff = (b.elo ?? 0) - (a.elo ?? 0)
-      if (eloDiff !== 0) return eloDiff
-      return a.ign.localeCompare(b.ign)
-    })
+      const eloDiff = (b.elo ?? 0) - (a.elo ?? 0);
+      if (eloDiff !== 0) return eloDiff;
+      return a.ign.localeCompare(b.ign);
+    });
 
     return players.map((player, index) => ({
       rank: index + 1,
@@ -27,9 +27,9 @@ export const getLeagueStandings = query({
       name: player.ign,
       elo: player.elo ?? 0,
       leagueTier: player.currentLeagueNumber,
-    }))
+    }));
   },
-})
+});
 
 export const getFastestPlayers = query({
   args: {},
@@ -38,10 +38,10 @@ export const getFastestPlayers = query({
       .query("players")
       .withIndex("by_fastest_time", (q) => q.gt("fastestTimeMs", 0))
       .order("asc")
-      .take(20)
+      .take(20);
 
     return players.map((player, index) =>
       buildPlayerListEntry(player, index + 1)
-    )
+    );
   },
-})
+});

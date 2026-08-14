@@ -1,10 +1,5 @@
 export type SeedStatus =
-  | "expired"
-  | "used"
-  | "open"
-  | "assigned"
-  | "claimed"
-  | "unassigned";
+  "expired" | "used" | "open" | "assigned" | "claimed" | "unassigned";
 
 export function getSeedStatus(seed: {
   isUsed: boolean;

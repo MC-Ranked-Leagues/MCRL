@@ -43,14 +43,14 @@ export const numberSeeds = internalMutation({
       const seedsForLeague = await ctx.db
         .query("seeds")
         .withIndex("by_leagueId_and_isExpired", (q) =>
-          q.eq("leagueId", league._id).eq("isExpired", false),
+          q.eq("leagueId", league._id).eq("isExpired", false)
         )
         .collect();
 
       await Promise.all(
         seedsForLeague.map((s, i) =>
-          ctx.db.patch("seeds", s._id, { seedNumber: i + 1 }),
-        ),
+          ctx.db.patch("seeds", s._id, { seedNumber: i + 1 })
+        )
       );
     }
   },

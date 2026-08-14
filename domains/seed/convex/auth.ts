@@ -39,7 +39,7 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
         await updateUserFromDiscordProfile(
           ctx,
           args.existingUserId,
-          args.profile,
+          args.profile
         );
         return args.existingUserId;
       }

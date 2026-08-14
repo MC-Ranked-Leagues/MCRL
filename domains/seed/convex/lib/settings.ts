@@ -22,4 +22,3 @@ export async function requireSettings(ctx: QueryCtx | MutationCtx) {
 
   return settings;
 }
-

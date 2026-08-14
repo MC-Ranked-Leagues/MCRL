@@ -1,18 +1,18 @@
-import { Skeleton } from "@/components/ui/skeleton"
-import { cn } from "@/lib/utils"
-import type { Id } from "../../../../convex/_generated/dataModel"
-import { CrownIcon } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
+import type { Id } from "../../../../convex/_generated/dataModel";
+import { CrownIcon } from "lucide-react";
 
 interface MatchRow {
-  _id: Id<"matches">
-  matchNumber: number
-  winnerName: string
+  _id: Id<"matches">;
+  matchNumber: number;
+  winnerName: string;
 }
 
 interface MatchesListProps {
-  matches: MatchRow[] | undefined
-  selectedMatchId: string | null
-  onMatchClick: (matchId: string) => void
+  matches: MatchRow[] | undefined;
+  selectedMatchId: string | null;
+  onMatchClick: (matchId: string) => void;
 }
 
 export function MatchesList({
@@ -27,17 +27,19 @@ export function MatchesList({
           <Skeleton key={i} className="h-10 w-full rounded-md" />
         ))}
       </div>
-    )
+    );
   }
 
   if (matches.length === 0) {
-    return <div className="text-sm text-muted-foreground">No matches found</div>
+    return (
+      <div className="text-sm text-muted-foreground">No matches found</div>
+    );
   }
 
   return (
     <div className="flex flex-col font-minecraft">
       {matches.map((match) => {
-        const isSelected = selectedMatchId === match._id
+        const isSelected = selectedMatchId === match._id;
 
         return (
           <button
@@ -56,8 +58,8 @@ export function MatchesList({
               <span className="text-sm">{match.winnerName}</span>
             </div>
           </button>
-        )
+        );
       })}
     </div>
-  )
+  );
 }

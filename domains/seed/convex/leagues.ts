@@ -110,7 +110,7 @@ export const addLeague = mutation({
     const existingLeague = await ctx.db
       .query("leagues")
       .withIndex("by_leagueNumber", (q) =>
-        q.eq("leagueNumber", args.leagueNumber),
+        q.eq("leagueNumber", args.leagueNumber)
       )
       .unique();
 

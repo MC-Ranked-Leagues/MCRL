@@ -13,6 +13,6 @@ export type SeedType = keyof typeof SEED_TYPES;
 
 export function getUploadSeedTypes(enableJunglePyramidSeeds: boolean) {
   return seedTypesArray.filter(
-    (type) => enableJunglePyramidSeeds || type !== "JUNGLE_PYRAMID",
+    (type) => enableJunglePyramidSeeds || type !== "JUNGLE_PYRAMID"
   );
 }

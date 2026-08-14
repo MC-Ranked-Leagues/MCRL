@@ -1,7 +1,7 @@
 ---
-import Layout from "@/layouts/main.astro"
-import PixelIcons from "@/components/championship/PixelIcons.astro"
-import { Award, Trophy, Swords, CheckCircle } from "lucide-react"
+import Layout from "@/layouts/main.astro";
+import PixelIcons from "@/components/championship/PixelIcons.astro";
+import { Award, Trophy, Swords, CheckCircle } from "lucide-react";
 import {
   QUAL_SLOTS,
   STREAMS,
@@ -10,26 +10,26 @@ import {
   SWISS_RULES,
   TIEBREAKS,
   BRACKET_RULES,
-} from "@/lib/championship-content"
+} from "@/lib/championship-content";
 
 const OFFICIAL_STREAMS = STREAMS.filter((stream) =>
   stream.caster?.toLowerCase().includes("official")
-)
+);
 
 const getTwitchAvatarUrl = (username: string) =>
-  `https://decapi.me/twitch/avatar/${encodeURIComponent(username)}`
+  `https://decapi.me/twitch/avatar/${encodeURIComponent(username)}`;
 
 const resolveTwitchAvatarUrl = async (username: string) => {
-  const response = await fetch(getTwitchAvatarUrl(username))
+  const response = await fetch(getTwitchAvatarUrl(username));
 
   if (!response.ok) {
-    return null
+    return null;
   }
 
-  const avatarUrl = (await response.text()).trim()
+  const avatarUrl = (await response.text()).trim();
 
-  return avatarUrl.length > 0 ? avatarUrl : null
-}
+  return avatarUrl.length > 0 ? avatarUrl : null;
+};
 
 const QUAL_SLOTS_WITH_AVATARS = await Promise.all(
   QUAL_SLOTS.map(async (slot) => ({
@@ -38,21 +38,21 @@ const QUAL_SLOTS_WITH_AVATARS = await Promise.all(
       ? await resolveTwitchAvatarUrl(slot.player.twitchUsername)
       : (slot.player?.avatarUrl ?? null),
   }))
-)
+);
 
-const LOCKED_QUAL_SLOT_COUNT = QUAL_SLOTS.filter((slot) => slot.player).length
-const TOTAL_QUAL_SLOT_COUNT = QUAL_SLOTS.length
+const LOCKED_QUAL_SLOT_COUNT = QUAL_SLOTS.filter((slot) => slot.player).length;
+const TOTAL_QUAL_SLOT_COUNT = QUAL_SLOTS.length;
 
 const getDayTwoPlayer = (name: string) => {
   const slot = QUAL_SLOTS_WITH_AVATARS.find(
     (entry) => entry.player?.name.toLowerCase() === name.toLowerCase()
-  )
+  );
 
   return {
     name,
     avatarUrl: slot?.playerAvatarUrl ?? null,
-  }
-}
+  };
+};
 
 const ACCENT_CLASSES = {
   lime: {
@@ -69,7 +69,7 @@ const ACCENT_CLASSES = {
     winnerBorder: "border-l-2 border-amber-400",
     winnerText: "text-amber-400",
   },
-} as const
+} as const;
 
 const DAY_TWO_MATCHES = [
   {
@@ -90,7 +90,7 @@ const DAY_TWO_MATCHES = [
     ],
     winner: "Steez" as string | null,
   },
-] as const
+] as const;
 
 const GRAND_FINAL = {
   players: [
@@ -98,7 +98,7 @@ const GRAND_FINAL = {
     { ...getDayTwoPlayer("Steez"), score: 4 },
   ],
   winner: "Steez" as string | null,
-}
+};
 ---
 
 <Layout
@@ -139,11 +139,11 @@ const GRAND_FINAL = {
         <div class="mx-auto grid max-w-7xl gap-8 md:grid-cols-2">
           {
             OFFICIAL_STREAMS.map((s) => {
-              const displayUrl = s.url.replace(/^https:\/\/(www\.)?/, "")
+              const displayUrl = s.url.replace(/^https:\/\/(www\.)?/, "");
               const cardBorder =
                 s.platform === "twitch"
                   ? "border-[#9146FF]"
-                  : "border-[#FF0000]"
+                  : "border-[#FF0000]";
 
               return (
                 <div
@@ -158,7 +158,7 @@ const GRAND_FINAL = {
                     {displayUrl}
                   </a>
                 </div>
-              )
+              );
             })
           }
         </div>
@@ -226,7 +226,7 @@ const GRAND_FINAL = {
             >
               {
                 DAY_TWO_MATCHES.map((match, matchIndex) => {
-                  const accent = ACCENT_CLASSES[match.accent]
+                  const accent = ACCENT_CLASSES[match.accent];
 
                   return (
                     <article
@@ -245,7 +245,7 @@ const GRAND_FINAL = {
 
                       <div class="divide-y divide-black">
                         {match.players.map((player) => {
-                          const isWinner = player.name === match.winner
+                          const isWinner = player.name === match.winner;
 
                           return (
                             <div
@@ -270,11 +270,11 @@ const GRAND_FINAL = {
                                 {player.score ?? "—"}
                               </span>
                             </div>
-                          )
+                          );
                         })}
                       </div>
                     </article>
-                  )
+                  );
                 })
               }
 
@@ -324,7 +324,7 @@ const GRAND_FINAL = {
                   <div class="divide-y divide-black">
                     {
                       GRAND_FINAL.players.map((player) => {
-                        const isWinner = player.name === GRAND_FINAL.winner
+                        const isWinner = player.name === GRAND_FINAL.winner;
 
                         return (
                           <div
@@ -349,7 +349,7 @@ const GRAND_FINAL = {
                               {player.score ?? "—"}
                             </span>
                           </div>
-                        )
+                        );
                       })
                     }
                   </div>
@@ -384,14 +384,14 @@ const GRAND_FINAL = {
                   ? "border-lime-400 hover:border-lime-300 bg-[#12161a]"
                   : slot.type === "zscore"
                     ? "border-cyan-400 hover:border-cyan-300 bg-[#12161a]"
-                    : "border-pink-400 hover:border-pink-300 bg-[#12161a]"
+                    : "border-pink-400 hover:border-pink-300 bg-[#12161a]";
 
               const textTheme =
                 slot.type === "weekly"
                   ? "text-lime-400"
                   : slot.type === "zscore"
                     ? "text-cyan-400"
-                    : "text-pink-400"
+                    : "text-pink-400";
 
               return (
                 <div
@@ -437,7 +437,7 @@ const GRAND_FINAL = {
                     <div class="mx-auto my-3 h-0.5 w-8 bg-black" />
                   </div>
                 </div>
-              )
+              );
             })
           }
         </div>
@@ -616,10 +616,10 @@ const GRAND_FINAL = {
         <div class="mx-auto grid max-w-4xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {
             PRIZES.map((prize, idx) => {
-              const isFirst = idx === 0
+              const isFirst = idx === 0;
               const theme = isFirst
                 ? "border-lime-400 bg-[#12161a] text-lime-400"
-                : "border-black bg-[#12161a] text-slate-200"
+                : "border-black bg-[#12161a] text-slate-200";
 
               return (
                 <div
@@ -640,7 +640,7 @@ const GRAND_FINAL = {
                     )}
                   </div>
                 </div>
-              )
+              );
             })
           }
         </div>

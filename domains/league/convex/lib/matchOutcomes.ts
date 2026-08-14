@@ -1,6 +1,6 @@
-import type { Doc, Id } from "../_generated/dataModel"
-import type { MutationCtx } from "../_generated/server"
-import { buildMatchResultSnapshot } from "./readModels"
+import type { Doc, Id } from "../_generated/dataModel";
+import type { MutationCtx } from "../_generated/server";
+import { buildMatchResultSnapshot } from "./readModels";
 
 /**
  * Ensures a registration has one explicit outcome for every imported match.
@@ -17,10 +17,10 @@ export async function ensureRegistrationMatchOutcomes(
     .withIndex("by_competition_match", (q) =>
       q.eq("competitionId", competition._id)
     )
-    .collect()
+    .collect();
 
   for (const match of matches) {
-    if (match.rankedMatchId === undefined) continue
+    if (match.rankedMatchId === undefined) continue;
 
     let existingResults = await ctx.db
       .query("matchResults")
@@ -28,17 +28,17 @@ export async function ensureRegistrationMatchOutcomes(
         q.eq("matchId", match._id).eq("playerId", playerId)
       )
       .order("desc")
-      .take(128)
+      .take(128);
 
-    const existingResult = existingResults[0]
-    let duplicatesRemoved = 0
+    const existingResult = existingResults[0];
+    let duplicatesRemoved = 0;
     while (existingResults.length > 1) {
       for (const duplicate of existingResults.slice(1)) {
-        await ctx.db.delete(duplicate._id)
-        duplicatesRemoved += 1
+        await ctx.db.delete(duplicate._id);
+        duplicatesRemoved += 1;
       }
 
-      if (existingResults.length < 128) break
+      if (existingResults.length < 128) break;
 
       existingResults = await ctx.db
         .query("matchResults")
@@ -46,20 +46,20 @@ export async function ensureRegistrationMatchOutcomes(
           q.eq("matchId", match._id).eq("playerId", playerId)
         )
         .order("desc")
-        .take(128)
+        .take(128);
     }
 
     if (duplicatesRemoved > 0) {
       console.warn(
         `Removed ${duplicatesRemoved} duplicate outcome(s) for match ${match._id} and player ${playerId}.`
-      )
+      );
     }
 
     if (existingResult) {
       if (existingResult.missed === undefined) {
-        await ctx.db.patch(existingResult._id, { missed: false })
+        await ctx.db.patch(existingResult._id, { missed: false });
       }
-      continue
+      continue;
     }
 
     await ctx.db.insert("matchResults", {
@@ -71,6 +71,6 @@ export async function ensureRegistrationMatchOutcomes(
       dnf: false,
       placement: null,
       pointsWon: 0,
-    })
+    });
   }
 }

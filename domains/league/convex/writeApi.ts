@@ -1,6 +1,6 @@
-import { v } from "convex/values"
-import type { Doc, Id } from "./_generated/dataModel"
-import { internalMutation, type MutationCtx } from "./_generated/server"
+import { v } from "convex/values";
+import type { Doc, Id } from "./_generated/dataModel";
+import { internalMutation, type MutationCtx } from "./_generated/server";
 import {
   applyWeekCompetitionDelta,
   buildMatchWinnerPatch,
@@ -11,34 +11,33 @@ import {
   getPlayerByUuid,
   syncPlayerRegistrationSnapshots,
   syncPlayerWinnerSnapshots,
-} from "./lib/readModels"
-import { ensureRegistrationMatchOutcomes } from "./lib/matchOutcomes"
-import { calculateRegistrationAverageTimeMs } from "./lib/registrationAverage"
-import { getImprovedFastestTimeMs } from "./lib/playerFastestTime"
+} from "./lib/readModels";
+import { ensureRegistrationMatchOutcomes } from "./lib/matchOutcomes";
+import { calculateRegistrationAverageTimeMs } from "./lib/registrationAverage";
+import { getImprovedFastestTimeMs } from "./lib/playerFastestTime";
 
 type ApiSuccess<T extends Record<string, unknown> = Record<string, never>> = {
-  ok: true
-} & T
+  ok: true;
+} & T;
 
 type ApiFailure = {
-  ok: false
-  status: number
-  error: string
-}
+  ok: false;
+  status: number;
+  error: string;
+};
 
 type ApiResult<T extends Record<string, unknown> = Record<string, never>> =
-  | ApiSuccess<T>
-  | ApiFailure
+  ApiSuccess<T> | ApiFailure;
 
-type CompetitionDoc = Doc<"competitions">
-type PlayerDoc = Doc<"players">
-type MatchDoc = Doc<"matches">
-type RegistrationDoc = Doc<"registrations">
+type CompetitionDoc = Doc<"competitions">;
+type PlayerDoc = Doc<"players">;
+type MatchDoc = Doc<"matches">;
+type RegistrationDoc = Doc<"registrations">;
 
 // PII info is already public in the MCSRRanked api, so nothing im logging/storing is sensitive.
 function fail(status: number, error: string): ApiFailure {
-  console.error(`[Write API] ${status} ${error}`)
-  return { ok: false, status, error }
+  console.error(`[Write API] ${status} ${error}`);
+  return { ok: false, status, error };
 }
 
 async function getCompetition(
@@ -51,17 +50,17 @@ async function getCompetition(
     .withIndex("by_league_and_week", (q) =>
       q.eq("leagueTier", leagueTier).eq("weekNumber", weekNumber)
     )
-    .unique()
+    .unique();
 }
 
 function ensureCompetitionWritable(
   competition: CompetitionDoc
 ): ApiFailure | null {
   if (competition.status === "ended") {
-    return fail(403, "Competition already finalized.")
+    return fail(403, "Competition already finalized.");
   }
 
-  return null
+  return null;
 }
 
 async function getMatch(
@@ -74,7 +73,7 @@ async function getMatch(
     .withIndex("by_competition_match", (q) =>
       q.eq("competitionId", competitionId).eq("matchNumber", matchNumber)
     )
-    .unique()
+    .unique();
 }
 
 async function getRegistration(
@@ -87,7 +86,7 @@ async function getRegistration(
     .withIndex("by_comp_and_player", (q) =>
       q.eq("competitionId", competitionId).eq("playerId", playerId)
     )
-    .unique()
+    .unique();
 }
 
 async function applyRegistrationPointDelta(
@@ -96,20 +95,20 @@ async function applyRegistrationPointDelta(
   playerId: Id<"players">,
   seedPointsDelta: number
 ): Promise<RegistrationDoc | null> {
-  const registration = await getRegistration(ctx, competitionId, playerId)
+  const registration = await getRegistration(ctx, competitionId, playerId);
   if (!registration) {
-    return null
+    return null;
   }
 
-  const computedSeedPoints = registration.computedSeedPoints + seedPointsDelta
-  const totalPoints = registration.totalPoints + seedPointsDelta
+  const computedSeedPoints = registration.computedSeedPoints + seedPointsDelta;
+  const totalPoints = registration.totalPoints + seedPointsDelta;
 
   await ctx.db.patch(registration._id, {
     computedSeedPoints,
     totalPoints,
-  })
+  });
 
-  return await ctx.db.get(registration._id)
+  return await ctx.db.get(registration._id);
 }
 
 async function recalculateRegistrationAverageTime(
@@ -117,58 +116,58 @@ async function recalculateRegistrationAverageTime(
   competition: CompetitionDoc,
   playerId: Id<"players">
 ) {
-  const registration = await getRegistration(ctx, competition._id, playerId)
-  if (!registration) return
+  const registration = await getRegistration(ctx, competition._id, playerId);
+  if (!registration) return;
 
   const results = await ctx.db
     .query("matchResults")
     .withIndex("by_player_and_competition", (q) =>
       q.eq("playerId", playerId).eq("competitionId", competition._id)
     )
-    .take(128)
+    .take(128);
 
   await ctx.db.patch(registration._id, {
     averageTimeMs: calculateRegistrationAverageTimeMs(
       results,
       competition.maxTimeLimitMs
     ),
-  })
+  });
 }
 
 async function deleteMatchResultsForMatch(
   ctx: MutationCtx,
   matchId: Id<"matches">
 ): Promise<number> {
-  let deleted = 0
+  let deleted = 0;
 
   while (true) {
     const batch = await ctx.db
       .query("matchResults")
       .withIndex("by_match", (q) => q.eq("matchId", matchId))
-      .take(128)
+      .take(128);
 
-    if (batch.length === 0) break
+    if (batch.length === 0) break;
 
     for (const result of batch) {
-      await ctx.db.delete(result._id)
-      deleted += 1
+      await ctx.db.delete(result._id);
+      deleted += 1;
     }
   }
 
-  return deleted
+  return deleted;
 }
 
 async function deleteCompetitionData(
   ctx: MutationCtx,
   competitionId: Id<"competitions">
 ): Promise<{
-  deletedRegistrations: number
-  deletedMatches: number
-  deletedMatchResults: number
+  deletedRegistrations: number;
+  deletedMatches: number;
+  deletedMatchResults: number;
 }> {
-  let deletedMatches = 0
-  let deletedMatchResults = 0
-  let deletedRegistrations = 0
+  let deletedMatches = 0;
+  let deletedMatchResults = 0;
+  let deletedRegistrations = 0;
 
   while (true) {
     const matches = await ctx.db
@@ -176,14 +175,14 @@ async function deleteCompetitionData(
       .withIndex("by_competition_match", (q) =>
         q.eq("competitionId", competitionId)
       )
-      .take(64)
+      .take(64);
 
-    if (matches.length === 0) break
+    if (matches.length === 0) break;
 
     for (const match of matches) {
-      deletedMatchResults += await deleteMatchResultsForMatch(ctx, match._id)
-      await ctx.db.delete(match._id)
-      deletedMatches += 1
+      deletedMatchResults += await deleteMatchResultsForMatch(ctx, match._id);
+      await ctx.db.delete(match._id);
+      deletedMatches += 1;
     }
   }
 
@@ -191,36 +190,36 @@ async function deleteCompetitionData(
     const registrations = await ctx.db
       .query("registrations")
       .withIndex("by_competition", (q) => q.eq("competitionId", competitionId))
-      .take(128)
+      .take(128);
 
-    if (registrations.length === 0) break
+    if (registrations.length === 0) break;
 
     for (const registration of registrations) {
-      await ctx.db.delete(registration._id)
-      deletedRegistrations += 1
+      await ctx.db.delete(registration._id);
+      deletedRegistrations += 1;
     }
   }
 
-  return { deletedRegistrations, deletedMatches, deletedMatchResults }
+  return { deletedRegistrations, deletedMatches, deletedMatchResults };
 }
 
 function buildPlayerPatch(args: {
-  uuid?: string
-  ign?: string
-  lowercaseIgn?: string
-  elo?: number
-  currentLeagueNumber: number
+  uuid?: string;
+  ign?: string;
+  lowercaseIgn?: string;
+  elo?: number;
+  currentLeagueNumber: number;
 }) {
   const patch: Partial<Doc<"players">> = {
     currentLeagueNumber: args.currentLeagueNumber,
-  }
+  };
 
-  if (args.uuid !== undefined) patch.uuid = args.uuid
-  if (args.ign !== undefined) patch.ign = args.ign
-  if (args.lowercaseIgn !== undefined) patch.lowercaseIgn = args.lowercaseIgn
-  if (args.elo !== undefined) patch.elo = args.elo
+  if (args.uuid !== undefined) patch.uuid = args.uuid;
+  if (args.ign !== undefined) patch.ign = args.ign;
+  if (args.lowercaseIgn !== undefined) patch.lowercaseIgn = args.lowercaseIgn;
+  if (args.elo !== undefined) patch.elo = args.elo;
 
-  return patch
+  return patch;
 }
 
 export const createOrRestartCompetition = internalMutation({
@@ -235,39 +234,39 @@ export const createOrRestartCompetition = internalMutation({
     args
   ): Promise<
     ApiResult<{
-      competitionId: Id<"competitions">
-      action: "created" | "restarted"
-      deletedRegistrations?: number
-      deletedMatches?: number
-      deletedMatchResults?: number
+      competitionId: Id<"competitions">;
+      action: "created" | "restarted";
+      deletedRegistrations?: number;
+      deletedMatches?: number;
+      deletedMatchResults?: number;
     }>
   > => {
-    await ensureLeague(ctx, args.leagueTier)
+    await ensureLeague(ctx, args.leagueTier);
     const existingCompetition = await getCompetition(
       ctx,
       args.leagueTier,
       args.weekNumber
-    )
+    );
 
     if (existingCompetition?.status === "ended") {
-      return fail(403, "Week already finalized.")
+      return fail(403, "Week already finalized.");
     }
 
     if (existingCompetition?.status === "active") {
-      const deleted = await deleteCompetitionData(ctx, existingCompetition._id)
-      await ensureWeekHasActiveCompetition(ctx, args.weekNumber)
+      const deleted = await deleteCompetitionData(ctx, existingCompetition._id);
+      await ensureWeekHasActiveCompetition(ctx, args.weekNumber);
       await ctx.db.patch(existingCompetition._id, {
         startingTime: args.startingTime,
         maxTimeLimitMs: args.maxTimeLimitMs,
         status: "active",
-      })
+      });
 
       return {
         ok: true,
         action: "restarted",
         competitionId: existingCompetition._id,
         ...deleted,
-      }
+      };
     }
 
     const competitionId = await ctx.db.insert("competitions", {
@@ -276,16 +275,16 @@ export const createOrRestartCompetition = internalMutation({
       status: "active",
       maxTimeLimitMs: args.maxTimeLimitMs,
       startingTime: args.startingTime,
-    })
-    await applyWeekCompetitionDelta(ctx, args.weekNumber, 1)
+    });
+    await applyWeekCompetitionDelta(ctx, args.weekNumber, 1);
 
     return {
       ok: true,
       action: "created",
       competitionId,
-    }
+    };
   },
-})
+});
 
 export const updateCompetitionStatus = internalMutation({
   args: {
@@ -303,24 +302,24 @@ export const updateCompetitionStatus = internalMutation({
       ctx,
       args.leagueTier,
       args.weekNumber
-    )
+    );
     if (!competition) {
-      return fail(404, "Competition not found.")
+      return fail(404, "Competition not found.");
     }
 
     if (competition.status === args.status) {
-      return { ok: true, competitionId: competition._id, status: args.status }
+      return { ok: true, competitionId: competition._id, status: args.status };
     }
 
-    await ctx.db.patch(competition._id, { status: args.status })
+    await ctx.db.patch(competition._id, { status: args.status });
     await applyWeekCompetitionDelta(
       ctx,
       competition.weekNumber,
       args.status === "active" ? 1 : -1
-    )
-    return { ok: true, competitionId: competition._id, status: args.status }
+    );
+    return { ok: true, competitionId: competition._id, status: args.status };
   },
-})
+});
 
 export const registerPlayer = internalMutation({
   args: {
@@ -335,27 +334,27 @@ export const registerPlayer = internalMutation({
     args
   ): Promise<
     ApiResult<{
-      competitionId: Id<"competitions">
-      playerId: Id<"players">
-      registrationCreated: boolean
+      competitionId: Id<"competitions">;
+      playerId: Id<"players">;
+      registrationCreated: boolean;
     }>
   > => {
-    await ensureLeague(ctx, args.leagueTier)
+    await ensureLeague(ctx, args.leagueTier);
     const competition = await getCompetition(
       ctx,
       args.leagueTier,
       args.weekNumber
-    )
+    );
     if (!competition) {
-      return fail(404, "Competition not found.")
+      return fail(404, "Competition not found.");
     }
-    const competitionLock = ensureCompetitionWritable(competition)
+    const competitionLock = ensureCompetitionWritable(competition);
     if (competitionLock) {
-      return competitionLock
+      return competitionLock;
     }
 
-    const normalizedLowercaseIgn = args.ign.toLowerCase()
-    let player = await getPlayerByUuid(ctx, args.uuid)
+    const normalizedLowercaseIgn = args.ign.toLowerCase();
+    let player = await getPlayerByUuid(ctx, args.uuid);
 
     if (player) {
       await ctx.db.patch(
@@ -367,8 +366,8 @@ export const registerPlayer = internalMutation({
           elo: args.elo,
           currentLeagueNumber: args.leagueTier,
         })
-      )
-      player = await ctx.db.get(player._id)
+      );
+      player = await ctx.db.get(player._id);
     } else {
       const playerId = await ctx.db.insert("players", {
         currentLeagueNumber: args.leagueTier,
@@ -376,27 +375,27 @@ export const registerPlayer = internalMutation({
         ign: args.ign,
         lowercaseIgn: normalizedLowercaseIgn,
         ...(args.elo !== undefined ? { elo: args.elo } : {}),
-      })
-      player = await ctx.db.get(playerId)
+      });
+      player = await ctx.db.get(playerId);
       if (!player) {
-        return fail(500, "Player could not be created.")
+        return fail(500, "Player could not be created.");
       }
     }
 
     if (!player) {
-      return fail(500, "Player could not be loaded.")
+      return fail(500, "Player could not be loaded.");
     }
 
-    await syncPlayerRegistrationSnapshots(ctx, player._id, player)
-    await syncPlayerWinnerSnapshots(ctx, player._id, player)
+    await syncPlayerRegistrationSnapshots(ctx, player._id, player);
+    await syncPlayerWinnerSnapshots(ctx, player._id, player);
 
     const existingRegistration = await getRegistration(
       ctx,
       competition._id,
       player._id
-    )
+    );
 
-    let registrationCreated = false
+    let registrationCreated = false;
     if (!existingRegistration) {
       await ctx.db.insert("registrations", {
         competitionId: competition._id,
@@ -406,25 +405,25 @@ export const registerPlayer = internalMutation({
         totalPoints: 0,
         averageTimeMs: null,
         ...buildRegistrationSnapshot(player, competition),
-      })
-      registrationCreated = true
+      });
+      registrationCreated = true;
     } else {
       await ctx.db.patch(existingRegistration._id, {
         ...buildRegistrationSnapshot(player, competition),
-      })
+      });
     }
 
-    await ensureRegistrationMatchOutcomes(ctx, competition, player._id)
-    await recalculateRegistrationAverageTime(ctx, competition, player._id)
+    await ensureRegistrationMatchOutcomes(ctx, competition, player._id);
+    await recalculateRegistrationAverageTime(ctx, competition, player._id);
 
     return {
       ok: true,
       competitionId: competition._id,
       playerId: player._id,
       registrationCreated,
-    }
+    };
   },
-})
+});
 
 export const unregisterPlayer = internalMutation({
   args: {
@@ -437,42 +436,46 @@ export const unregisterPlayer = internalMutation({
     args
   ): Promise<
     ApiResult<{
-      competitionId: Id<"competitions">
-      playerId: Id<"players">
+      competitionId: Id<"competitions">;
+      playerId: Id<"players">;
     }>
   > => {
     const competition = await getCompetition(
       ctx,
       args.leagueTier,
       args.weekNumber
-    )
+    );
     if (!competition) {
-      return fail(404, "Competition not found.")
+      return fail(404, "Competition not found.");
     }
-    const competitionLock = ensureCompetitionWritable(competition)
+    const competitionLock = ensureCompetitionWritable(competition);
     if (competitionLock) {
-      return competitionLock
+      return competitionLock;
     }
 
-    const player = await getPlayerByUuid(ctx, args.uuid)
+    const player = await getPlayerByUuid(ctx, args.uuid);
     if (!player) {
-      return fail(404, "Player not found.")
+      return fail(404, "Player not found.");
     }
 
-    const registration = await getRegistration(ctx, competition._id, player._id)
+    const registration = await getRegistration(
+      ctx,
+      competition._id,
+      player._id
+    );
     if (!registration) {
-      return fail(404, "Registration not found.")
+      return fail(404, "Registration not found.");
     }
 
-    await ctx.db.delete(registration._id)
+    await ctx.db.delete(registration._id);
 
     return {
       ok: true,
       competitionId: competition._id,
       playerId: player._id,
-    }
+    };
   },
-})
+});
 
 export const createEmptyMatch = internalMutation({
   args: {
@@ -485,32 +488,36 @@ export const createEmptyMatch = internalMutation({
     args
   ): Promise<
     ApiResult<{
-      competitionId: Id<"competitions">
-      matchId: Id<"matches">
-      created: boolean
+      competitionId: Id<"competitions">;
+      matchId: Id<"matches">;
+      created: boolean;
     }>
   > => {
     const competition = await getCompetition(
       ctx,
       args.leagueTier,
       args.weekNumber
-    )
+    );
     if (!competition) {
-      return fail(404, "Competition not found.")
+      return fail(404, "Competition not found.");
     }
-    const competitionLock = ensureCompetitionWritable(competition)
+    const competitionLock = ensureCompetitionWritable(competition);
     if (competitionLock) {
-      return competitionLock
+      return competitionLock;
     }
 
-    const existingMatch = await getMatch(ctx, competition._id, args.matchNumber)
+    const existingMatch = await getMatch(
+      ctx,
+      competition._id,
+      args.matchNumber
+    );
     if (existingMatch) {
       return {
         ok: true,
         competitionId: competition._id,
         matchId: existingMatch._id,
         created: false,
-      }
+      };
     }
 
     const matchId = await ctx.db.insert("matches", {
@@ -518,16 +525,16 @@ export const createEmptyMatch = internalMutation({
       matchNumber: args.matchNumber,
       winnerPlayerId: null,
       winnerName: null,
-    })
+    });
 
     return {
       ok: true,
       competitionId: competition._id,
       matchId,
       created: true,
-    }
+    };
   },
-})
+});
 
 export const clearMatchResults = internalMutation({
   args: {
@@ -540,48 +547,48 @@ export const clearMatchResults = internalMutation({
     args
   ): Promise<
     ApiResult<{
-      competitionId: Id<"competitions">
-      matchId: Id<"matches">
-      deleted: number
+      competitionId: Id<"competitions">;
+      matchId: Id<"matches">;
+      deleted: number;
     }>
   > => {
     const competition = await getCompetition(
       ctx,
       args.leagueTier,
       args.weekNumber
-    )
+    );
     if (!competition) {
-      return fail(404, "Competition not found.")
+      return fail(404, "Competition not found.");
     }
-    const competitionLock = ensureCompetitionWritable(competition)
+    const competitionLock = ensureCompetitionWritable(competition);
     if (competitionLock) {
-      return competitionLock
+      return competitionLock;
     }
 
-    const match = await getMatch(ctx, competition._id, args.matchNumber)
+    const match = await getMatch(ctx, competition._id, args.matchNumber);
     if (!match) {
-      return fail(404, "Match not found.")
+      return fail(404, "Match not found.");
     }
 
-    const deletedPointsByPlayer = new Map<Id<"players">, number>()
+    const deletedPointsByPlayer = new Map<Id<"players">, number>();
     const existingResults = await ctx.db
       .query("matchResults")
       .withIndex("by_match", (q) => q.eq("matchId", match._id))
-      .collect()
+      .collect();
 
     for (const result of existingResults) {
       deletedPointsByPlayer.set(
         result.playerId,
         (deletedPointsByPlayer.get(result.playerId) ?? 0) + result.pointsWon
-      )
+      );
     }
 
-    const deleted = await deleteMatchResultsForMatch(ctx, match._id)
+    const deleted = await deleteMatchResultsForMatch(ctx, match._id);
     await ctx.db.patch(match._id, {
       rankedMatchId: undefined,
       winnerPlayerId: null,
       winnerName: null,
-    })
+    });
 
     for (const [playerId, deletedPoints] of deletedPointsByPlayer) {
       await applyRegistrationPointDelta(
@@ -589,8 +596,8 @@ export const clearMatchResults = internalMutation({
         competition._id,
         playerId,
         -deletedPoints
-      )
-      await recalculateRegistrationAverageTime(ctx, competition, playerId)
+      );
+      await recalculateRegistrationAverageTime(ctx, competition, playerId);
     }
 
     return {
@@ -598,9 +605,9 @@ export const clearMatchResults = internalMutation({
       competitionId: competition._id,
       matchId: match._id,
       deleted,
-    }
+    };
   },
-})
+});
 
 export const importMatchData = internalMutation({
   args: {
@@ -623,39 +630,39 @@ export const importMatchData = internalMutation({
     args
   ): Promise<
     ApiResult<{
-      competitionId: Id<"competitions">
-      matchId: Id<"matches">
-      upserted: number
+      competitionId: Id<"competitions">;
+      matchId: Id<"matches">;
+      upserted: number;
     }>
   > => {
     const competition = await getCompetition(
       ctx,
       args.leagueTier,
       args.weekNumber
-    )
+    );
     if (!competition) {
-      return fail(404, "Competition not found.")
+      return fail(404, "Competition not found.");
     }
-    const competitionLock = ensureCompetitionWritable(competition)
+    const competitionLock = ensureCompetitionWritable(competition);
     if (competitionLock) {
-      return competitionLock
+      return competitionLock;
     }
 
-    const seenUuids = new Set<string>()
+    const seenUuids = new Set<string>();
     const duplicateUuid = args.results.find((result) => {
-      if (seenUuids.has(result.uuid)) return true
-      seenUuids.add(result.uuid)
-      return false
-    })
+      if (seenUuids.has(result.uuid)) return true;
+      seenUuids.add(result.uuid);
+      return false;
+    });
     if (duplicateUuid) {
-      return fail(400, `Duplicate result for uuid ${duplicateUuid.uuid}.`)
+      return fail(400, `Duplicate result for uuid ${duplicateUuid.uuid}.`);
     }
 
-    let match = await getMatch(ctx, competition._id, args.matchNumber)
+    let match = await getMatch(ctx, competition._id, args.matchNumber);
     if (match) {
       if (match.rankedMatchId !== args.rankedMatchId) {
-        await ctx.db.patch(match._id, { rankedMatchId: args.rankedMatchId })
-        match = await ctx.db.get(match._id)
+        await ctx.db.patch(match._id, { rankedMatchId: args.rankedMatchId });
+        match = await ctx.db.get(match._id);
       }
     } else {
       const matchId = await ctx.db.insert("matches", {
@@ -664,57 +671,57 @@ export const importMatchData = internalMutation({
         rankedMatchId: args.rankedMatchId,
         winnerPlayerId: null,
         winnerName: null,
-      })
-      match = await ctx.db.get(matchId)
+      });
+      match = await ctx.db.get(matchId);
     }
 
     if (!match) {
-      return fail(500, "Match could not be created.")
+      return fail(500, "Match could not be created.");
     }
 
     const existingResults = await ctx.db
       .query("matchResults")
       .withIndex("by_match", (q) => q.eq("matchId", match._id))
-      .collect()
+      .collect();
 
-    const pointDeltasByPlayer = new Map<Id<"players">, number>()
+    const pointDeltasByPlayer = new Map<Id<"players">, number>();
     for (const existingResult of existingResults) {
       pointDeltasByPlayer.set(
         existingResult.playerId,
         (pointDeltasByPlayer.get(existingResult.playerId) ?? 0) -
           existingResult.pointsWon
-      )
+      );
     }
 
     const playersForWinner: Array<{
-      player: PlayerDoc
-      placement: number | null
-    }> = []
+      player: PlayerDoc;
+      placement: number | null;
+    }> = [];
     const preparedResults: Array<{
-      player: PlayerDoc
-      result: (typeof args.results)[number]
-    }> = []
+      player: PlayerDoc;
+      result: (typeof args.results)[number];
+    }> = [];
 
     for (const result of args.results) {
-      const player = await getPlayerByUuid(ctx, result.uuid)
+      const player = await getPlayerByUuid(ctx, result.uuid);
       if (!player) {
-        return fail(404, `Player not found for uuid ${result.uuid}.`)
+        return fail(404, `Player not found for uuid ${result.uuid}.`);
       }
 
       const registration = await getRegistration(
         ctx,
         competition._id,
         player._id
-      )
+      );
       if (!registration) {
-        return fail(404, `Registration not found for uuid ${result.uuid}.`)
+        return fail(404, `Registration not found for uuid ${result.uuid}.`);
       }
 
       playersForWinner.push({
         player,
         placement: result.placement,
-      })
-      preparedResults.push({ player, result })
+      });
+      preparedResults.push({ player, result });
     }
 
     const registrations = await ctx.db
@@ -722,20 +729,20 @@ export const importMatchData = internalMutation({
       .withIndex("by_competition", (q) =>
         q.eq("competitionId", competition._id)
       )
-      .collect()
+      .collect();
     const preparedResultsByPlayerId = new Map(
       preparedResults.map((prepared) => [prepared.player._id, prepared])
-    )
+    );
 
     for (const existingResult of existingResults) {
-      await ctx.db.delete(existingResult._id)
+      await ctx.db.delete(existingResult._id);
     }
 
     for (const registration of registrations) {
-      const prepared = preparedResultsByPlayerId.get(registration.playerId)
+      const prepared = preparedResultsByPlayerId.get(registration.playerId);
 
       if (prepared) {
-        const { player, result } = prepared
+        const { player, result } = prepared;
         await ctx.db.insert("matchResults", {
           matchId: match._id,
           playerId: player._id,
@@ -745,20 +752,20 @@ export const importMatchData = internalMutation({
           dnf: result.dnf,
           placement: result.placement,
           pointsWon: result.pointsWon,
-        })
+        });
         pointDeltasByPlayer.set(
           player._id,
           (pointDeltasByPlayer.get(player._id) ?? 0) + result.pointsWon
-        )
+        );
 
         const fastestTimeMs = getImprovedFastestTimeMs(
           player.fastestTimeMs,
           result
-        )
+        );
         if (fastestTimeMs !== undefined) {
-          await ctx.db.patch(player._id, { fastestTimeMs })
+          await ctx.db.patch(player._id, { fastestTimeMs });
         }
-        continue
+        continue;
       }
 
       await ctx.db.insert("matchResults", {
@@ -770,17 +777,17 @@ export const importMatchData = internalMutation({
         dnf: false,
         placement: null,
         pointsWon: 0,
-      })
+      });
     }
 
     for (const [playerId, pointDelta] of pointDeltasByPlayer) {
-      if (pointDelta === 0) continue
+      if (pointDelta === 0) continue;
       await applyRegistrationPointDelta(
         ctx,
         competition._id,
         playerId,
         pointDelta
-      )
+      );
     }
 
     for (const registration of registrations) {
@@ -788,19 +795,19 @@ export const importMatchData = internalMutation({
         ctx,
         competition,
         registration.playerId
-      )
+      );
     }
 
-    await ctx.db.patch(match._id, buildMatchWinnerPatch(playersForWinner))
+    await ctx.db.patch(match._id, buildMatchWinnerPatch(playersForWinner));
 
     return {
       ok: true,
       competitionId: competition._id,
       matchId: match._id,
       upserted: args.results.length,
-    }
+    };
   },
-})
+});
 
 export const setPointAdjustment = internalMutation({
   args: {
@@ -814,48 +821,52 @@ export const setPointAdjustment = internalMutation({
     args
   ): Promise<
     ApiResult<{
-      registrationId: Id<"registrations">
-      manualAdjustmentPoints: number
+      registrationId: Id<"registrations">;
+      manualAdjustmentPoints: number;
     }>
   > => {
     const competition = await getCompetition(
       ctx,
       args.leagueTier,
       args.weekNumber
-    )
+    );
     if (!competition) {
-      return fail(404, "Competition not found.")
+      return fail(404, "Competition not found.");
     }
-    const competitionLock = ensureCompetitionWritable(competition)
+    const competitionLock = ensureCompetitionWritable(competition);
     if (competitionLock) {
-      return competitionLock
+      return competitionLock;
     }
 
-    const player = await getPlayerByUuid(ctx, args.uuid)
+    const player = await getPlayerByUuid(ctx, args.uuid);
     if (!player) {
-      return fail(404, "Player not found.")
+      return fail(404, "Player not found.");
     }
 
-    const registration = await getRegistration(ctx, competition._id, player._id)
+    const registration = await getRegistration(
+      ctx,
+      competition._id,
+      player._id
+    );
     if (!registration) {
-      return fail(404, "Registration not found.")
+      return fail(404, "Registration not found.");
     }
 
     const manualAdjustmentDelta =
-      args.manualAdjustmentPoints - registration.manualAdjustmentPoints
+      args.manualAdjustmentPoints - registration.manualAdjustmentPoints;
 
     await ctx.db.patch(registration._id, {
       manualAdjustmentPoints: args.manualAdjustmentPoints,
       totalPoints: registration.totalPoints + manualAdjustmentDelta,
-    })
+    });
 
     return {
       ok: true,
       registrationId: registration._id,
       manualAdjustmentPoints: args.manualAdjustmentPoints,
-    }
+    };
   },
-})
+});
 
 // This endpoint is used only once per competition. If a mistake is made,
 // the admin should use the api path: "/api/write/player/league",
@@ -873,75 +884,77 @@ export const processMovements = internalMutation({
     args
   ): Promise<
     ApiResult<{
-      competitionId: Id<"competitions">
-      promotedCount: number
-      demotedCount: number
-      unchangedCount: number
+      competitionId: Id<"competitions">;
+      promotedCount: number;
+      demotedCount: number;
+      unchangedCount: number;
     }>
   > => {
     const competition = await getCompetition(
       ctx,
       args.leagueTier,
       args.weekNumber
-    )
+    );
     if (!competition) {
-      return fail(404, "Competition not found.")
+      return fail(404, "Competition not found.");
     }
 
-    const demotedLookup = new Set(args.demotedUuids)
-    const overlap = args.promotedUuids.filter((uuid) => demotedLookup.has(uuid))
+    const demotedLookup = new Set(args.demotedUuids);
+    const overlap = args.promotedUuids.filter((uuid) =>
+      demotedLookup.has(uuid)
+    );
     if (overlap.length > 0) {
-      return fail(400, `uuid ${overlap[0]} cannot be promoted and demoted.`)
+      return fail(400, `uuid ${overlap[0]} cannot be promoted and demoted.`);
     }
 
-    const promotedSet = new Set(args.promotedUuids)
-    const demotedSet = new Set(args.demotedUuids)
-    const touchedPlayerIds = new Set<Id<"players">>()
+    const promotedSet = new Set(args.promotedUuids);
+    const demotedSet = new Set(args.demotedUuids);
+    const touchedPlayerIds = new Set<Id<"players">>();
 
     for (const uuid of Array.from(promotedSet)) {
-      const player = await getPlayerByUuid(ctx, uuid)
+      const player = await getPlayerByUuid(ctx, uuid);
       if (!player) {
-        return fail(404, `Player not found for uuid ${uuid}.`)
+        return fail(404, `Player not found for uuid ${uuid}.`);
       }
 
       const registration = await getRegistration(
         ctx,
         competition._id,
         player._id
-      )
+      );
       if (!registration) {
-        return fail(404, `Registration not found for uuid ${uuid}.`)
+        return fail(404, `Registration not found for uuid ${uuid}.`);
       }
 
-      await ensureLeague(ctx, Math.max(1, args.leagueTier - 1))
+      await ensureLeague(ctx, Math.max(1, args.leagueTier - 1));
       await ctx.db.patch(player._id, {
         currentLeagueNumber: Math.max(1, args.leagueTier - 1),
-      })
-      await ctx.db.patch(registration._id, { movementStatus: "promoted" })
-      touchedPlayerIds.add(player._id)
+      });
+      await ctx.db.patch(registration._id, { movementStatus: "promoted" });
+      touchedPlayerIds.add(player._id);
     }
 
     for (const uuid of Array.from(demotedSet)) {
-      const player = await getPlayerByUuid(ctx, uuid)
+      const player = await getPlayerByUuid(ctx, uuid);
       if (!player) {
-        return fail(404, `Player not found for uuid ${uuid}.`)
+        return fail(404, `Player not found for uuid ${uuid}.`);
       }
 
       const registration = await getRegistration(
         ctx,
         competition._id,
         player._id
-      )
+      );
       if (!registration) {
-        return fail(404, `Registration not found for uuid ${uuid}.`)
+        return fail(404, `Registration not found for uuid ${uuid}.`);
       }
 
-      await ensureLeague(ctx, args.leagueTier + 1)
+      await ensureLeague(ctx, args.leagueTier + 1);
       await ctx.db.patch(player._id, {
         currentLeagueNumber: args.leagueTier + 1,
-      })
-      await ctx.db.patch(registration._id, { movementStatus: "demoted" })
-      touchedPlayerIds.add(player._id)
+      });
+      await ctx.db.patch(registration._id, { movementStatus: "demoted" });
+      touchedPlayerIds.add(player._id);
     }
 
     const registrations = await ctx.db
@@ -949,13 +962,13 @@ export const processMovements = internalMutation({
       .withIndex("by_competition", (q) =>
         q.eq("competitionId", competition._id)
       )
-      .collect()
+      .collect();
 
-    let unchangedCount = 0
+    let unchangedCount = 0;
     for (const registration of registrations) {
-      if (touchedPlayerIds.has(registration.playerId)) continue
-      await ctx.db.patch(registration._id, { movementStatus: "none" })
-      unchangedCount += 1
+      if (touchedPlayerIds.has(registration.playerId)) continue;
+      await ctx.db.patch(registration._id, { movementStatus: "none" });
+      unchangedCount += 1;
     }
 
     return {
@@ -964,9 +977,9 @@ export const processMovements = internalMutation({
       promotedCount: promotedSet.size,
       demotedCount: demotedSet.size,
       unchangedCount,
-    }
+    };
   },
-})
+});
 
 export const updatePlayerLeague = internalMutation({
   args: {
@@ -978,16 +991,16 @@ export const updatePlayerLeague = internalMutation({
     args
   ): Promise<
     ApiResult<{
-      playerId: Id<"players">
-      previousLeagueTier: number
-      leagueTier: number
+      playerId: Id<"players">;
+      previousLeagueTier: number;
+      leagueTier: number;
     }>
   > => {
-    await ensureLeague(ctx, args.leagueTier)
+    await ensureLeague(ctx, args.leagueTier);
 
-    const player = await getPlayerByUuid(ctx, args.uuid)
+    const player = await getPlayerByUuid(ctx, args.uuid);
     if (!player) {
-      return fail(404, "Player not found.")
+      return fail(404, "Player not found.");
     }
 
     if (player.currentLeagueNumber === args.leagueTier) {
@@ -996,18 +1009,18 @@ export const updatePlayerLeague = internalMutation({
         playerId: player._id,
         previousLeagueTier: player.currentLeagueNumber,
         leagueTier: player.currentLeagueNumber,
-      }
+      };
     }
 
     await ctx.db.patch(player._id, {
       currentLeagueNumber: args.leagueTier,
-    })
+    });
 
     return {
       ok: true,
       playerId: player._id,
       previousLeagueTier: player.currentLeagueNumber,
       leagueTier: args.leagueTier,
-    }
+    };
   },
-})
+});

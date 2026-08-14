@@ -1,8 +1,8 @@
-import tailwindcss from "@tailwindcss/vite"
-import { defineConfig } from "astro/config"
-import react from "@astrojs/react"
+import tailwindcss from "@tailwindcss/vite";
+import { defineConfig } from "astro/config";
+import react from "@astrojs/react";
 
-import starlight from "@astrojs/starlight"
+import starlight from "@astrojs/starlight";
 
 // https://astro.build/config
 export default defineConfig({
@@ -53,8 +53,8 @@ export default defineConfig({
           collapsed: false,
           items: [
             { label: "Organization", slug: "rules/organization" },
-            { label: "Seed types", slug: "rules/seeds"},
-            { label: "Timeslots", slug: "rules/timeslots"},
+            { label: "Seed types", slug: "rules/seeds" },
+            { label: "Timeslots", slug: "rules/timeslots" },
             { label: "Points", slug: "rules/points" },
             { label: "Relegations and Promotions", slug: "rules/relegations" },
           ],
@@ -89,4 +89,4 @@ export default defineConfig({
       ],
     }),
   ],
-})
+});

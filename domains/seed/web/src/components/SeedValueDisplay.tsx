@@ -30,26 +30,26 @@ export function SeedValueDisplay({
       onClick={() => void handleCopy()}
       className={cn(
         "group flex min-w-0 flex-col gap-1 rounded-md text-left transition-colors",
-        "hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-        "px-2 py-1 -mx-2 -my-1",
-        className,
+        "hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+        "-mx-2 -my-1 px-2 py-1",
+        className
       )}
       title="Click to copy"
     >
       <p className="text-xs text-muted-foreground">{label}</p>
-      <span className="flex items-center gap-1.5 min-w-0">
+      <span className="flex min-w-0 items-center gap-1.5">
         <span className="truncate font-mono text-xs">{value}</span>
         <span className="relative flex h-3 w-3 shrink-0 items-center justify-center">
           <Copy
             className={cn(
               "absolute h-3 w-3 text-muted-foreground",
-              copied ? "opacity-0" : "opacity-0 group-hover:opacity-100",
+              copied ? "opacity-0" : "opacity-0 group-hover:opacity-100"
             )}
           />
           <Check
             className={cn(
               "absolute h-3 w-3 text-green-500 opacity-0",
-              copied && "opacity-100",
+              copied && "opacity-100"
             )}
           />
         </span>

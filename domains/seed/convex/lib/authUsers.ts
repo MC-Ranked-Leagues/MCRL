@@ -30,7 +30,7 @@ export function getDiscordUserFields(profile: Record<string, unknown>) {
 
 export async function createPendingDiscordUser(
   ctx: MutationCtx,
-  profile: Record<string, unknown>,
+  profile: Record<string, unknown>
 ) {
   const userFields = getDiscordUserFields(profile);
 
@@ -59,7 +59,7 @@ export async function createPendingDiscordUser(
 export async function updateUserFromDiscordProfile(
   ctx: MutationCtx,
   userId: UserId,
-  profile: Record<string, unknown>,
+  profile: Record<string, unknown>
 ) {
   const userFields = getDiscordUserFields(profile);
 

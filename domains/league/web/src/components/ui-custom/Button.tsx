@@ -1,10 +1,10 @@
-import { Button as BaseButton, buttonVariants } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import { Button as BaseButton, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface CustomButtonProps extends React.ComponentProps<typeof BaseButton> {
-  href?: string
-  target?: "_self" | "_blank"
-  minecraft?: boolean
+  href?: string;
+  target?: "_self" | "_blank";
+  minecraft?: boolean;
 }
 
 export function CustomButton({
@@ -34,9 +34,9 @@ export function CustomButton({
     "after:absolute after:inset-x-0 after:bottom-0 after:h-1 after:rounded-b-md after:bg-black/30 after:transition-all",
     "hover:after:bottom-0 hover:after:h-0.5 active:after:h-0",
     className
-  )
+  );
 
-  const content = <span className="relative z-10">{children}</span>
+  const content = <span className="relative z-10">{children}</span>;
 
   // anchor tag if there's a href
   if (href) {
@@ -49,7 +49,7 @@ export function CustomButton({
       >
         {content}
       </a>
-    )
+    );
   }
 
   return (
@@ -61,5 +61,5 @@ export function CustomButton({
     >
       {content}
     </BaseButton>
-  )
+  );
 }

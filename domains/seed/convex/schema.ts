@@ -19,17 +19,17 @@ export default defineSchema({
       v.literal("pending"),
       v.literal("active"),
       v.literal("deleted"),
-      v.literal("banned"),
+      v.literal("banned")
     ),
     roles: v.array(
-      v.union(v.literal("admin"), v.literal("host"), v.literal("uploader")),
+      v.union(v.literal("admin"), v.literal("host"), v.literal("uploader"))
     ),
     uploaderLeagues: v.optional(v.array(v.id("leagues"))),
     hostLeagueId: v.optional(v.array(v.id("leagues"))),
     settings: v.optional(
       v.object({
         claimBuriedTreasureSeeds: v.optional(v.boolean()),
-      }),
+      })
     ),
   })
     .index("email", ["email"])
@@ -62,8 +62,8 @@ export default defineSchema({
         v.literal("DESERT_TEMPLE"),
         v.literal("JUNGLE_PYRAMID"),
         v.literal("RUINED_PORTAL"),
-        v.literal("SHIPWRECK"),
-      ),
+        v.literal("SHIPWRECK")
+      )
     ),
     isBt: v.optional(v.boolean()),
     addedBy: v.id("users"),
@@ -108,7 +108,7 @@ export default defineSchema({
     actorDiscordId: v.optional(v.string()),
     actorImage: v.optional(v.string()),
     actorRoles: v.array(
-      v.union(v.literal("admin"), v.literal("host"), v.literal("uploader")),
+      v.union(v.literal("admin"), v.literal("host"), v.literal("uploader"))
     ),
     actorType: logActorTypeValidator,
     targetType: logTargetTypeValidator,

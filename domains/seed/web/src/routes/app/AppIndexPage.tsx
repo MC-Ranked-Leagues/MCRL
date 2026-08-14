@@ -71,7 +71,7 @@ export function AppIndexPage() {
     accessableLeagues === undefined ||
     settings === undefined;
   const uploadSeedTypes = getUploadSeedTypes(
-    settings?.enableJunglePyramidSeeds ?? false,
+    settings?.enableJunglePyramidSeeds ?? false
   );
   const selectedSeedType =
     manualValues.type === "JUNGLE_PYRAMID" &&
@@ -97,7 +97,7 @@ export function AppIndexPage() {
   }
 
   const selectedManualLeague = accessableLeagues.find(
-    (league) => league._id === manualValues.leagueId,
+    (league) => league._id === manualValues.leagueId
   );
 
   const selectedLeagueRestriction =
@@ -113,7 +113,7 @@ export function AppIndexPage() {
 
   const updateManualValue = <Key extends keyof SeedFormValues>(
     key: Key,
-    value: SeedFormValues[Key],
+    value: SeedFormValues[Key]
   ) => {
     setManualValues((current) => ({ ...current, [key]: value }));
   };
@@ -145,7 +145,7 @@ export function AppIndexPage() {
   };
 
   return (
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-start w-full">
+    <div className="flex w-full flex-col gap-4 lg:flex-row lg:items-start">
       <Card className="flex-1">
         <CardHeader>
           <CardTitle>Add seed</CardTitle>

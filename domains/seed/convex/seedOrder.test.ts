@@ -87,7 +87,7 @@ describe("public current-week seed order API", () => {
         error: "Invalid query parameters.",
         status: 400,
       });
-    },
+    }
   );
 
   test("returns not found for an unknown league", async () => {

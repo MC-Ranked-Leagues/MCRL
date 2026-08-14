@@ -1,13 +1,13 @@
-import { memo, useEffect, useState } from "react"
-import { useQuery } from "convex/react"
-import { ChevronDown, Clock3, Search, Trophy } from "lucide-react"
+import { memo, useEffect, useState } from "react";
+import { useQuery } from "convex/react";
+import { ChevronDown, Clock3, Search, Trophy } from "lucide-react";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   Drawer,
   DrawerContent,
@@ -15,28 +15,31 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from "@/components/ui/drawer"
-import { Skeleton } from "@/components/ui/skeleton"
-import { cn } from "@/lib/utils"
-import { api } from "../../../../convex/_generated/api"
-import type { Id } from "../../../../convex/_generated/dataModel"
-import { formatDuration, type PlayerListEntry } from "./stats-utils"
+} from "@/components/ui/drawer";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
+import { api } from "../../../../convex/_generated/api";
+import type { Id } from "../../../../convex/_generated/dataModel";
+import { formatDuration, type PlayerListEntry } from "./stats-utils";
 
 interface StatsPlayerBrowserProps {
-  fastestPlayers: PlayerListEntry[]
-  selectedPlayer: PlayerListEntry | null
-  onSelect: (player: PlayerListEntry) => void
+  fastestPlayers: PlayerListEntry[];
+  selectedPlayer: PlayerListEntry | null;
+  onSelect: (player: PlayerListEntry) => void;
 }
 
 function useDebouncedValue(value: string, delayMs: number) {
-  const [debouncedValue, setDebouncedValue] = useState(value)
+  const [debouncedValue, setDebouncedValue] = useState(value);
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => setDebouncedValue(value), delayMs)
-    return () => window.clearTimeout(timeoutId)
-  }, [delayMs, value])
+    const timeoutId = window.setTimeout(
+      () => setDebouncedValue(value),
+      delayMs
+    );
+    return () => window.clearTimeout(timeoutId);
+  }, [delayMs, value]);
 
-  return debouncedValue
+  return debouncedValue;
 }
 
 function PlayerRows({
@@ -45,10 +48,10 @@ function PlayerRows({
   onSelect,
   isSearch,
 }: {
-  players: PlayerListEntry[]
-  selectedPlayerId: Id<"players"> | null
-  onSelect: (player: PlayerListEntry) => void
-  isSearch: boolean
+  players: PlayerListEntry[];
+  selectedPlayerId: Id<"players"> | null;
+  onSelect: (player: PlayerListEntry) => void;
+  isSearch: boolean;
 }) {
   if (players.length === 0) {
     return (
@@ -63,13 +66,13 @@ function PlayerRows({
             : "Search for a player while the leaderboard is being established."}
         </p>
       </div>
-    )
+    );
   }
 
   return (
     <div className="flex flex-col gap-1">
       {players.map((player) => {
-        const isSelected = player.playerId === selectedPlayerId
+        const isSelected = player.playerId === selectedPlayerId;
 
         return (
           <button
@@ -110,10 +113,10 @@ function PlayerRows({
               {formatDuration(player.fastestTimeMs)}
             </span>
           </button>
-        )
+        );
       })}
     </div>
-  )
+  );
 }
 
 function PlayerRowsSkeleton() {
@@ -123,7 +126,7 @@ function PlayerRowsSkeleton() {
         <Skeleton key={index} className="h-14 rounded-lg" />
       ))}
     </div>
-  )
+  );
 }
 
 function LeaderboardContent({
@@ -137,15 +140,15 @@ function LeaderboardContent({
   onSelect,
   scrollClassName,
 }: {
-  searchInputId: string
-  searchQuery: string
-  setSearchQuery: (value: string) => void
-  isSearch: boolean
-  isWaitingForSearch: boolean
-  players: PlayerListEntry[]
-  selectedPlayerId: Id<"players"> | null
-  onSelect: (player: PlayerListEntry) => void
-  scrollClassName: string
+  searchInputId: string;
+  searchQuery: string;
+  setSearchQuery: (value: string) => void;
+  isSearch: boolean;
+  isWaitingForSearch: boolean;
+  players: PlayerListEntry[];
+  selectedPlayerId: Id<"players"> | null;
+  onSelect: (player: PlayerListEntry) => void;
+  scrollClassName: string;
 }) {
   return (
     <div className="flex min-h-0 flex-col gap-3">
@@ -192,7 +195,7 @@ function LeaderboardContent({
         )}
       </div>
     </div>
-  )
+  );
 }
 
 export const StatsPlayerBrowser = memo(function StatsPlayerBrowser({
@@ -200,21 +203,21 @@ export const StatsPlayerBrowser = memo(function StatsPlayerBrowser({
   selectedPlayer,
   onSelect,
 }: StatsPlayerBrowserProps) {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [drawerOpen, setDrawerOpen] = useState(false)
-  const normalizedSearchQuery = searchQuery.trim()
-  const debouncedSearchQuery = useDebouncedValue(normalizedSearchQuery, 200)
-  const isSearch = normalizedSearchQuery.length > 0
+  const [searchQuery, setSearchQuery] = useState("");
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const normalizedSearchQuery = searchQuery.trim();
+  const debouncedSearchQuery = useDebouncedValue(normalizedSearchQuery, 200);
+  const isSearch = normalizedSearchQuery.length > 0;
   const searchResults = useQuery(
     api.players.searchPlayers,
     debouncedSearchQuery ? { searchTerm: debouncedSearchQuery } : "skip"
-  )
+  );
   const isWaitingForSearch =
     isSearch &&
     (debouncedSearchQuery !== normalizedSearchQuery ||
-      searchResults === undefined)
-  const players = isSearch ? (searchResults ?? []) : fastestPlayers
-  const selectedPlayerId = selectedPlayer?.playerId ?? null
+      searchResults === undefined);
+  const players = isSearch ? (searchResults ?? []) : fastestPlayers;
+  const selectedPlayerId = selectedPlayer?.playerId ?? null;
 
   return (
     <>
@@ -314,8 +317,8 @@ export const StatsPlayerBrowser = memo(function StatsPlayerBrowser({
                 players={players}
                 selectedPlayerId={selectedPlayerId}
                 onSelect={(player) => {
-                  onSelect(player)
-                  setDrawerOpen(false)
+                  onSelect(player);
+                  setDrawerOpen(false);
                 }}
                 scrollClassName="max-h-[52vh] overflow-y-auto pr-1"
               />
@@ -324,5 +327,5 @@ export const StatsPlayerBrowser = memo(function StatsPlayerBrowser({
         </Drawer>
       </div>
     </>
-  )
-})
+  );
+});

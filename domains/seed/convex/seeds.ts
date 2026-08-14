@@ -38,7 +38,7 @@ const seedTypeValidator = v.union(
   v.literal("DESERT_TEMPLE"),
   v.literal("JUNGLE_PYRAMID"),
   v.literal("RUINED_PORTAL"),
-  v.literal("SHIPWRECK"),
+  v.literal("SHIPWRECK")
 );
 
 const seedUploadValidator = v.object({
@@ -78,7 +78,7 @@ export const listPublishedHistory = internalQuery({
     const league = await ctx.db
       .query("leagues")
       .withIndex("by_leagueNumber", (q) =>
-        q.eq("leagueNumber", args.leagueNumber),
+        q.eq("leagueNumber", args.leagueNumber)
       )
       .unique();
 
@@ -97,7 +97,7 @@ export const listPublishedHistory = internalQuery({
           q
             .eq("leagueId", league._id)
             .eq("assignedWeekNumber", args.weekNumber)
-            .eq("isExpired", true),
+            .eq("isExpired", true)
         )
         .take(MAX_LEAGUE_SEED_LIST_COUNT + 1);
       return buildPublishedHistoryResult(seeds, false);
@@ -109,7 +109,7 @@ export const listPublishedHistory = internalQuery({
         q
           .eq("leagueId", league._id)
           .eq("assignedWeekNumber", args.weekNumber)
-          .eq("isUsed", true),
+          .eq("isUsed", true)
       )
       .take(MAX_LEAGUE_SEED_LIST_COUNT + 1);
 
@@ -126,7 +126,7 @@ export const listCurrentWeekSeedOrder = internalQuery({
     const league = await ctx.db
       .query("leagues")
       .withIndex("by_leagueNumber", (q) =>
-        q.eq("leagueNumber", args.leagueNumber),
+        q.eq("leagueNumber", args.leagueNumber)
       )
       .unique();
 
@@ -141,7 +141,7 @@ export const listCurrentWeekSeedOrder = internalQuery({
     const seeds = await ctx.db
       .query("seeds")
       .withIndex("by_leagueId_and_isExpired", (q) =>
-        q.eq("leagueId", league._id).eq("isExpired", false),
+        q.eq("leagueId", league._id).eq("isExpired", false)
       )
       .take(MAX_LEAGUE_SEED_LIST_COUNT + 1);
 
@@ -165,7 +165,7 @@ export const listCurrentWeekSeedOrder = internalQuery({
 
 function buildPublishedHistoryResult(
   seeds: Doc<"seeds">[],
-  isCurrentWeek: boolean,
+  isCurrentWeek: boolean
 ) {
   if (seeds.length > MAX_LEAGUE_SEED_LIST_COUNT) {
     return {
@@ -232,7 +232,7 @@ export const listSeedsByLeague = query({
     return await ctx.db
       .query("seeds")
       .withIndex("by_leagueId_and_isExpired", (q) =>
-        q.eq("leagueId", args.leagueId).eq("isExpired", false),
+        q.eq("leagueId", args.leagueId).eq("isExpired", false)
       )
       .take(MAX_LEAGUE_SEED_LIST_COUNT);
   },
@@ -477,7 +477,7 @@ export const changeSeedLeague = mutation({
     const seedsAlreadyInTargetLeague = await ctx.db
       .query("seeds")
       .withIndex("by_leagueId_and_isExpired", (q) =>
-        q.eq("leagueId", targetLeague._id).eq("isExpired", false),
+        q.eq("leagueId", targetLeague._id).eq("isExpired", false)
       )
       .collect();
 
@@ -502,16 +502,16 @@ export const changeSeedLeague = mutation({
     const seedsOnPreviousLeague = await ctx.db
       .query("seeds")
       .withIndex("by_leagueId_and_isExpired", (q) =>
-        q.eq("leagueId", previousId).eq("isExpired", false),
+        q.eq("leagueId", previousId).eq("isExpired", false)
       )
       .collect();
 
     const sorted = seedsOnPreviousLeague.sort(
-      (a, b) => (a.seedNumber ?? 0) - (b.seedNumber ?? 0),
+      (a, b) => (a.seedNumber ?? 0) - (b.seedNumber ?? 0)
     );
 
     await Promise.all(
-      sorted.map((s, i) => ctx.db.patch("seeds", s._id, { seedNumber: i + 1 })),
+      sorted.map((s, i) => ctx.db.patch("seeds", s._id, { seedNumber: i + 1 }))
     );
 
     await writeLog(ctx, {
@@ -595,7 +595,7 @@ export const importSeeds = mutation({
     const seedsAlreadyInThisLeague = await ctx.db
       .query("seeds")
       .withIndex("by_leagueId_and_isExpired", (q) =>
-        q.eq("leagueId", seed.leagueId).eq("isExpired", false),
+        q.eq("leagueId", seed.leagueId).eq("isExpired", false)
       )
       .collect();
 
@@ -690,7 +690,7 @@ export const moveSeed = mutation({
         q
           .eq("seedNumber", nextSeedNumber)
           .eq("leagueId", seed.leagueId)
-          .eq("isExpired", false),
+          .eq("isExpired", false)
       )
       .unique();
 

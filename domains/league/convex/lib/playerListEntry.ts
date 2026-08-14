@@ -1,4 +1,4 @@
-import type { Doc } from "../_generated/dataModel"
+import type { Doc } from "../_generated/dataModel";
 
 export function buildPlayerListEntry(
   player: Doc<"players">,
@@ -12,5 +12,5 @@ export function buildPlayerListEntry(
     elo: player.elo ?? 0,
     leagueTier: player.currentLeagueNumber,
     fastestTimeMs: player.fastestTimeMs ?? null,
-  }
+  };
 }

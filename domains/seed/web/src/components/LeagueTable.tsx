@@ -32,7 +32,7 @@ export function LeagueTable({ leagues }: { leagues: Doc<"leagues">[] }) {
     useState<Id<"leagues"> | null>(null);
 
   const selectedLeague = leagues.find(
-    (league) => league._id === selectedLeagueId,
+    (league) => league._id === selectedLeagueId
   );
   const shouldShowAlert =
     isAlertOpen && selectedLeagueId !== null && selectedLeague !== undefined;
@@ -88,10 +88,10 @@ export function LeagueTable({ leagues }: { leagues: Doc<"leagues">[] }) {
           <TableRow>
             <TableHead className="w-24 border-r">Number</TableHead>
             <TableHead className="border-r">Name</TableHead>
-            <TableHead className="text-left border-r">Total seeds</TableHead>
-            <TableHead className="text-left border-r">Used</TableHead>
-            <TableHead className="text-left border-r">Unused</TableHead>
-            <TableHead className="text-left border-r">League ID</TableHead>
+            <TableHead className="border-r text-left">Total seeds</TableHead>
+            <TableHead className="border-r text-left">Used</TableHead>
+            <TableHead className="border-r text-left">Unused</TableHead>
+            <TableHead className="border-r text-left">League ID</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -101,22 +101,22 @@ export function LeagueTable({ leagues }: { leagues: Doc<"leagues">[] }) {
               <TableCell className="border-r">
                 <Badge variant="secondary">League {league.leagueNumber}</Badge>
               </TableCell>
-              <TableCell className="font-medium border-r font-mono">
+              <TableCell className="border-r font-mono font-medium">
                 {league.leagueName}
               </TableCell>
-              <TableCell className="text-left tabular-nums border-r font-mono">
+              <TableCell className="border-r text-left font-mono tabular-nums">
                 {league.seedCount}
               </TableCell>
-              <TableCell className="text-left tabular-nums border-r font-mono">
+              <TableCell className="border-r text-left font-mono tabular-nums">
                 {league.usedSeedCount}
               </TableCell>
-              <TableCell className="text-left tabular-nums border-r font-mono">
+              <TableCell className="border-r text-left font-mono tabular-nums">
                 {league.seedCount - league.usedSeedCount}
               </TableCell>
-              <TableCell className="truncate text-muted-foreground border-r font-mono">
+              <TableCell className="truncate border-r font-mono text-muted-foreground">
                 {league._id}
               </TableCell>
-              <TableCell className="flex gap-1 justify-end font-mono">
+              <TableCell className="flex justify-end gap-1 font-mono">
                 <Button
                   variant="destructive"
                   size="icon-sm"

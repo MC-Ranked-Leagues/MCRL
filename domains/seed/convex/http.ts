@@ -71,7 +71,7 @@ async function runReadRoute<T extends Record<string, string>>(args: {
     ? extractQueryParams(args.request, args.schema)
     : {
         data: Object.fromEntries(
-          new URL(args.request.url).searchParams.entries(),
+          new URL(args.request.url).searchParams.entries()
         ) as T,
       };
 
@@ -106,7 +106,7 @@ http.route({
     try {
       const result = await ctx.runQuery(
         internal.seeds.listPublishedHistory,
-        payloadResult.data,
+        payloadResult.data
       );
 
       if (result.ok === false) {
@@ -135,7 +135,7 @@ http.route({
     try {
       const result = await ctx.runQuery(
         internal.seeds.listCurrentWeekSeedOrder,
-        payloadResult.data,
+        payloadResult.data
       );
 
       if (result.ok === false) {
@@ -162,11 +162,11 @@ http.route({
       run: async (payload) => {
         const result = await ctx.runQuery(
           internal.users.listActiveUsersAPI,
-          payload as any,
+          payload as any
         );
         return { ok: true, result };
       },
-    }),
+    })
   ),
 });
 
@@ -181,7 +181,7 @@ http.route({
       run: async ({ discordId }) => {
         const result = await ctx.runQuery(
           internal.users.getDiscordUserInfoAPI,
-          { discordId },
+          { discordId }
         );
 
         if (!result) {
@@ -194,7 +194,7 @@ http.route({
 
         return { ok: true, result };
       },
-    }),
+    })
   ),
 });
 
@@ -208,7 +208,7 @@ http.route({
       routeLabel: "POST /api/users/discord/roles/update",
       run: (payload) =>
         ctx.runMutation(internal.users.updateDiscordAccess, payload),
-    }),
+    })
   ),
 });
 
@@ -222,7 +222,7 @@ http.route({
       routeLabel: "POST /api/users/discord/activate",
       run: (payload) =>
         ctx.runMutation(internal.users.activateUserByDiscordIdAPI, payload),
-    }),
+    })
   ),
 });
 
@@ -236,7 +236,7 @@ http.route({
       routeLabel: "POST /api/users/discord/deactivate",
       run: (payload) =>
         ctx.runMutation(internal.users.deactivateUserByDiscordIdAPI, payload),
-    }),
+    })
   ),
 });
 

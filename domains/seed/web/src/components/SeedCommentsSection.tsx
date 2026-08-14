@@ -63,7 +63,7 @@ export function SeedCommentsSection({
   const shouldRefocusAfterSubmitRef = useRef(false);
   const groupedComments = useMemo(
     () => groupComments((comments ?? []) as SeedComment[]),
-    [comments],
+    [comments]
   );
 
   useEffect(() => {
@@ -205,11 +205,11 @@ function CommentGroupMessage({
           key={comment._id}
           className={cn(
             "grid grid-cols-[2rem_minmax(0,1fr)] gap-x-2.5 rounded-md hover:bg-muted/50",
-            index === 0 ? "pt-1.5 pb-0" : "py-0",
+            index === 0 ? "pt-1.5 pb-0" : "py-0"
           )}
         >
           {index === 0 ? (
-            <Avatar className="mt-0.5 shrink-0 w-full ">
+            <Avatar className="mt-0.5 w-full shrink-0">
               {authorImage && (
                 <AvatarImage src={authorImage} alt={authorName} />
               )}
@@ -229,7 +229,7 @@ function CommentGroupMessage({
                 </span>
               </div>
             )}
-            <p className="whitespace-pre-wrap wrap-break-word text-sm leading-snug text-foreground">
+            <p className="text-sm leading-snug wrap-break-word whitespace-pre-wrap text-foreground">
               {comment.body}
             </p>
           </div>
@@ -272,7 +272,7 @@ function formatRelativeTime(timestamp: number) {
   if (diffDays < 7) return `${diffDays}d`;
 
   return new Intl.DateTimeFormat(undefined, { dateStyle: "short" }).format(
-    timestamp,
+    timestamp
   );
 }
 

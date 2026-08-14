@@ -1,6 +1,6 @@
-import { httpRouter } from "convex/server"
-import { internal } from "./_generated/api"
-import { httpAction } from "./_generated/server"
+import { httpRouter } from "convex/server";
+import { internal } from "./_generated/api";
+import { httpAction } from "./_generated/server";
 import {
   ClearMatchResultsSchema,
   CompetitionSchema,
@@ -13,71 +13,71 @@ import {
   UpdatePlayerLeagueSchema,
   UnregisterPlayerSchema,
   ListPlayerMatchesSchema,
-} from "./lib/validators"
+} from "./lib/validators";
 import {
   extractQueryParams,
   extractRequestBody,
   jsonError,
   jsonResponse,
   validateApiKey,
-} from "./lib/utils"
-import { z } from "zod"
+} from "./lib/utils";
+import { z } from "zod";
 
-const http = httpRouter()
+const http = httpRouter();
 
 type RouteResult =
   | { ok: true; [key: string]: unknown }
-  | { ok: false; status: number; error: string }
+  | { ok: false; status: number; error: string };
 
 async function runProtectedJsonRoute<T>(args: {
-  request: Request
-  schema: z.ZodType<T>
-  routeLabel: string
-  run: (payload: T) => Promise<RouteResult>
-  successStatus?: number
+  request: Request;
+  schema: z.ZodType<T>;
+  routeLabel: string;
+  run: (payload: T) => Promise<RouteResult>;
+  successStatus?: number;
 }) {
-  const authError = await validateApiKey(args.request, "WRITER_API_KEY")
-  if (authError) return authError
+  const authError = await validateApiKey(args.request, "WRITER_API_KEY");
+  if (authError) return authError;
 
-  const bodyResult = await extractRequestBody(args.request, args.schema)
-  if ("errorResponse" in bodyResult) return bodyResult.errorResponse
+  const bodyResult = await extractRequestBody(args.request, args.schema);
+  if ("errorResponse" in bodyResult) return bodyResult.errorResponse;
 
   try {
-    const result = await args.run(bodyResult.data)
+    const result = await args.run(bodyResult.data);
     if (result.ok === false) {
-      return jsonError(result.error, result.status)
+      return jsonError(result.error, result.status);
     }
 
-    console.info(`[${args.routeLabel}] Success`, result)
-    return jsonResponse(result, args.successStatus ?? 200)
+    console.info(`[${args.routeLabel}] Success`, result);
+    return jsonResponse(result, args.successStatus ?? 200);
   } catch (error) {
-    console.error(`[${args.routeLabel}] Unhandled error`, error)
-    return jsonError("Internal server error.", 500)
+    console.error(`[${args.routeLabel}] Unhandled error`, error);
+    return jsonError("Internal server error.", 500);
   }
 }
 
 async function runReadRoute<T>(args: {
-  request: Request
-  schema: z.ZodType<T>
-  routeLabel: string
-  run: (payload: T) => Promise<RouteResult>
+  request: Request;
+  schema: z.ZodType<T>;
+  routeLabel: string;
+  run: (payload: T) => Promise<RouteResult>;
 }) {
-  const authError = await validateApiKey(args.request, "READER_API_KEY") // uses READER_API_KEY
-  if (authError) return authError
+  const authError = await validateApiKey(args.request, "READER_API_KEY"); // uses READER_API_KEY
+  if (authError) return authError;
 
-  const paramResult = extractQueryParams(args.request, args.schema) // query params, no Content-Type needed
-  if ("errorResponse" in paramResult) return paramResult.errorResponse
+  const paramResult = extractQueryParams(args.request, args.schema); // query params, no Content-Type needed
+  if ("errorResponse" in paramResult) return paramResult.errorResponse;
 
   try {
-    const result = await args.run(paramResult.data)
+    const result = await args.run(paramResult.data);
     if (result.ok === false) {
-      return jsonError(result.error, result.status)
+      return jsonError(result.error, result.status);
     }
-    console.info(`[${args.routeLabel}] Success`, result)
-    return jsonResponse(result)
+    console.info(`[${args.routeLabel}] Success`, result);
+    return jsonResponse(result);
   } catch (error) {
-    console.error(`[${args.routeLabel}] Unhandled error`, error)
-    return jsonError("Internal server error.", 500)
+    console.error(`[${args.routeLabel}] Unhandled error`, error);
+    return jsonError("Internal server error.", 500);
   }
 }
 
@@ -94,7 +94,7 @@ http.route({
         ctx.runMutation(internal.writeApi.createOrRestartCompetition, payload),
     })
   ),
-})
+});
 
 http.route({
   path: "/api/write/competition/status",
@@ -108,7 +108,7 @@ http.route({
         ctx.runMutation(internal.writeApi.updateCompetitionStatus, payload),
     })
   ),
-})
+});
 
 http.route({
   path: "/api/write/player",
@@ -122,7 +122,7 @@ http.route({
         ctx.runMutation(internal.writeApi.registerPlayer, payload),
     })
   ),
-})
+});
 
 http.route({
   path: "/api/write/player/unregister",
@@ -136,7 +136,7 @@ http.route({
         ctx.runMutation(internal.writeApi.unregisterPlayer, payload),
     })
   ),
-})
+});
 
 http.route({
   path: "/api/write/player/league",
@@ -150,7 +150,7 @@ http.route({
         ctx.runMutation(internal.writeApi.updatePlayerLeague, payload),
     })
   ),
-})
+});
 
 http.route({
   path: "/api/write/match/create",
@@ -164,7 +164,7 @@ http.route({
         ctx.runMutation(internal.writeApi.createEmptyMatch, payload),
     })
   ),
-})
+});
 
 http.route({
   path: "/api/write/match/clear",
@@ -178,7 +178,7 @@ http.route({
         ctx.runMutation(internal.writeApi.clearMatchResults, payload),
     })
   ),
-})
+});
 
 http.route({
   path: "/api/write/match/results",
@@ -192,7 +192,7 @@ http.route({
         ctx.runMutation(internal.writeApi.importMatchData, payload),
     })
   ),
-})
+});
 
 http.route({
   path: "/api/write/adjustment",
@@ -206,7 +206,7 @@ http.route({
         ctx.runMutation(internal.writeApi.setPointAdjustment, payload),
     })
   ),
-})
+});
 
 http.route({
   path: "/api/write/movements",
@@ -220,7 +220,7 @@ http.route({
         ctx.runMutation(internal.writeApi.processMovements, payload),
     })
   ),
-})
+});
 
 // READ ROUTES
 
@@ -236,11 +236,11 @@ http.route({
         const result = await ctx.runQuery(
           internal.readAPI.listPlayerMatches,
           payload
-        )
-        return { ok: true, ...result }
+        );
+        return { ok: true, ...result };
       },
     })
   ),
-})
+});
 
-export default http
+export default http;

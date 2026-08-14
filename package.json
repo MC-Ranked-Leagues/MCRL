@@ -1,0 +1,24 @@
+{
+  "name": "mcrl",
+  "private": true,
+  "packageManager": "bun@1.3.14",
+  "workspaces": [
+    "domains/league",
+    "domains/seed"
+  ],
+  "scripts": {
+    "dev:league": "bun run --filter @mcrl/league dev",
+    "dev:seed": "bun run --filter @mcrl/seed dev",
+    "typecheck": "bun run --filter '@mcrl/*' typecheck",
+    "test": "bun run --filter '@mcrl/*' test",
+    "build": "bun run --filter '@mcrl/*' build",
+    "lint": "bun run --filter '@mcrl/*' lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "prettier": "^3.8.2",
+    "prettier-plugin-astro": "^0.14.1",
+    "prettier-plugin-tailwindcss": "^0.7.2"
+  }
+}

@@ -4,20 +4,20 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Skeleton } from "@/components/ui/skeleton"
+} from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface League {
-  leagueTier: number
-  name: string
+  leagueTier: number;
+  name: string;
 }
 
 interface LeagueSelectorProps {
-  leagues: League[] | undefined
-  selectedLeagueTier: number | null
-  onSelect: (leagueTier: number) => void
-  isMobile?: boolean
+  leagues: League[] | undefined;
+  selectedLeagueTier: number | null;
+  onSelect: (leagueTier: number) => void;
+  isMobile?: boolean;
 }
 
 export function LeagueSelector({
@@ -31,18 +31,18 @@ export function LeagueSelector({
       <div className="flex gap-2">
         <Skeleton className="h-10 w-45 rounded-md" />
       </div>
-    )
+    );
   }
 
   if (leagues.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">No leagues available.</p>
-    )
+    );
   }
 
   const selectedLeague = leagues.find(
     (league) => league.leagueTier === selectedLeagueTier
-  )
+  );
 
   if (isMobile) {
     return (
@@ -69,7 +69,7 @@ export function LeagueSelector({
           </SelectContent>
         </Select>
       </div>
-    )
+    );
   }
 
   return (
@@ -89,5 +89,5 @@ export function LeagueSelector({
         ))}
       </TabsList>
     </Tabs>
-  )
+  );
 }

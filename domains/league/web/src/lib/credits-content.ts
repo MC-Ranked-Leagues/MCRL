@@ -1,8 +1,8 @@
 export type CreditRole = {
-  name: string
-  leaders: readonly string[]
-  members: readonly string[]
-}
+  name: string;
+  leaders: readonly string[];
+  members: readonly string[];
+};
 
 export const TEAM = {
   title: "The team behind Ranked Leagues",
@@ -67,4 +67,4 @@ export const TEAM = {
       ],
     },
   ] satisfies readonly CreditRole[],
-} as const
+} as const;

@@ -1,9 +1,9 @@
-import type { Doc } from "../_generated/dataModel"
+import type { Doc } from "../_generated/dataModel";
 
 type MatchResultForAverage = Pick<
   Doc<"matchResults">,
   "dnf" | "missed" | "timeMs"
->
+>;
 
 /**
  * Computes a registration's average over its imported match outcomes.
@@ -18,7 +18,7 @@ export function calculateRegistrationAverageTimeMs(
     results.length === 0 ||
     results.every((result) => result.missed === true)
   ) {
-    return null
+    return null;
   }
 
   const totalTimeMs = results.reduce(
@@ -28,7 +28,7 @@ export function calculateRegistrationAverageTimeMs(
         ? maxTimeLimitMs
         : result.timeMs),
     0
-  )
+  );
 
-  return totalTimeMs / results.length
+  return totalTimeMs / results.length;
 }

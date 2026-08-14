@@ -1,32 +1,32 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react"
-import { Activity, Clock3, Trophy, UserRoundX } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
-import { AverageTimeTrend } from "./AverageTimeTrend"
-import { WeeklyPerformance } from "./WeeklyPerformance"
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { Activity, Clock3, Trophy, UserRoundX } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { AverageTimeTrend } from "./AverageTimeTrend";
+import { WeeklyPerformance } from "./WeeklyPerformance";
 import {
   formatDuration,
   mergeWeeklyPerformance,
   type PlayerStats,
-} from "./stats-utils"
+} from "./stats-utils";
 
 interface PlayerStatsDashboardProps {
-  stats: PlayerStats | null | undefined
+  stats: PlayerStats | null | undefined;
 }
 
 type RankedEloState =
   | { playerName: string; status: "success"; elo: number | null }
-  | { playerName: string; status: "error" }
+  | { playerName: string; status: "error" };
 
 function useRankedElo(
   playerName: string | undefined
 ): RankedEloState | { status: "loading" } {
-  const [state, setState] = useState<RankedEloState | null>(null)
+  const [state, setState] = useState<RankedEloState | null>(null);
 
   useEffect(() => {
-    if (!playerName) return
+    if (!playerName) return;
 
-    const controller = new AbortController()
+    const controller = new AbortController();
 
     void fetch(
       `https://api.mcsrranked.com/users/${encodeURIComponent(playerName)}`,
@@ -34,9 +34,9 @@ function useRankedElo(
     )
       .then(async (response) => {
         if (!response.ok)
-          throw new Error(`MCSR Ranked returned ${response.status}`)
+          throw new Error(`MCSR Ranked returned ${response.status}`);
 
-        const payload: unknown = await response.json()
+        const payload: unknown = await response.json();
         if (
           !payload ||
           typeof payload !== "object" ||
@@ -49,25 +49,26 @@ function useRankedElo(
           (typeof payload.data.eloRate !== "number" &&
             payload.data.eloRate !== null)
         ) {
-          throw new Error("MCSR Ranked returned an unexpected response")
+          throw new Error("MCSR Ranked returned an unexpected response");
         }
 
         setState({
           playerName,
           status: "success",
           elo: payload.data.eloRate,
-        })
+        });
       })
       .catch((error: unknown) => {
-        if (error instanceof DOMException && error.name === "AbortError") return
-        setState({ playerName, status: "error" })
-      })
+        if (error instanceof DOMException && error.name === "AbortError")
+          return;
+        setState({ playerName, status: "error" });
+      });
 
-    return () => controller.abort()
-  }, [playerName])
+    return () => controller.abort();
+  }, [playerName]);
 
-  if (state && state.playerName === playerName) return state
-  return { status: "loading" }
+  if (state && state.playerName === playerName) return state;
+  return { status: "loading" };
 }
 
 function Metric({
@@ -76,10 +77,10 @@ function Metric({
   value,
   note,
 }: {
-  icon: ReactNode
-  label: string
-  value: string
-  note: string
+  icon: ReactNode;
+  label: string;
+  value: string;
+  note: string;
 }) {
   return (
     <div className="flex min-w-0 flex-col justify-between border-b px-4 py-4 last:border-b-0 sm:border-r sm:border-b-0 sm:last:border-r-0">
@@ -98,7 +99,7 @@ function Metric({
         <p className="mt-1 text-xs text-muted-foreground">{note}</p>
       </div>
     </div>
-  )
+  );
 }
 
 function DashboardSkeleton() {
@@ -130,17 +131,17 @@ function DashboardSkeleton() {
       <Skeleton className="h-88 rounded-xl" aria-hidden="true" />
       <Skeleton className="h-64 rounded-xl" aria-hidden="true" />
     </div>
-  )
+  );
 }
 
 export function PlayerStatsDashboard({ stats }: PlayerStatsDashboardProps) {
   const weeks = useMemo(
     () => (stats ? mergeWeeklyPerformance(stats) : []),
     [stats]
-  )
-  const rankedElo = useRankedElo(stats?.name)
+  );
+  const rankedElo = useRankedElo(stats?.name);
 
-  if (stats === undefined) return <DashboardSkeleton />
+  if (stats === undefined) return <DashboardSkeleton />;
 
   if (stats === null) {
     return (
@@ -156,7 +157,7 @@ export function PlayerStatsDashboard({ stats }: PlayerStatsDashboardProps) {
           </p>
         </div>
       </Card>
-    )
+    );
   }
 
   return (
@@ -216,5 +217,5 @@ export function PlayerStatsDashboard({ stats }: PlayerStatsDashboardProps) {
       <AverageTimeTrend weeks={weeks} />
       <WeeklyPerformance weeks={weeks} />
     </div>
-  )
+  );
 }

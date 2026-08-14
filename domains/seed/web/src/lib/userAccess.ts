@@ -5,7 +5,7 @@ export type UserRole = "admin" | ManagedRole;
 
 export function getLeagueLabel(
   leagues: Doc<"leagues">[],
-  leagueId: Id<"leagues"> | null | undefined,
+  leagueId: Id<"leagues"> | null | undefined
 ) {
   if (!leagueId) {
     return "No league";
@@ -19,7 +19,7 @@ export function getLeagueLabel(
 
 export function getLeagueListLabel(
   leagues: Doc<"leagues">[],
-  leagueIds: Id<"leagues">[] | undefined,
+  leagueIds: Id<"leagues">[] | undefined
 ) {
   if (!leagueIds || leagueIds.length === 0) {
     return "No leagues";
@@ -56,7 +56,7 @@ export function getManagedUserValues(user: Doc<"users">) {
 
 export function haveSameManagedRoles(
   firstRoles: ManagedRole[],
-  secondRoles: ManagedRole[],
+  secondRoles: ManagedRole[]
 ) {
   return (
     firstRoles.length === secondRoles.length &&
@@ -66,7 +66,7 @@ export function haveSameManagedRoles(
 
 export function haveSameLeagueIds(
   firstLeagueIds: Id<"leagues">[],
-  secondLeagueIds: Id<"leagues">[],
+  secondLeagueIds: Id<"leagues">[]
 ) {
   return (
     firstLeagueIds.length === secondLeagueIds.length &&
@@ -81,7 +81,7 @@ export function isManagedRole(role: unknown): role is ManagedRole {
 export function updateManagedRole(
   currentRoles: ManagedRole[],
   role: ManagedRole,
-  checked: boolean,
+  checked: boolean
 ) {
   if (checked) {
     return currentRoles.includes(role) ? currentRoles : [...currentRoles, role];

@@ -104,11 +104,11 @@ export function LeaguePage() {
   const uploadLeagues = useQuery(api.leagues.listSeedUploadLeagueOptions);
   const seeds = useQuery(
     api.seeds.listSeedsByLeague,
-    selectedLeagueId ? { leagueId: selectedLeagueId } : "skip",
+    selectedLeagueId ? { leagueId: selectedLeagueId } : "skip"
   )?.sort((a, b) => (a.seedNumber ?? 0) - (b.seedNumber ?? 0));
   const league = useMemo(
     () => leagues?.find((item) => item._id === selectedLeagueId),
-    [leagues, selectedLeagueId],
+    [leagues, selectedLeagueId]
   );
 
   const user = useQuery(api.users.currentUser);
@@ -227,15 +227,15 @@ function SeedDistributionCard({
       requirement.types.map((type) => [
         type,
         seeds.filter((seed) => seed.type === type).length,
-      ]),
+      ])
     ) as Record<SeedType, number>;
     const count = Object.values(countsByType).reduce(
       (total, typeCount) => total + typeCount,
-      0,
+      0
     );
     const label = requirement.types.map((type) => SEED_TYPES[type]).join(" / ");
     const missingTypes = requirement.types.filter(
-      (type) => countsByType[type] === 0,
+      (type) => countsByType[type] === 0
     );
 
     return {
@@ -248,7 +248,7 @@ function SeedDistributionCard({
   const requiredTotal = rows.reduce((total, row) => total + row.required, 0);
   const filledTotal = rows.reduce(
     (total, row) => total + Math.min(row.count, row.required),
-    0,
+    0
   );
   return (
     <Card size="sm">
@@ -277,7 +277,7 @@ function SeedDistributionCard({
               row.count >= row.required - 1;
             const progressValue = Math.min(
               Math.round((row.count / row.required) * 100),
-              100,
+              100
             );
 
             return (
@@ -357,7 +357,7 @@ function SeedTable({
     <Table containerClassName="max-h-[calc(100svh-20rem)] overflow-auto rounded-md border">
       <TableHeader>
         <TableRow>
-          <TableHead className="border-r w-6">#</TableHead>
+          <TableHead className="w-6 border-r">#</TableHead>
           <TableHead className="border-r text-left">Seed Type</TableHead>
           <TableHead className="border-r">Overworld</TableHead>
           <TableHead className="border-r">Nether</TableHead>
@@ -367,7 +367,7 @@ function SeedTable({
           <TableHead className="w-12 border-r text-center">
             <MessageCircle />
           </TableHead>
-          <TableHead className="w-12 " />
+          <TableHead className="w-12" />
         </TableRow>
       </TableHeader>
       <TableBody>

@@ -1,24 +1,24 @@
-import { useEffect, useMemo, useRef } from "react"
-import { LineChart } from "echarts/charts"
+import { useEffect, useMemo, useRef } from "react";
+import { LineChart } from "echarts/charts";
 import {
   AriaComponent,
   GridComponent,
   TooltipComponent,
-} from "echarts/components"
+} from "echarts/components";
 import {
   init,
   use as registerECharts,
   type ECharts,
   type EChartsCoreOption,
-} from "echarts/core"
-import { CanvasRenderer } from "echarts/renderers"
-import { ChartLine } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+} from "echarts/core";
+import { CanvasRenderer } from "echarts/renderers";
+import { ChartLine } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   formatDuration,
   movementLabel,
   type WeeklyPerformance,
-} from "./stats-utils"
+} from "./stats-utils";
 
 registerECharts([
   LineChart,
@@ -26,37 +26,35 @@ registerECharts([
   TooltipComponent,
   AriaComponent,
   CanvasRenderer,
-])
+]);
 
 function cssColor(name: string, fallback: string) {
-  if (typeof document === "undefined") return fallback
+  if (typeof document === "undefined") return fallback;
 
-  const value = getComputedStyle(document.body).getPropertyValue(name).trim()
+  const value = getComputedStyle(document.body).getPropertyValue(name).trim();
 
-  return value || fallback
+  return value || fallback;
 }
 
 export function AverageTimeTrend({ weeks }: { weeks: WeeklyPerformance[] }) {
-  const chartElementRef = useRef<HTMLDivElement>(null)
-  const chartRef = useRef<ECharts | null>(null)
+  const chartElementRef = useRef<HTMLDivElement>(null);
+  const chartRef = useRef<ECharts | null>(null);
   const averageWeeks = useMemo(
     () =>
       weeks.filter(
-        (
-          week
-        ): week is WeeklyPerformance & { averageTimeMs: number } =>
+        (week): week is WeeklyPerformance & { averageTimeMs: number } =>
           week.averageTimeMs !== null && week.averageTimeMs !== undefined
       ),
     [weeks]
-  )
-  const hasAverageData = averageWeeks.length > 0
+  );
+  const hasAverageData = averageWeeks.length > 0;
 
   const option = useMemo<EChartsCoreOption>(() => {
-    const primary = cssColor("--primary", "#f59e0b")
-    const border = cssColor("--border", "#3f3f46")
-    const mutedForeground = cssColor("--muted-foreground", "#a1a1aa")
-    const popover = cssColor("--popover", "#18181b")
-    const popoverForeground = cssColor("--popover-foreground", "#fafafa")
+    const primary = cssColor("--primary", "#f59e0b");
+    const border = cssColor("--border", "#3f3f46");
+    const mutedForeground = cssColor("--muted-foreground", "#a1a1aa");
+    const popover = cssColor("--popover", "#18181b");
+    const popoverForeground = cssColor("--popover-foreground", "#fafafa");
 
     return {
       animationDuration: 350,
@@ -79,25 +77,25 @@ export function AverageTimeTrend({ weeks }: { weeks: WeeklyPerformance[] }) {
         padding: 12,
         textStyle: { color: popoverForeground, fontSize: 12 },
         formatter: (rawParams: unknown) => {
-          const params = Array.isArray(rawParams) ? rawParams[0] : rawParams
+          const params = Array.isArray(rawParams) ? rawParams[0] : rawParams;
           if (
             !params ||
             typeof params !== "object" ||
             !("dataIndex" in params) ||
             typeof params.dataIndex !== "number"
           ) {
-            return ""
+            return "";
           }
 
-          const week = averageWeeks[params.dataIndex]
-          if (!week) return ""
+          const week = averageWeeks[params.dataIndex];
+          if (!week) return "";
 
           return [
             `<strong>Week ${week.weekNumber}</strong> &middot; League ${week.leagueNumber}`,
             `<div style="margin-top:6px;color:${primary};font-size:15px;font-weight:700">${formatDuration(week.averageTimeMs)}</div>`,
             `<div style="margin-top:6px;color:${mutedForeground}">${week.matches} matches &middot; ${week.totalPoints} points</div>`,
             `<div style="color:${mutedForeground}">${movementLabel(week.movement)}</div>`,
-          ].join("")
+          ].join("");
         },
       },
       xAxis: {
@@ -141,28 +139,28 @@ export function AverageTimeTrend({ weeks }: { weeks: WeeklyPerformance[] }) {
           emphasis: { disabled: true },
         },
       ],
-    }
-  }, [averageWeeks])
+    };
+  }, [averageWeeks]);
 
   useEffect(() => {
-    const element = chartElementRef.current
-    if (!element || !hasAverageData) return
+    const element = chartElementRef.current;
+    if (!element || !hasAverageData) return;
 
-    const chart = init(element, undefined, { renderer: "canvas" })
-    const observer = new ResizeObserver(() => chart.resize())
-    chartRef.current = chart
-    observer.observe(element)
+    const chart = init(element, undefined, { renderer: "canvas" });
+    const observer = new ResizeObserver(() => chart.resize());
+    chartRef.current = chart;
+    observer.observe(element);
 
     return () => {
-      observer.disconnect()
-      chart.dispose()
-      chartRef.current = null
-    }
-  }, [hasAverageData])
+      observer.disconnect();
+      chart.dispose();
+      chartRef.current = null;
+    };
+  }, [hasAverageData]);
 
   useEffect(() => {
-    chartRef.current?.setOption(option, { notMerge: true })
-  }, [option])
+    chartRef.current?.setOption(option, { notMerge: true });
+  }, [option]);
 
   return (
     <section aria-labelledby="average-time-heading">
@@ -200,5 +198,5 @@ export function AverageTimeTrend({ weeks }: { weeks: WeeklyPerformance[] }) {
         </CardContent>
       </Card>
     </section>
-  )
+  );
 }

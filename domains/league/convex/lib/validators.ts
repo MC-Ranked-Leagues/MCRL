@@ -1,10 +1,10 @@
-import { z } from "zod"
+import { z } from "zod";
 
 const positiveInt = (field: string) =>
-  z.int(`${field} must be an integer.`).min(1, `${field} must be at least 1.`)
+  z.int(`${field} must be an integer.`).min(1, `${field} must be at least 1.`);
 
 const nonEmptyString = (field: string) =>
-  z.string(`${field} must be a string.`).min(1, `${field} must not be empty.`)
+  z.string(`${field} must be a string.`).min(1, `${field} must not be empty.`);
 
 export const CompetitionSchema = z.object({
   leagueTier: positiveInt("leagueTier"),
@@ -18,7 +18,7 @@ export const CompetitionSchema = z.object({
       .number("startingTime must be a number.")
       .int("startingTime must be an integer.")
   ),
-})
+});
 
 export const CompetitionStatusSchema = z.object({
   leagueTier: positiveInt("leagueTier"),
@@ -26,7 +26,7 @@ export const CompetitionStatusSchema = z.object({
   status: z.enum(["active", "ended"], {
     error: "status must be either 'active' or 'ended'.",
   }),
-})
+});
 
 export const RegisterPlayerSchema = z.object({
   leagueTier: positiveInt("leagueTier"),
@@ -34,26 +34,26 @@ export const RegisterPlayerSchema = z.object({
   uuid: nonEmptyString("uuid"),
   ign: nonEmptyString("ign"),
   elo: z.number("elo must be a number.").optional(),
-})
+});
 
 export const UnregisterPlayerSchema = z.object({
   leagueTier: positiveInt("leagueTier"),
   weekNumber: positiveInt("weekNumber"),
   uuid: nonEmptyString("uuid"),
-})
+});
 
 export const UpdatePlayerLeagueSchema = z.object({
   uuid: nonEmptyString("uuid"),
   leagueTier: positiveInt("leagueTier"),
-})
+});
 
 export const CreateEmptyMatchSchema = z.object({
   leagueTier: positiveInt("leagueTier"),
   weekNumber: positiveInt("weekNumber"),
   matchNumber: positiveInt("matchNumber"),
-})
+});
 
-export const ClearMatchResultsSchema = CreateEmptyMatchSchema
+export const ClearMatchResultsSchema = CreateEmptyMatchSchema;
 
 export const MatchResultImportSchema = z.object({
   uuid: nonEmptyString("results[].uuid"),
@@ -73,7 +73,7 @@ export const MatchResultImportSchema = z.object({
   pointsWon: z
     .number("results[].pointsWon must be a number.")
     .nonnegative("results[].pointsWon must be at least 0."),
-})
+});
 
 export const ImportMatchSchema = z.object({
   leagueTier: positiveInt("leagueTier"),
@@ -81,14 +81,14 @@ export const ImportMatchSchema = z.object({
   matchNumber: positiveInt("matchNumber"),
   rankedMatchId: nonEmptyString("rankedMatchId"),
   results: z.array(MatchResultImportSchema, "results must be an array."),
-})
+});
 
 export const PointAdjustmentSchema = z.object({
   leagueTier: positiveInt("leagueTier"),
   weekNumber: positiveInt("weekNumber"),
   uuid: nonEmptyString("uuid"),
   manualAdjustmentPoints: z.number("manualAdjustmentPoints must be a number."),
-})
+});
 
 export const MovementSchema = z
   .object({
@@ -104,18 +104,18 @@ export const MovementSchema = z
     ),
   })
   .superRefine((value, ctx) => {
-    const demotedLookup = new Set(value.demotedUuids)
+    const demotedLookup = new Set(value.demotedUuids);
     const overlap = value.promotedUuids.filter((uuid) =>
       demotedLookup.has(uuid)
-    )
+    );
     if (overlap.length > 0) {
       ctx.addIssue({
         code: "custom",
         message: "A uuid cannot be both promoted and demoted.",
         path: ["promotedUuids"],
-      })
+      });
     }
-  })
+  });
 
 export const ListPlayerMatchesSchema = z
   .object({
@@ -129,4 +129,4 @@ export const ListPlayerMatchesSchema = z
   .refine((v) => v.uuid !== undefined || v.playerName !== undefined, {
     message: "Either uuid or playerName must be provided.",
     path: ["uuid"],
-  })
+  });

@@ -37,11 +37,11 @@ export function AdminActiveUserDetailsPage() {
   const allLeagues = useQuery(api.leagues.listLeagues);
   const leagues = useMemo(
     () => sortLeaguesByNumberAndName(allLeagues ?? []),
-    [allLeagues],
+    [allLeagues]
   );
   const selectedUserId = userId as Id<"users"> | undefined;
   const user = activeUsers?.find(
-    (activeUser) => activeUser._id === selectedUserId,
+    (activeUser) => activeUser._id === selectedUserId
   );
 
   if (activeUsers === undefined || allLeagues === undefined) {
@@ -68,7 +68,7 @@ export function AdminActiveUserDetailsPage() {
 
   return (
     <div className="flex min-w-0 flex-col gap-4">
-      <div className="flex gap-2 justify-start items-center">
+      <div className="flex items-center justify-start gap-2">
         <Avatar className="h-12 w-12">
           <AvatarImage src={user.image} />
           <AvatarFallback>
@@ -118,10 +118,10 @@ function ManagedUserForm({
   const savedValues = useMemo(() => getManagedUserValues(user), [user]);
   const [roles, setRoles] = useState<ManagedRole[]>(savedValues.roles);
   const [uploaderLeagueIds, setUploaderleagueIds] = useState<Id<"leagues">[]>(
-    savedValues.uploaderLeagueIds,
+    savedValues.uploaderLeagueIds
   );
   const [hostLeagueId, setHostLeagueId] = useState<Id<"leagues">[]>(
-    savedValues.hostLeagueId,
+    savedValues.hostLeagueId
   );
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);

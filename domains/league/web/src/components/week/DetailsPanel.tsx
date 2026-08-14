@@ -1,14 +1,14 @@
-import { lazy, Suspense } from "react"
-import { useQuery } from "convex/react"
-import { api } from "../../../../convex/_generated/api"
-import type { Id } from "../../../../convex/_generated/dataModel"
-import { Skeleton } from "@/components/ui/skeleton"
-import { cn } from "@/lib/utils"
+import { lazy, Suspense } from "react";
+import { useQuery } from "convex/react";
+import { api } from "../../../../convex/_generated/api";
+import type { Id } from "../../../../convex/_generated/dataModel";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 const LazyMatchData = lazy(async () => {
-  const module = await import("./MatchData")
-  return { default: module.default }
-})
+  const module = await import("./MatchData");
+  return { default: module.default };
+});
 
 export function DetailsPanel({
   weekNumber,
@@ -19,13 +19,17 @@ export function DetailsPanel({
   playerStats,
   showBorder = true,
 }: {
-  weekNumber: number | null
-  leagueTier: number | null
-  playerId: string | null
-  matchId: string | null
-  rankedMatchId: string | null
-  playerStats: { name: string; totalPoints: number; rank: number | null } | null
-  showBorder?: boolean
+  weekNumber: number | null;
+  leagueTier: number | null;
+  playerId: string | null;
+  matchId: string | null;
+  rankedMatchId: string | null;
+  playerStats: {
+    name: string;
+    totalPoints: number;
+    rank: number | null;
+  } | null;
+  showBorder?: boolean;
 }) {
   if (playerId && weekNumber !== null && leagueTier !== null && playerStats) {
     return (
@@ -42,7 +46,7 @@ export function DetailsPanel({
           stats={playerStats}
         />
       </div>
-    )
+    );
   }
 
   if (matchId) {
@@ -63,10 +67,10 @@ export function DetailsPanel({
           <LazyMatchData matchId={rankedMatchId} />
         </Suspense>
       </div>
-    )
+    );
   }
 
-  return null
+  return null;
 }
 
 function PlayerDetails({
@@ -75,16 +79,16 @@ function PlayerDetails({
   playerId,
   stats,
 }: {
-  weekNumber: number
-  leagueTier: number
-  playerId: Id<"players">
-  stats: { name: string; totalPoints: number; rank: number | null }
+  weekNumber: number;
+  leagueTier: number;
+  playerId: Id<"players">;
+  stats: { name: string; totalPoints: number; rank: number | null };
 }) {
   const placements = useQuery(api.weekView.getPlayerWeekPlacements, {
     weekNumber,
     leagueTier,
     playerId,
-  })
+  });
 
   if (placements === undefined) {
     return (
@@ -97,7 +101,7 @@ function PlayerDetails({
           ))}
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -136,11 +140,11 @@ function PlayerDetails({
                   ? "3rd"
                   : placement.placement === null
                     ? "DNF"
-                    : `${placement.placement}th`
+                    : `${placement.placement}th`;
 
           const isPodium =
-            placement.placement !== null && placement.placement <= 3
-          const isWinner = placement.placement === 1
+            placement.placement !== null && placement.placement <= 3;
+          const isWinner = placement.placement === 1;
 
           return (
             <div key={placement.matchId} className="flex flex-row items-center">
@@ -160,7 +164,7 @@ function PlayerDetails({
                 +{placement.pointsWon} points
               </span>
             </div>
-          )
+          );
         })}
         {placements.length === 0 && (
           <div className="py-4 text-sm text-muted-foreground opacity-50">
@@ -169,5 +173,5 @@ function PlayerDetails({
         )}
       </div>
     </div>
-  )
+  );
 }

@@ -1,20 +1,20 @@
-import { Skeleton } from "@/components/ui/skeleton"
-import { cn } from "@/lib/utils"
-import type { Id } from "../../../../convex/_generated/dataModel"
-import { ArrowDownIcon, ArrowUpIcon } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
+import type { Id } from "../../../../convex/_generated/dataModel";
+import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 
 interface StandingRow {
-  rank: number | null
-  playerId: Id<"players">
-  name: string
-  totalPoints: number
-  movement?: "promoted" | "demoted" | "none" | null
+  rank: number | null;
+  playerId: Id<"players">;
+  name: string;
+  totalPoints: number;
+  movement?: "promoted" | "demoted" | "none" | null;
 }
 
 interface StandingsTableProps {
-  standings: StandingRow[] | undefined
-  selectedPlayerId: string | null
-  onPlayerClick: (playerId: string) => void
+  standings: StandingRow[] | undefined;
+  selectedPlayerId: string | null;
+  onPlayerClick: (playerId: string) => void;
 }
 
 export function StandingsTable({
@@ -29,19 +29,21 @@ export function StandingsTable({
           <Skeleton key={i} className="h-10 w-full rounded-md" />
         ))}
       </div>
-    )
+    );
   }
 
   if (standings.length === 0) {
-    return <div className="text-sm text-muted-foreground">No records found</div>
+    return (
+      <div className="text-sm text-muted-foreground">No records found</div>
+    );
   }
 
-  const firstUnrankedIndex = standings.findIndex((row) => row.rank === null)
+  const firstUnrankedIndex = standings.findIndex((row) => row.rank === null);
 
   return (
     <div className="flex flex-col font-minecraft">
       {standings.map((row, index) => {
-        const isSelected = selectedPlayerId === row.playerId
+        const isSelected = selectedPlayerId === row.playerId;
 
         return (
           <div key={row.playerId}>
@@ -96,8 +98,8 @@ export function StandingsTable({
               </div>
             </button>
           </div>
-        )
+        );
       })}
     </div>
-  )
+  );
 }

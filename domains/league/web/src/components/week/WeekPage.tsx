@@ -1,25 +1,25 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from "react"
-import { useQuery } from "convex/react"
-import { api } from "../../../../convex/_generated/api"
-import ConvexClientProvider from "@/components/ConvexClientProvider"
-import { WeekSelector } from "./WeekSelector"
-import { LeagueSelector } from "./LeagueSelector"
-import { StandingsTable } from "./StandingsTable"
-import { MatchesList } from "./MatchesList"
-import { useIsMobile } from "@/hooks/use-mobile"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { useQuery } from "convex/react";
+import { api } from "../../../../convex/_generated/api";
+import ConvexClientProvider from "@/components/ConvexClientProvider";
+import { WeekSelector } from "./WeekSelector";
+import { LeagueSelector } from "./LeagueSelector";
+import { StandingsTable } from "./StandingsTable";
+import { MatchesList } from "./MatchesList";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Drawer,
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
-} from "@/components/ui/drawer"
-import SeedList from "./SeedList"
+} from "@/components/ui/drawer";
+import SeedList from "./SeedList";
 
 const LazyDetailsPanel = lazy(async () => {
-  const module = await import("./DetailsPanel")
-  return { default: module.DetailsPanel }
-})
+  const module = await import("./DetailsPanel");
+  return { default: module.DetailsPanel };
+});
 
 function DetailsPanelFallback({ showBorder = true }: { showBorder?: boolean }) {
   return (
@@ -31,32 +31,32 @@ function DetailsPanelFallback({ showBorder = true }: { showBorder?: boolean }) {
     >
       Loading details...
     </div>
-  )
+  );
 }
 
 function WeekContent() {
-  const isMobile = useIsMobile()
-  const weeks = useQuery(api.weekView.getAllWeeks)
-  const leagues = useQuery(api.leagues.listLeagues)
+  const isMobile = useIsMobile();
+  const weeks = useQuery(api.weekView.getAllWeeks);
+  const leagues = useQuery(api.leagues.listLeagues);
 
   const [selectedWeekNumber, setSelectedWeekNumber] = useState<number | null>(
     null
-  )
+  );
   const [selectedLeagueTier, setSelectedLeagueTier] = useState<number | null>(
     null
-  )
-  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null)
-  const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null)
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
-  const [isUrlInitialized, setIsUrlInitialized] = useState(false)
+  );
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+  const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isUrlInitialized, setIsUrlInitialized] = useState(false);
   const weekNumbers = useMemo(
     () => new Set((weeks ?? []).map((week) => week.weekNumber)),
     [weeks]
-  )
+  );
   const leagueTiers = useMemo(
     () => new Set((leagues ?? []).map((league) => league.leagueTier)),
     [leagues]
-  )
+  );
 
   useEffect(() => {
     if (
@@ -65,76 +65,78 @@ function WeekContent() {
       !leagues ||
       isUrlInitialized
     ) {
-      return
+      return;
     }
 
-    const searchParams = new URL(window.location.href).searchParams
-    const urlWeek = searchParams.get("week")
-    const urlLeague = searchParams.get("league")
+    const searchParams = new URL(window.location.href).searchParams;
+    const urlWeek = searchParams.get("week");
+    const urlLeague = searchParams.get("league");
 
     const parsedWeek =
       urlWeek && urlWeek !== "latest"
         ? Number.parseInt(urlWeek, 10)
-        : Number.NaN
-    const parsedLeague = urlLeague ? Number.parseInt(urlLeague, 10) : Number.NaN
+        : Number.NaN;
+    const parsedLeague = urlLeague
+      ? Number.parseInt(urlLeague, 10)
+      : Number.NaN;
 
     if (Number.isFinite(parsedWeek)) {
       if (weekNumbers.has(parsedWeek)) {
-        setSelectedWeekNumber(parsedWeek)
+        setSelectedWeekNumber(parsedWeek);
       }
     }
 
     if (Number.isFinite(parsedLeague)) {
       if (leagueTiers.has(parsedLeague)) {
-        setSelectedLeagueTier(parsedLeague)
+        setSelectedLeagueTier(parsedLeague);
       }
     }
 
-    setIsUrlInitialized(true)
-  }, [weeks, leagues, isUrlInitialized, weekNumbers, leagueTiers])
+    setIsUrlInitialized(true);
+  }, [weeks, leagues, isUrlInitialized, weekNumbers, leagueTiers]);
 
   useEffect(() => {
-    if (typeof window === "undefined") return
+    if (typeof window === "undefined") return;
 
     const handlePopState = () => {
-      if (!weeks || !leagues) return
+      if (!weeks || !leagues) return;
 
-      const searchParams = new URL(window.location.href).searchParams
-      const urlWeek = searchParams.get("week")
-      const urlLeague = searchParams.get("league")
+      const searchParams = new URL(window.location.href).searchParams;
+      const urlWeek = searchParams.get("week");
+      const urlLeague = searchParams.get("league");
 
       const parsedWeek =
         urlWeek && urlWeek !== "latest"
           ? Number.parseInt(urlWeek, 10)
-          : Number.NaN
+          : Number.NaN;
       const parsedLeague = urlLeague
         ? Number.parseInt(urlLeague, 10)
-        : Number.NaN
+        : Number.NaN;
 
       setSelectedWeekNumber(
         Number.isFinite(parsedWeek) && weekNumbers.has(parsedWeek)
           ? parsedWeek
           : null
-      )
+      );
 
       setSelectedLeagueTier(
         Number.isFinite(parsedLeague) && leagueTiers.has(parsedLeague)
           ? parsedLeague
           : null
-      )
-    }
+      );
+    };
 
-    window.addEventListener("popstate", handlePopState)
-    return () => window.removeEventListener("popstate", handlePopState)
-  }, [weeks, leagues, weekNumbers, leagueTiers])
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [weeks, leagues, weekNumbers, leagueTiers]);
 
   const onDrawerChange = (open: boolean) => {
-    setIsDrawerOpen(open)
+    setIsDrawerOpen(open);
     if (!open) {
-      setSelectedPlayerId(null)
-      setSelectedMatchId(null)
+      setSelectedPlayerId(null);
+      setSelectedMatchId(null);
     }
-  }
+  };
 
   const effectiveSelectedWeekNumber = useMemo(
     () =>
@@ -145,7 +147,7 @@ function WeekContent() {
       weeks?.[0]?.weekNumber ??
       null,
     [selectedWeekNumber, weekNumbers, weeks]
-  )
+  );
 
   const effectiveSelectedLeagueTier = useMemo(
     () =>
@@ -156,7 +158,7 @@ function WeekContent() {
       leagues?.[0]?.leagueTier ??
       null,
     [selectedLeagueTier, leagueTiers, leagues]
-  )
+  );
 
   const standings = useQuery(
     api.weekView.getWeekStandings,
@@ -166,7 +168,7 @@ function WeekContent() {
           leagueTier: effectiveSelectedLeagueTier,
         }
       : "skip"
-  )
+  );
 
   const matches = useQuery(
     api.weekView.getWeekMatches,
@@ -176,56 +178,56 @@ function WeekContent() {
           leagueTier: effectiveSelectedLeagueTier,
         }
       : "skip"
-  )
+  );
 
   function handlePlayerClick(playerId: string) {
     if (selectedPlayerId === playerId) {
-      setSelectedPlayerId(null)
-      if (isMobile) setIsDrawerOpen(false)
+      setSelectedPlayerId(null);
+      if (isMobile) setIsDrawerOpen(false);
     } else {
-      setSelectedPlayerId(playerId)
-      setSelectedMatchId(null)
-      if (isMobile) setIsDrawerOpen(true)
+      setSelectedPlayerId(playerId);
+      setSelectedMatchId(null);
+      if (isMobile) setIsDrawerOpen(true);
     }
   }
 
   function handleMatchClick(matchId: string) {
     if (selectedMatchId === matchId) {
-      setSelectedMatchId(null)
-      if (isMobile) setIsDrawerOpen(false)
+      setSelectedMatchId(null);
+      if (isMobile) setIsDrawerOpen(false);
     } else {
-      setSelectedMatchId(matchId)
-      setSelectedPlayerId(null)
-      if (isMobile) setIsDrawerOpen(true)
+      setSelectedMatchId(matchId);
+      setSelectedPlayerId(null);
+      if (isMobile) setIsDrawerOpen(true);
     }
   }
 
   function pushSelectionToUrl(weekNumber: number, leagueTier: number) {
-    const newUrl = new URL(window.location.href)
-    newUrl.searchParams.set("week", String(weekNumber))
-    newUrl.searchParams.set("league", String(leagueTier))
-    window.history.pushState({}, "", newUrl.toString())
+    const newUrl = new URL(window.location.href);
+    newUrl.searchParams.set("week", String(weekNumber));
+    newUrl.searchParams.set("league", String(leagueTier));
+    window.history.pushState({}, "", newUrl.toString());
   }
 
   function onWeekChange(weekNumber: number) {
-    setSelectedWeekNumber(weekNumber)
-    setSelectedPlayerId(null)
-    setSelectedMatchId(null)
-    setIsDrawerOpen(false)
+    setSelectedWeekNumber(weekNumber);
+    setSelectedPlayerId(null);
+    setSelectedMatchId(null);
+    setIsDrawerOpen(false);
 
     if (effectiveSelectedLeagueTier !== null) {
-      pushSelectionToUrl(weekNumber, effectiveSelectedLeagueTier)
+      pushSelectionToUrl(weekNumber, effectiveSelectedLeagueTier);
     }
   }
 
   function onLeagueChange(leagueTier: number) {
-    setSelectedLeagueTier(leagueTier)
-    setSelectedPlayerId(null)
-    setSelectedMatchId(null)
-    setIsDrawerOpen(false)
+    setSelectedLeagueTier(leagueTier);
+    setSelectedPlayerId(null);
+    setSelectedMatchId(null);
+    setIsDrawerOpen(false);
 
     if (effectiveSelectedWeekNumber !== null) {
-      pushSelectionToUrl(effectiveSelectedWeekNumber, leagueTier)
+      pushSelectionToUrl(effectiveSelectedWeekNumber, leagueTier);
     }
   }
 
@@ -238,15 +240,17 @@ function WeekContent() {
         ])
       ),
     [standings]
-  )
+  );
   const matchesById = useMemo(
     () => new Map((matches ?? []).map((match) => [String(match._id), match])),
     [matches]
-  )
+  );
   const selectedPlayer =
-    selectedPlayerId !== null ? standingsByPlayerId.get(selectedPlayerId) : null
+    selectedPlayerId !== null
+      ? standingsByPlayerId.get(selectedPlayerId)
+      : null;
   const selectedMatch =
-    selectedMatchId !== null ? matchesById.get(selectedMatchId) : null
+    selectedMatchId !== null ? matchesById.get(selectedMatchId) : null;
 
   const detailsPanelProps = useMemo(
     () => ({
@@ -271,9 +275,9 @@ function WeekContent() {
       selectedPlayer,
       selectedPlayerId,
     ]
-  )
+  );
   const hasDetailsSelection =
-    detailsPanelProps.playerId !== null || detailsPanelProps.matchId !== null
+    detailsPanelProps.playerId !== null || detailsPanelProps.matchId !== null;
 
   return (
     <div className="min-h-screen bg-background pt-20 pb-24 font-sans text-foreground md:pt-28">
@@ -389,7 +393,7 @@ function WeekContent() {
         )}
       </div>
     </div>
-  )
+  );
 }
 
 export function WeekPage() {
@@ -397,5 +401,5 @@ export function WeekPage() {
     <ConvexClientProvider>
       <WeekContent />
     </ConvexClientProvider>
-  )
+  );
 }

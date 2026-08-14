@@ -17,7 +17,7 @@ const managedRoleValidator = v.union(v.literal("host"), v.literal("uploader"));
 const discordRoleValidator = v.union(
   v.literal("admin"),
   v.literal("host"),
-  v.literal("uploader"),
+  v.literal("uploader")
 );
 const ALL_ROLE_ORDER = ["admin", "host", "uploader"] as const;
 const MANAGED_ROLE_ORDER = ["host", "uploader"] as const;
@@ -270,7 +270,7 @@ export const activateUserByDiscordId = mutation({
 
     const uploaderLeagueIds = await normalizeLeagueIds(
       ctx,
-      args.uploaderLeagueIds,
+      args.uploaderLeagueIds
     );
     const hostLeagueId = await normalizeLeagueIds(ctx, args.hostLeagueId);
     const roles = normalizeRoles(args.roles, args.makeAdmin);
@@ -337,7 +337,7 @@ export const updateManagedUser = mutation({
 
     const uploaderLeagues = await normalizeLeagueIds(
       ctx,
-      args.uploaderLeagueIds,
+      args.uploaderLeagueIds
     );
     const hostLeagueId = await normalizeLeagueIds(ctx, args.hostLeagueId);
     const roles = normalizeManagedRoles(args.roles);
@@ -417,10 +417,10 @@ export const updateDiscordAccess = internalMutation({
           ctx.db
             .query("leagues")
             .withIndex("by_leagueNumber", (q) =>
-              q.eq("leagueNumber", leagueNumber),
+              q.eq("leagueNumber", leagueNumber)
             )
-            .unique(),
-        ),
+            .unique()
+        )
       );
 
       const missingIndex = leagues.findIndex((league) => league === null);
@@ -436,7 +436,7 @@ export const updateDiscordAccess = internalMutation({
       const currentLeagueIds = user[leagueField] ?? [];
       const leagueIds = new Set(currentLeagueIds);
       const existingLeagues = leagues.filter(
-        (league): league is Doc<"leagues"> => league !== null,
+        (league): league is Doc<"leagues"> => league !== null
       );
 
       for (const league of existingLeagues) {
@@ -520,7 +520,7 @@ function addRole(roles: UserRole[], role: UserRole) {
 
 async function getUserByDiscordId(
   ctx: QueryCtx | MutationCtx,
-  discordId: string,
+  discordId: string
 ) {
   return await ctx.db
     .query("users")
@@ -553,7 +553,7 @@ function normalizeLeagueNumbers(leagueNumbers: number[]) {
 
   if (
     uniqueLeagueNumbers.some(
-      (leagueNumber) => !Number.isSafeInteger(leagueNumber) || leagueNumber < 1,
+      (leagueNumber) => !Number.isSafeInteger(leagueNumber) || leagueNumber < 1
     )
   ) {
     throw new ConvexError({
@@ -567,10 +567,10 @@ function normalizeLeagueNumbers(leagueNumbers: number[]) {
 
 async function getLeagueInfo(
   ctx: QueryCtx | MutationCtx,
-  leagueIds: Id<"leagues">[],
+  leagueIds: Id<"leagues">[]
 ) {
   const leagues = await Promise.all(
-    leagueIds.map((leagueId) => ctx.db.get("leagues", leagueId)),
+    leagueIds.map((leagueId) => ctx.db.get("leagues", leagueId))
   );
 
   return leagues
@@ -581,12 +581,12 @@ async function getLeagueInfo(
 
 async function normalizeLeagueIds(
   ctx: QueryCtx | MutationCtx,
-  leagueIds: Id<"leagues">[],
+  leagueIds: Id<"leagues">[]
 ) {
   const uniqueLeagueIds = Array.from(new Set(leagueIds));
 
   const leagues = await Promise.all(
-    uniqueLeagueIds.map((leagueId) => ctx.db.get("leagues", leagueId)),
+    uniqueLeagueIds.map((leagueId) => ctx.db.get("leagues", leagueId))
   );
 
   if (leagues.some((league) => league === null)) {
@@ -617,7 +617,7 @@ function normalizeManagedRoles(roles: ManagedRole[]) {
 
 function arraysEqual<T extends string>(
   first: readonly T[],
-  second: readonly T[],
+  second: readonly T[]
 ) {
   return (
     first.length === second.length &&
@@ -627,7 +627,7 @@ function arraysEqual<T extends string>(
 
 async function getUserAccessSummary(
   ctx: QueryCtx | MutationCtx,
-  user: Pick<Doc<"users">, "roles" | "uploaderLeagues" | "hostLeagueId">,
+  user: Pick<Doc<"users">, "roles" | "uploaderLeagues" | "hostLeagueId">
 ) {
   const [uploaderLeagues, hostLeagues] = await Promise.all([
     getLeagueInfo(ctx, user.uploaderLeagues ?? []),
@@ -640,12 +640,12 @@ async function getUserAccessSummary(
   }
   if (uploaderLeagues.length > 0) {
     parts.push(
-      `uploader leagues ${uploaderLeagues.map((league) => league.leagueName).join(", ")}`,
+      `uploader leagues ${uploaderLeagues.map((league) => league.leagueName).join(", ")}`
     );
   }
   if (hostLeagues.length > 0) {
     parts.push(
-      `host leagues ${hostLeagues.map((league) => league.leagueName).join(", ")}`,
+      `host leagues ${hostLeagues.map((league) => league.leagueName).join(", ")}`
     );
   }
 

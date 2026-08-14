@@ -1,11 +1,11 @@
-import { describe, expect, test } from "vitest"
-import type { Id } from "../convex/_generated/dataModel"
+import { describe, expect, test } from "vitest";
+import type { Id } from "../convex/_generated/dataModel";
 import {
   buildPlayerUrl,
   formatDuration,
   mergeWeeklyPerformance,
   type PlayerStats,
-} from "../web/src/components/stats/stats-utils"
+} from "../web/src/components/stats/stats-utils";
 
 describe("stats player URL helper", () => {
   test("persists player selection and removes the legacy league filter", () => {
@@ -14,16 +14,16 @@ describe("stats player URL helper", () => {
         "https://example.com/stats?league=2&source=discord#history",
         "Runner Name"
       )
-    ).toBe("/stats?source=discord&player=Runner+Name#history")
-  })
-})
+    ).toBe("/stats?source=discord&player=Runner+Name#history");
+  });
+});
 
 describe("stats data formatting", () => {
   test("formats durations and uses an em dash for missing values", () => {
-    expect(formatDuration(83_456)).toBe("1:23.456")
-    expect(formatDuration(0)).toBe("—")
-    expect(formatDuration(null)).toBe("—")
-  })
+    expect(formatDuration(83_456)).toBe("1:23.456");
+    expect(formatDuration(0)).toBe("—");
+    expect(formatDuration(null)).toBe("—");
+  });
 
   test("merges history, preserves gaps, and sorts weeks and matches", () => {
     const stats: PlayerStats = {
@@ -92,18 +92,18 @@ describe("stats data formatting", () => {
           ],
         },
       ],
-    }
+    };
 
-    const weeks = mergeWeeklyPerformance(stats)
+    const weeks = mergeWeeklyPerformance(stats);
 
-    expect(weeks.map((week) => week.weekNumber)).toEqual([1, 2])
-    expect(weeks[0].averageTimeMs).toBeNull()
+    expect(weeks.map((week) => week.weekNumber)).toEqual([1, 2]);
+    expect(weeks[0].averageTimeMs).toBeNull();
     expect(weeks[1]).toMatchObject({
       leagueNumber: 2,
       movement: "promoted",
-    })
+    });
     expect(weeks[1].matchDetails.map((match) => match.matchNumber)).toEqual([
       1, 2, 3,
-    ])
-  })
-})
+    ]);
+  });
+});

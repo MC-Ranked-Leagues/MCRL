@@ -90,7 +90,7 @@ export function SeedManagementDialog({
 
   const updateValue = <Key extends keyof SeedFormValues>(
     key: Key,
-    value: SeedFormValues[Key],
+    value: SeedFormValues[Key]
   ) => {
     setValues((current) => ({ ...current, [key]: value }));
   };
@@ -134,7 +134,7 @@ export function SeedManagementDialog({
       setErrors({
         form: getErrorMessage(
           error,
-          isEditing ? "Could not update this seed" : "Could not add this seed",
+          isEditing ? "Could not update this seed" : "Could not add this seed"
         ),
       });
     } finally {

@@ -75,7 +75,7 @@ export function AdminSeedsPage() {
   const reorderSeed = useMutation(api.seedManagement.reorderSeed);
   const deleteSeed = useMutation(api.seedManagement.deleteSeed);
   const [modificationsEnabled, setModificationsEnabled] = useState(
-    () => sessionStorage.getItem(SEED_MODIFICATIONS_SESSION_KEY) === "enabled",
+    () => sessionStorage.getItem(SEED_MODIFICATIONS_SESSION_KEY) === "enabled"
   );
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editingSeed, setEditingSeed] = useState<ManagedSeed | null>(null);
@@ -103,7 +103,7 @@ export function AdminSeedsPage() {
 
     const nextParams = new URLSearchParams(searchParams);
     const hasValidLeague = leagues.some(
-      (league) => league._id === requestedLeagueId,
+      (league) => league._id === requestedLeagueId
     );
     const hasValidWeek =
       Number.isSafeInteger(requestedWeekNumber) &&
@@ -133,7 +133,7 @@ export function AdminSeedsPage() {
           leagueId: selectedLeague._id,
           weekNumber: selectedWeekNumber,
         }
-      : "skip",
+      : "skip"
   );
   const leagueItems = useMemo(
     () =>
@@ -141,7 +141,7 @@ export function AdminSeedsPage() {
         label: league.leagueName,
         value: league._id,
       })),
-    [leagues],
+    [leagues]
   );
   const weekItems = useMemo(
     () =>
@@ -149,7 +149,7 @@ export function AdminSeedsPage() {
         label: `Week ${index + 1}`,
         value: index + 1,
       })),
-    [settings?.currentWeekNumber],
+    [settings?.currentWeekNumber]
   );
   const isCurrentWeek =
     selectedWeekNumber !== undefined &&
@@ -303,7 +303,7 @@ export function AdminSeedsPage() {
             </Field>
           </FieldGroup>
         </CardContent>
-        <CardFooter className="border-t justify-between gap-3">
+        <CardFooter className="justify-between gap-3 border-t">
           <p className="text-xs text-muted-foreground">
             {selectedLeague && selectedWeekNumber
               ? `${selectedLeague.leagueName} · Week ${selectedWeekNumber}`
@@ -373,7 +373,7 @@ export function AdminSeedsPage() {
           <TableHeader>
             <TableRow>
               <TableHead className="w-14 text-right">#</TableHead>
-              <TableHead className="w-40 border-l border-r">
+              <TableHead className="w-40 border-r border-l">
                 Seed type
               </TableHead>
               <TableHead className="border-r">Overworld</TableHead>
@@ -399,7 +399,7 @@ export function AdminSeedsPage() {
                   <TableCell className="text-right font-mono tabular-nums">
                     {seed.seedNumber ?? index + 1}
                   </TableCell>
-                  <TableCell className="border-l border-r font-medium">
+                  <TableCell className="border-r border-l font-medium">
                     {seed.type ? SEED_TYPES[seed.type] : "Unspecified"}
                   </TableCell>
                   <SeedValueTableCell value={seed.overworld} />

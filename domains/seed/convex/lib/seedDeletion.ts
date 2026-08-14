@@ -9,7 +9,7 @@ import { requireSettings } from "./settings";
 export async function hardDeleteSeed(
   ctx: MutationCtx,
   seed: Doc<"seeds">,
-  actor: Doc<"users">,
+  actor: Doc<"users">
 ) {
   if (seed.leagueId === undefined || seed.assignedWeekNumber === undefined) {
     throw new ConvexError({
@@ -26,7 +26,7 @@ export async function hardDeleteSeed(
       .withIndex("by_leagueId_and_assignedWeekNumber_and_seedNumber", (q) =>
         q
           .eq("leagueId", seed.leagueId)
-          .eq("assignedWeekNumber", seed.assignedWeekNumber),
+          .eq("assignedWeekNumber", seed.assignedWeekNumber)
       )
       .take(MAX_LEAGUE_SEED_LIST_COUNT + 1),
   ]);

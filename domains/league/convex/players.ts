@@ -1,6 +1,6 @@
-import { v } from "convex/values"
-import { internalQuery, query } from "./_generated/server"
-import { buildPlayerListEntry } from "./lib/playerListEntry"
+import { v } from "convex/values";
+import { internalQuery, query } from "./_generated/server";
+import { buildPlayerListEntry } from "./lib/playerListEntry";
 
 export const listPlayersInLeague = query({
   args: {
@@ -12,9 +12,9 @@ export const listPlayersInLeague = query({
       .withIndex("by_league", (q) =>
         q.eq("currentLeagueNumber", args.leagueTier)
       )
-      .collect()
+      .collect();
   },
-})
+});
 
 export const getPlayerByName = internalQuery({
   args: {
@@ -24,9 +24,9 @@ export const getPlayerByName = internalQuery({
     return await ctx.db
       .query("players")
       .withIndex("by_ign", (q) => q.eq("ign", args.ign))
-      .unique()
+      .unique();
   },
-})
+});
 
 export const findPlayerByName = query({
   args: {
@@ -38,29 +38,29 @@ export const findPlayerByName = query({
       .withIndex("by_lowercase_ign", (q) =>
         q.eq("lowercaseIgn", args.ign.trim().toLocaleLowerCase())
       )
-      .unique()
+      .unique();
 
-    if (!player) return null
+    if (!player) return null;
 
-    return buildPlayerListEntry(player, null)
+    return buildPlayerListEntry(player, null);
   },
-})
+});
 
 export const searchPlayers = query({
   args: {
     searchTerm: v.string(),
   },
   handler: async (ctx, args) => {
-    const searchTerm = args.searchTerm.trim().toLocaleLowerCase()
-    if (!searchTerm) return []
+    const searchTerm = args.searchTerm.trim().toLocaleLowerCase();
+    if (!searchTerm) return [];
 
     const players = await ctx.db
       .query("players")
       .withSearchIndex("search_lowercase_ign", (q) =>
         q.search("lowercaseIgn", searchTerm)
       )
-      .take(20)
+      .take(20);
 
-    return players.map((player) => buildPlayerListEntry(player, null))
+    return players.map((player) => buildPlayerListEntry(player, null));
   },
-})
+});

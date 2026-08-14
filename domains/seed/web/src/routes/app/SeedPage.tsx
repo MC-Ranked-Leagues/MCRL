@@ -50,7 +50,7 @@ export function SeedPage() {
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [usedError, setUsedError] = useState<string | null>(null);
   const [leagueChangeError, setLeagueChangeError] = useState<string | null>(
-    null,
+    null
   );
   const [isDeleting, setIsDeleting] = useState(false);
   const [isMarkingUsed, setIsMarkingUsed] = useState(false);
@@ -60,7 +60,7 @@ export function SeedPage() {
   const [isChangeLeagueDialogOpen, setIsChangeLeagueDialogOpen] =
     useState(false);
   const [targetLeagueId, setTargetLeagueId] = useState<Id<"leagues"> | null>(
-    null,
+    null
   );
   const selectedLeagueId = leagueId as Id<"leagues"> | undefined;
   const selectedSeedId = seedId as Id<"seeds"> | undefined;
@@ -71,7 +71,7 @@ export function SeedPage() {
     api.seeds.getSeedForLeague,
     selectedLeagueId && selectedSeedId
       ? { leagueId: selectedLeagueId, seedId: selectedSeedId }
-      : "skip",
+      : "skip"
   );
   const deleteSeed = useMutation(api.seeds.deleteSeed);
   const markSeedUsed = useMutation(api.seeds.markSeedUsed);
@@ -140,7 +140,7 @@ export function SeedPage() {
       void navigate(`/app/league/${targetLeagueId}/seed/${selectedSeedId}`);
     } catch (error) {
       setLeagueChangeError(
-        getErrorMessage(error, "Could not change this seed's league"),
+        getErrorMessage(error, "Could not change this seed's league")
       );
     } finally {
       setIsChangingLeague(false);
@@ -200,11 +200,11 @@ export function SeedPage() {
   const addedByname = seed.addedByUser?.name ?? "an unknown user";
   const addedByUploadingLeagues = getLeagueListLabel(
     leagues ?? [],
-    seed.addedByUser?.uploaderLeagueIds,
+    seed.addedByUser?.uploaderLeagueIds
   );
   const addedByHostLeagues = getLeagueListLabel(
     leagues ?? [],
-    seed.addedByUser?.hostLeagueIds,
+    seed.addedByUser?.hostLeagueIds
   );
   const currentLeagueName = currentLeague?.leagueName ?? "this league";
   const targetLeagueName = targetLeague?.leagueName ?? "the selected league";
@@ -218,7 +218,7 @@ export function SeedPage() {
         <div className="flex h-full min-h-0 min-w-0 flex-col gap-3">
           <div className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
-              <h2 className="min-w-0 text-xl font-semibold leading-tight">
+              <h2 className="min-w-0 text-xl leading-tight font-semibold">
                 {seed.type ? SEED_TYPES[seed.type] : "Unspecified seed"}
               </h2>
               {user!.roles.includes("admin") && seed.addedByUser && (
@@ -443,7 +443,7 @@ function canMarkUsed(
   user: {
     roles: Array<"admin" | "host" | "uploader">;
     hostLeagueId?: Id<"leagues">[];
-  } | null,
+  } | null
 ) {
   if (!user || seed.leagueId === undefined || seed.isExpired) {
     return false;
@@ -467,7 +467,7 @@ function canChangeLeague(
   },
   user: {
     roles: Array<"admin" | "host" | "uploader">;
-  } | null,
+  } | null
 ) {
   return (
     Boolean(user?.roles.includes("admin")) &&
@@ -487,7 +487,7 @@ function SeedDetailsSkeleton() {
         ))}
       </div>
       <Skeleton className="h-10 w-full" />
-      <Skeleton className="min-h-0 flex-1 w-full" />
+      <Skeleton className="min-h-0 w-full flex-1" />
     </div>
   );
 }
