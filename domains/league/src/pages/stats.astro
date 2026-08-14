@@ -1,0 +1,11 @@
+---
+import Layout from "@/layouts/main.astro"
+import { StatsPage } from "@/components/stats/StatsPage"
+---
+
+<Layout
+  title="Player Statistics | Ranked Leagues"
+  description="Explore player performance, weekly results, and speedrun trends across Ranked Leagues."
+>
+  <StatsPage client:load />
+</Layout>

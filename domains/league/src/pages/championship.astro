@@ -1,0 +1,655 @@
+---
+import Layout from "@/layouts/main.astro"
+import PixelIcons from "@/components/championship/PixelIcons.astro"
+import { Award, Trophy, Swords, CheckCircle } from "lucide-react"
+import {
+  QUAL_SLOTS,
+  STREAMS,
+  PRIZES,
+  Z_SCORE_FORMULA,
+  SWISS_RULES,
+  TIEBREAKS,
+  BRACKET_RULES,
+} from "@/lib/championship-content"
+
+const OFFICIAL_STREAMS = STREAMS.filter((stream) =>
+  stream.caster?.toLowerCase().includes("official")
+)
+
+const getTwitchAvatarUrl = (username: string) =>
+  `https://decapi.me/twitch/avatar/${encodeURIComponent(username)}`
+
+const resolveTwitchAvatarUrl = async (username: string) => {
+  const response = await fetch(getTwitchAvatarUrl(username))
+
+  if (!response.ok) {
+    return null
+  }
+
+  const avatarUrl = (await response.text()).trim()
+
+  return avatarUrl.length > 0 ? avatarUrl : null
+}
+
+const QUAL_SLOTS_WITH_AVATARS = await Promise.all(
+  QUAL_SLOTS.map(async (slot) => ({
+    ...slot,
+    playerAvatarUrl: slot.player?.twitchUsername
+      ? await resolveTwitchAvatarUrl(slot.player.twitchUsername)
+      : (slot.player?.avatarUrl ?? null),
+  }))
+)
+
+const LOCKED_QUAL_SLOT_COUNT = QUAL_SLOTS.filter((slot) => slot.player).length
+const TOTAL_QUAL_SLOT_COUNT = QUAL_SLOTS.length
+
+const getDayTwoPlayer = (name: string) => {
+  const slot = QUAL_SLOTS_WITH_AVATARS.find(
+    (entry) => entry.player?.name.toLowerCase() === name.toLowerCase()
+  )
+
+  return {
+    name,
+    avatarUrl: slot?.playerAvatarUrl ?? null,
+  }
+}
+
+const ACCENT_CLASSES = {
+  lime: {
+    border: "border-lime-400/70",
+    headerBg: "bg-lime-400",
+    winnerBg: "bg-lime-400/10",
+    winnerBorder: "border-l-2 border-lime-400",
+    winnerText: "text-lime-400",
+  },
+  amber: {
+    border: "border-amber-400/70",
+    headerBg: "bg-amber-400",
+    winnerBg: "bg-amber-400/10",
+    winnerBorder: "border-l-2 border-amber-400",
+    winnerText: "text-amber-400",
+  },
+} as const
+
+const DAY_TWO_MATCHES = [
+  {
+    label: "Semifinal 01",
+    accent: "lime",
+    players: [
+      { ...getDayTwoPlayer("BlazeMind"), score: 3 },
+      { ...getDayTwoPlayer("Staremc"), score: 1 },
+    ],
+    winner: "BlazeMind" as string | null,
+  },
+  {
+    label: "Semifinal 02",
+    accent: "amber",
+    players: [
+      { ...getDayTwoPlayer("Okshey"), score: 2 },
+      { ...getDayTwoPlayer("Steez"), score: 3 },
+    ],
+    winner: "Steez" as string | null,
+  },
+] as const
+
+const GRAND_FINAL = {
+  players: [
+    { ...getDayTwoPlayer("BlazeMind"), score: 0 },
+    { ...getDayTwoPlayer("Steez"), score: 4 },
+  ],
+  winner: "Steez" as string | null,
+}
+---
+
+<Layout
+  title="League 1 Champtionship | MCSR Ranked Leagues"
+  description="League 1 Champtionship info"
+>
+  <div
+    class="relative min-h-screen overflow-hidden bg-[#0b0d10] pb-36 text-foreground"
+  >
+    <div
+      class="pointer-events-none absolute top-0 right-[-10%] h-80 w-104 bg-cyan-500/10"
+    >
+    </div>
+    <div
+      class="pointer-events-none absolute top-72 left-[-8%] h-72 w-80 bg-lime-500/10"
+    >
+    </div>
+    <div
+      class="pointer-events-none absolute right-[10%] bottom-0 h-56 w-88 bg-pink-500/10"
+    >
+    </div>
+
+    <div class="relative z-10 container mx-auto px-6 pt-32">
+      <div class="mb-20 pt-4 text-center md:pt-8">
+        <h1
+          class="font-minecraft text-3xl font-bold tracking-tight text-white uppercase sm:text-5xl md:text-8xl"
+        >
+          LEAGUE 1 <span class="text-cyan-400">CHAMPIONSHIPS</span>
+        </h1>
+        <p
+          class="mx-auto mt-4 max-w-xl font-sans text-xs tracking-widest text-slate-300 uppercase md:text-sm"
+        >
+          The best league 1 speedrunners fighting to death : )
+        </p>
+      </div>
+
+      <section id="streams" class="mb-24">
+        <div class="mx-auto grid max-w-7xl gap-8 md:grid-cols-2">
+          {
+            OFFICIAL_STREAMS.map((s) => {
+              const displayUrl = s.url.replace(/^https:\/\/(www\.)?/, "")
+              const cardBorder =
+                s.platform === "twitch"
+                  ? "border-[#9146FF]"
+                  : "border-[#FF0000]"
+
+              return (
+                <div
+                  class={`border-2 bg-[#12161a] ${cardBorder} flex min-h-28 items-center px-2 py-2 sm:min-h-40 sm:px-8 sm:py-8 md:px-10 md:py-9`}
+                >
+                  <a
+                    href={s.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="mx-auto block w-full max-w-full overflow-hidden px-3 text-center font-minecraft text-base leading-tight font-bold tracking-tight break-all text-white uppercase transition-colors hover:text-lime-400 sm:text-lg sm:break-normal sm:text-ellipsis sm:whitespace-nowrap md:text-3xl"
+                  >
+                    {displayUrl}
+                  </a>
+                </div>
+              )
+            })
+          }
+        </div>
+      </section>
+
+      <section
+        id="day-2"
+        class="mb-24 scroll-mt-24"
+        aria-labelledby="day-two-title"
+      >
+        <div
+          class="mb-8 flex flex-col gap-4 border-b-2 border-black pb-4 sm:flex-row sm:items-end sm:justify-between"
+        >
+          <div>
+            <div class="mb-2 flex items-center gap-2">
+              <span
+                class="h-2 w-2 bg-pink-400 shadow-[0_0_14px_rgba(244,114,182,0.9)]"
+              ></span>
+              <span
+                class="font-minecraft text-xs font-bold tracking-[0.28em] text-pink-400 uppercase"
+              >
+                Final Four Locked
+              </span>
+            </div>
+            <h2
+              id="day-two-title"
+              class="font-minecraft text-2xl font-bold tracking-wider text-white uppercase md:text-4xl"
+            >
+              Day 2 <span class="text-cyan-400">Championship Bracket</span>
+            </h2>
+          </div>
+          <p
+            class="max-w-sm font-sans text-xs leading-relaxed text-slate-400 sm:text-right"
+          >
+            4 players race for the League Champion.
+          </p>
+        </div>
+
+        <div
+          class="relative overflow-x-auto border border-black bg-[#0e1216] p-4 shadow-[10px_10px_0_#000] sm:p-8 lg:p-10"
+        >
+          <div
+            class="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(34,211,238,0.16)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.16)_1px,transparent_1px)] bg-size-[32px_32px] opacity-20"
+          >
+          </div>
+
+          <div class="relative min-w-180">
+            <div
+              class="pointer-events-none absolute top-0 left-0 h-1 w-1/2 bg-lime-400"
+            >
+            </div>
+            <div
+              class="pointer-events-none absolute top-0 right-0 h-1 w-1/2 bg-cyan-400"
+            >
+            </div>
+            <div
+              class="relative mb-8 grid grid-cols-2 items-center pt-4 text-center font-minecraft text-xs font-bold tracking-[0.2em] uppercase"
+            >
+              <span class="text-lime-400">Semifinals</span>
+              <span class="text-cyan-400">Grand Final</span>
+            </div>
+
+            <div
+              class="relative grid grid-cols-[minmax(280px,1fr)_60px_minmax(260px,0.9fr)] grid-rows-2 gap-y-8"
+            >
+              {
+                DAY_TWO_MATCHES.map((match, matchIndex) => {
+                  const accent = ACCENT_CLASSES[match.accent]
+
+                  return (
+                    <article
+                      class={`relative col-start-1 border bg-[#151a1f] shadow-[5px_5px_0_rgba(0,0,0,0.25)] transition-colors hover:bg-[#1a2026] ${accent.border} ${matchIndex === 0 ? "row-start-1" : "row-start-2"}`}
+                    >
+                      <header
+                        class={`flex items-center justify-between border-b border-black px-4 py-2 ${accent.headerBg}`}
+                      >
+                        <span class="font-minecraft text-xs font-bold tracking-wider text-black uppercase">
+                          {match.label}
+                        </span>
+                        <span class="font-minecraft text-[10px] font-bold tracking-widest text-black/70 uppercase">
+                          Best of 5
+                        </span>
+                      </header>
+
+                      <div class="divide-y divide-black">
+                        {match.players.map((player) => {
+                          const isWinner = player.name === match.winner
+
+                          return (
+                            <div
+                              class={`flex items-center gap-3 px-4 py-3 transition-colors ${isWinner ? `${accent.winnerBg} ${accent.winnerBorder}` : ""}`}
+                            >
+                              {player.avatarUrl && (
+                                <div class="relative size-11 shrink-0 overflow-hidden border border-black bg-black">
+                                  <img
+                                    src={player.avatarUrl}
+                                    alt={`${player.name} Twitch avatar`}
+                                    class="size-full object-cover"
+                                    loading="lazy"
+                                  />
+                                </div>
+                              )}
+                              <span class="min-w-0 flex-1 truncate font-minecraft text-base font-bold tracking-wide text-white sm:text-lg">
+                                {player.name}
+                              </span>
+                              <span
+                                class={`shrink-0 font-minecraft text-lg font-bold tabular-nums ${isWinner ? accent.winnerText : "text-slate-500"}`}
+                              >
+                                {player.score ?? "—"}
+                              </span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </article>
+                  )
+                })
+              }
+
+              <div
+                class="col-start-2 row-span-2 row-start-1 block"
+                aria-hidden="true"
+              >
+                <svg
+                  viewBox="0 0 60 100"
+                  preserveAspectRatio="none"
+                  class="h-full w-full overflow-visible"
+                >
+                  <path
+                    d="M 0 25 H 30"
+                    class="stroke-slate-600"
+                    stroke-width="1.5"
+                    fill="none"></path>
+                  <path
+                    d="M 0 75 H 30"
+                    class="stroke-slate-600"
+                    stroke-width="1.5"
+                    fill="none"></path>
+                  <path
+                    d="M 30 25 V 75"
+                    class="stroke-slate-600"
+                    stroke-width="1.5"
+                    fill="none"></path>
+                  <path
+                    d="M 30 50 H 60"
+                    class="stroke-slate-600"
+                    stroke-width="1.5"
+                    fill="none"></path>
+                </svg>
+              </div>
+
+              <div
+                class="col-start-3 row-span-2 row-start-1 flex items-center justify-center"
+              >
+                <div
+                  class="w-full border border-cyan-400 bg-[#151a1f] shadow-[5px_5px_0_rgba(34,211,238,0.16)] transition-colors hover:bg-[#1a2026]"
+                >
+                  <div
+                    class="border-b border-black bg-cyan-400 px-4 py-2 text-center font-minecraft text-xs font-bold tracking-wider text-black uppercase"
+                  >
+                    Grand Final / Best of 7
+                  </div>
+                  <div class="divide-y divide-black">
+                    {
+                      GRAND_FINAL.players.map((player) => {
+                        const isWinner = player.name === GRAND_FINAL.winner
+
+                        return (
+                          <div
+                            class={`flex items-center gap-3 px-4 py-3 transition-colors ${isWinner ? "border-l-2 border-cyan-400 bg-cyan-400/10" : ""}`}
+                          >
+                            {player.avatarUrl && (
+                              <div class="relative size-11 shrink-0 overflow-hidden border border-black bg-black">
+                                <img
+                                  src={player.avatarUrl}
+                                  alt={`${player.name} Twitch avatar`}
+                                  class="size-full object-cover"
+                                  loading="lazy"
+                                />
+                              </div>
+                            )}
+                            <span class="min-w-0 flex-1 truncate font-minecraft text-base font-bold tracking-wide text-white sm:text-lg">
+                              {player.name}
+                            </span>
+                            <span
+                              class={`shrink-0 font-minecraft text-lg font-bold tabular-nums ${isWinner ? "text-cyan-400" : "text-slate-500"}`}
+                            >
+                              {player.score ?? "—"}
+                            </span>
+                          </div>
+                        )
+                      })
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="mb-24">
+        <div
+          class="mb-8 flex items-center justify-between border-b-2 border-black pb-4"
+        >
+          <h2
+            class="font-minecraft text-xl font-bold tracking-wider text-white uppercase"
+          >
+            Qualified Players
+          </h2>
+          <span
+            class="text-right font-sans text-xs font-bold tracking-wider text-lime-400 uppercase"
+          >
+            {LOCKED_QUAL_SLOT_COUNT}/{TOTAL_QUAL_SLOT_COUNT} Slots Locked
+          </span>
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {
+            QUAL_SLOTS_WITH_AVATARS.map((slot) => {
+              const colorTheme =
+                slot.type === "weekly"
+                  ? "border-lime-400 hover:border-lime-300 bg-[#12161a]"
+                  : slot.type === "zscore"
+                    ? "border-cyan-400 hover:border-cyan-300 bg-[#12161a]"
+                    : "border-pink-400 hover:border-pink-300 bg-[#12161a]"
+
+              const textTheme =
+                slot.type === "weekly"
+                  ? "text-lime-400"
+                  : slot.type === "zscore"
+                    ? "text-cyan-400"
+                    : "text-pink-400"
+
+              return (
+                <div
+                  class={`group relative overflow-hidden rounded-none border p-5 transition-all duration-300 ${colorTheme}`}
+                >
+                  <div
+                    class={`absolute top-0 right-0 px-3 py-1 font-minecraft text-xs font-bold text-black uppercase ${slot.type === "weekly" ? "bg-lime-400" : slot.type === "zscore" ? "bg-cyan-400" : "bg-pink-400"}`}
+                  >
+                    SEED {slot.seed}
+                  </div>
+                  <div class="mt-4 mb-6 flex justify-center">
+                    <div class="relative flex h-32 w-32 items-center justify-center rounded-none border border-black bg-black">
+                      {slot.playerAvatarUrl ? (
+                        <img
+                          src={slot.playerAvatarUrl}
+                          alt={`${slot.player?.name ?? "Qualified player"} Twitch avatar`}
+                          class="h-full w-full object-cover"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <PixelIcons
+                          name={
+                            slot.type === "weekly"
+                              ? "trophy"
+                              : slot.type === "zscore"
+                                ? "chart"
+                                : "swords"
+                          }
+                          className="h-24 w-24"
+                        />
+                      )}
+                    </div>
+                  </div>
+                  <div class="text-center">
+                    <h3 class="font-minecraft text-lg font-bold tracking-wide text-white">
+                      {slot.player?.name ?? "TBD"}
+                    </h3>
+                    <p
+                      class={`mt-1 font-minecraft text-xs font-bold tracking-widest uppercase ${textTheme}`}
+                    >
+                      {slot.title}
+                    </p>
+                    <div class="mx-auto my-3 h-0.5 w-8 bg-black" />
+                  </div>
+                </div>
+              )
+            })
+          }
+        </div>
+      </section>
+
+      <section class="mb-24">
+        <div class="mb-12 text-center">
+          <h2
+            class="font-minecraft text-xl font-bold tracking-wider text-white uppercase"
+          >
+            Tournament Layout & Rules
+          </h2>
+        </div>
+
+        <div class="grid gap-6 md:grid-cols-3">
+          <div
+            class="relative rounded-none border border-black bg-[#12161a] p-6"
+          >
+            <div class="absolute top-0 left-0 h-8 w-1 bg-lime-400"></div>
+            <h3
+              class="mb-4 flex items-center gap-2 font-minecraft text-lg font-bold text-white uppercase"
+            >
+              <CheckCircle className="h-5 w-5 text-lime-400" /> Qualification
+            </h3>
+            <div
+              class="space-y-4 font-sans text-xs leading-relaxed text-slate-300"
+            >
+              <p>
+                5 weeks of tournament qualification matches feed into the
+                championship roster:
+              </p>
+              <ul class="space-y-3">
+                <li>
+                  <strong class="mb-0.5 block text-white"
+                    >WEEK 1-4 STANDINGS</strong
+                  >
+                  The top unqualified player of each weekly league matches automatically
+                  qualifies (4 spots).
+                </li>
+                <li>
+                  <strong class="mb-0.5 block text-white"
+                    >WEEKLY Z-SCORE RANKINGS</strong
+                  >
+                  The two players with the highest single-week z-score who have not
+                  qualified qualify (2 spots).
+                </li>
+                <li>
+                  <strong class="mb-0.5 block text-white"
+                    >WEEK 5 LCQ BRACKET</strong
+                  >
+                  Bo3 bracket single elimination among all registered unqualified
+                  players. Top 2 advance.
+                </li>
+              </ul>
+              <div class="mt-2 border-t border-black pt-4">
+                <span
+                  class="mb-1 block font-minecraft text-xs tracking-wider text-slate-400 uppercase"
+                  >Z-Score Normalization</span
+                >
+                <code
+                  class="block border border-black bg-black p-2 font-mono text-xs text-cyan-400"
+                  >{Z_SCORE_FORMULA}</code
+                >
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="relative rounded-none border border-black bg-[#12161a] p-6"
+          >
+            <div class="absolute top-0 left-0 h-8 w-1 bg-cyan-400"></div>
+            <h3
+              class="mb-4 flex items-center gap-2 font-minecraft text-lg font-bold text-white uppercase"
+            >
+              <Trophy className="h-5 w-5 text-cyan-400" /> Day 1 Robin
+            </h3>
+            <div
+              class="space-y-4 font-sans text-xs leading-relaxed text-slate-300"
+            >
+              <p>
+                On Day 1, all 8 qualifiers fight in a 7 round robin format. Each
+                win earns 1 pt.
+              </p>
+
+              <div class="my-2 grid grid-cols-2 gap-2">
+                {
+                  SWISS_RULES.map((rule) => (
+                    <div class="border border-black bg-black p-2.5">
+                      <span class="block font-minecraft text-xs tracking-wider text-slate-400 uppercase">
+                        {rule.label}
+                      </span>
+                      <span class="mt-0.5 font-minecraft text-sm font-bold text-lime-400">
+                        {rule.value}
+                      </span>
+                    </div>
+                  ))
+                }
+              </div>
+
+              <p class="text-xs text-slate-400 italic">
+                No draws are possible. 13-minute time limit per seed. If neither
+                finishes, both score 0.
+              </p>
+
+              <div class="border-t border-black pt-4">
+                <span
+                  class="mb-2 block font-minecraft text-xs tracking-wider text-slate-400 uppercase"
+                  >Tiebreak Sequence</span
+                >
+                <ol class="space-y-1.5 font-minecraft text-xs text-white">
+                  {
+                    TIEBREAKS.map((tb, idx) => (
+                      <li>
+                        {idx + 1}. {tb}
+                      </li>
+                    ))
+                  }
+                </ol>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="relative rounded-none border border-black bg-[#12161a] p-6"
+          >
+            <div class="absolute top-0 left-0 h-8 w-1 bg-pink-400"></div>
+            <h3
+              class="mb-4 flex items-center gap-2 font-minecraft text-lg font-bold text-white uppercase"
+            >
+              <Swords className="h-5 w-5 text-pink-400" /> Day 2 Bracket
+            </h3>
+            <div
+              class="space-y-4 font-sans text-xs leading-relaxed text-slate-300"
+            >
+              <p>
+                Top 4 players from Robin move onto Day 2 single-elimination
+                tournament.
+              </p>
+
+              <div class="space-y-2">
+                {
+                  BRACKET_RULES.map((rule) => (
+                    <div class="flex items-center justify-between border border-black bg-black px-3 py-2">
+                      <span class="font-minecraft text-xs text-slate-400 uppercase">
+                        {rule.label}
+                      </span>
+                      <span class="font-minecraft text-xs font-bold text-cyan-400">
+                        {rule.value}
+                      </span>
+                    </div>
+                  ))
+                }
+              </div>
+
+              <p class="text-xs text-slate-400">
+                The Robin stage winner receives the exclusive privilege of
+                choosing their first-round opponent in the semifinals.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="mb-24">
+        <div class="mb-12 text-center">
+          <h2
+            class="font-minecraft text-xl font-bold tracking-wider text-white uppercase"
+          >
+            Cash Prize Pool
+          </h2>
+          <p class="mt-1 text-xs tracking-widest text-slate-400 uppercase">
+            Total Pool: $400 USD
+          </p>
+        </div>
+
+        <div class="mx-auto grid max-w-4xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {
+            PRIZES.map((prize, idx) => {
+              const isFirst = idx === 0
+              const theme = isFirst
+                ? "border-lime-400 bg-[#12161a] text-lime-400"
+                : "border-black bg-[#12161a] text-slate-200"
+
+              return (
+                <div
+                  class={`border p-6 text-center transition-transform duration-300 hover:scale-105 ${theme}`}
+                >
+                  <Award
+                    className={`mx-auto mb-4 h-8 w-8 ${isFirst ? "text-lime-400" : "text-cyan-400"}`}
+                  />
+                  <span class="font-minecraft text-xs tracking-wider text-slate-400 uppercase">
+                    {prize.place}
+                  </span>
+                  <div class="mt-2 font-minecraft text-3xl font-bold">
+                    ${prize.amount}
+                    {prize.each && (
+                      <span class="mt-0.5 block font-sans text-xs text-slate-400">
+                        each player
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )
+            })
+          }
+        </div>
+      </section>
+
+      <div class="text-center text-sm text-slate-500">
+        This is not an official Minecraft product. Not approved by or associated
+        with Mojang or Microsoft.
+      </div>
+    </div>
+  </div>
+</Layout>

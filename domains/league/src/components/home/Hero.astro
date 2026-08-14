@@ -1,0 +1,112 @@
+---
+import { CustomButton } from "@/components/ui-custom/Button"
+import { ChevronDown } from "lucide-react"
+---
+
+<section
+  class="relative flex min-h-[70vh] flex-col items-center justify-start overflow-hidden pt-28 md:min-h-screen md:justify-center md:pt-20"
+>
+  <!-- Background Image Container -->
+  <div class="absolute inset-0 z-0">
+    <div
+      class="absolute inset-0 scale-110 bg-cover bg-center bg-no-repeat opacity-80 blur-[20px] brightness-90 contrast-125"
+      style='background-image: url("/images/5.webp")'
+    >
+    </div>
+
+    <!-- Radial blur to bring the focus to the center -->
+    <div
+      class="absolute inset-0 bg-radial-[at_50%_40%] from-background/40 via-background/60 to-background/90"
+    >
+    </div>
+
+    <!-- Blur below to transition to the other section -->
+    <div
+      class="absolute inset-0 bg-linear-to-b from-transparent via-background/10 to-background"
+    >
+    </div>
+  </div>
+
+  <div
+    class="relative z-10 container flex flex-col items-center px-6 text-center"
+  >
+    <div class="flex flex-col items-center gap-4">
+      <p
+        class="font-minecraft text-sm font-semibold tracking-[0.2em] text-muted-foreground/70 uppercase sm:text-base md:text-lg"
+      >
+        Minecraft Speedrunning
+      </p>
+
+      <h1
+        class="animate-slide-up flex flex-wrap justify-center gap-x-4 font-minecraft text-5xl leading-none font-bold tracking-tight opacity-0 delay-100 sm:text-6xl md:text-7xl lg:text-8xl"
+      >
+        <span class="text-foreground/90">Ranked</span>
+        <span class="text-primary drop-shadow-md">Leagues</span>
+      </h1>
+
+      <div class="animate-slide-up opacity-0 delay-200">
+        <!-- <p
+          class="max-w-xl font-sans text-sm font-medium text-muted-foreground/80 md:text-base"
+        >
+          This is not a final product in the slightest. Please be patient.
+        </p> -->
+      </div>
+    </div>
+
+    <div
+      class="animate-slide-up mt-10 flex w-full flex-col items-center justify-center gap-4 opacity-0 delay-300 sm:w-auto sm:flex-row"
+    >
+      <CustomButton
+        size="lg"
+        className="h-14 w-full px-12 text-lg shadow-lg shadow-primary/20 sm:w-auto"
+        href="/registration/process"
+        target="_self"
+      >
+        Join Now
+      </CustomButton>
+
+      <CustomButton
+        variant="secondary"
+        size="lg"
+        href="/info"
+        className="h-14 w-full border border-border/50 bg-secondary/90 px-8 hover:bg-secondary sm:w-auto"
+        minecraft={false}
+      >
+        Learn More
+      </CustomButton>
+    </div>
+  </div>
+
+  <div
+    id="scroll-indicator"
+    class="pointer-events-none absolute bottom-10 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 transition-opacity duration-300 max-sm:hidden"
+    style="opacity: 0"
+  >
+    <span
+      class="flex flex-col items-center gap-2 font-minecraft text-xs tracking-[0.2em] text-muted-foreground/60 uppercase"
+    >
+      Learn More
+      <ChevronDown className="h-6 w-6 animate-bounce text-primary" />
+    </span>
+  </div>
+</section>
+
+<script>
+  const scrollIndicator = document.getElementById(
+    "scroll-indicator"
+  ) as HTMLElement
+
+  setTimeout(() => {
+    if (window.scrollY <= 20) {
+      scrollIndicator.style.opacity = "1"
+    }
+  }, 500)
+
+  window.addEventListener(
+    "scroll",
+    () => {
+      scrollIndicator.style.opacity = window.scrollY > 20 ? "0" : "1"
+    },
+    { passive: true }
+  )
+</script>

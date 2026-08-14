@@ -1,0 +1,64 @@
+---
+const POINTS = [
+  {
+    title: "Play at your level",
+    description:
+      "Whether you're just starting out or you're a seasoned pro, we have a league for you. Compete with players of your skill level.",
+    image: "/images/1.webp",
+    side: "left",
+  },
+  {
+    title: "Weekly Races",
+    description:
+      "Each league has a weekly race where players compete for points. Secure the most points to get promoted to the next league.",
+    image: "/images/2.webp",
+    side: "right",
+  },
+  {
+    title: "Vibrant Community",
+    description:
+      "Join a community of passionate Minecraft speedrunners who love the game as much as you do. Compete, collaborate, and grow together.",
+    image: "/images/3.webp",
+    side: "left",
+  },
+]
+---
+
+<section class="container mx-auto px-6 py-16 md:py-24">
+  <div class="animate-slide-up mb-16 text-center opacity-0">
+    <h2 class="mb-4 font-minecraft text-3xl font-bold uppercase md:text-5xl">
+      Why Join Ranked Leagues?
+    </h2>
+    <p class="mx-auto max-w-2xl text-lg tracking-wide text-muted-foreground">
+      Ranked Leagues is a competitive minecraft speedrunning league for
+      everyone, no matter your skill level.
+    </p>
+  </div>
+
+  <div class="space-y-24">
+    {
+      POINTS.map((point) => (
+        <div
+          class={`flex flex-col ${point.side === "left" ? "md:flex-row" : "md:flex-row-reverse"} items-center gap-12`}
+        >
+          <div class="animate-slide-up flex-1 space-y-4 opacity-0">
+            <h3 class="font-minecraft text-3xl text-primary">{point.title}</h3>
+            <p class="text-xl leading-relaxed text-muted-foreground">
+              {point.description}
+            </p>
+          </div>
+          <div class="animate-slide-up relative w-full max-w-xl flex-1 opacity-0">
+            <div class="relative aspect-video overflow-hidden rounded-lg border-2 border-primary/20 shadow-2xl">
+              <img
+                src={point.image}
+                alt={point.title}
+                loading="lazy"
+                class="h-full w-full object-cover"
+              />
+            </div>
+          </div>
+        </div>
+      ))
+    }
+  </div>
+</section>

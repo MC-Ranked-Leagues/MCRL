@@ -1,0 +1,28 @@
+---
+import "@/global.css"
+import Navbar from "@/layouts/Navbar.astro"
+import { SITE_TITLE, SITE_DESCRIPTION } from "@/consts"
+
+interface Props {
+  title?: string
+  description?: string
+}
+
+const { title, description } = Astro.props
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/MCRL.webp" />
+    <title>{title || SITE_TITLE}</title>
+    <meta name="description" content={description || SITE_DESCRIPTION} />
+  </head>
+  <body class="dark">
+    <Navbar />
+    <main>
+      <slot />
+    </main>
+  </body>
+</html>

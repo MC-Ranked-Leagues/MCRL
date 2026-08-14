@@ -1,0 +1,176 @@
+---
+interface Props {
+  name: "trophy" | "chart" | "swords" | "question"
+  className?: string
+}
+
+const { name, className = "h-12 w-12" } = Astro.props
+---
+
+{
+  name === "trophy" && (
+    <svg
+      viewBox="0 0 16 16"
+      class={className}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      style="shape-rendering: crispEdges;"
+      aria-hidden="true"
+    >
+      {/* Handles */}
+      <rect x="2" y="4" width="2" height="4" fill="#D97706" />
+      <rect x="1" y="5" width="1" height="2" fill="#D97706" />
+      <rect x="12" y="4" width="2" height="4" fill="#D97706" />
+      <rect x="14" y="5" width="1" height="2" fill="#D97706" />
+      
+      {/* Bowl Outer Rim & Body */}
+      <rect x="4" y="3" width="8" height="1" fill="#FBBF24" />
+      <rect x="4" y="4" width="8" height="4" fill="#F59E0B" />
+      <rect x="5" y="8" width="6" height="1" fill="#F59E0B" />
+      <rect x="6" y="9" width="4" height="1" fill="#D97706" />
+      
+      {/* Highlights & Shadows on Bowl */}
+      <rect x="5" y="4" width="2" height="4" fill="#FDE047" />
+      <rect x="10" y="4" width="2" height="4" fill="#B45309" />
+      <rect x="9" y="8" width="2" height="1" fill="#B45309" />
+      
+      {/* Stem */}
+      <rect x="7" y="10" width="2" height="3" fill="#D97706" />
+      <rect x="7" y="10" width="1" height="3" fill="#F59E0B" />
+      
+      {/* Base */}
+      <rect x="5" y="13" width="6" height="2" fill="#78350F" />
+      <rect x="5" y="13" width="3" height="1" fill="#92400E" />
+      <rect x="6" y="14" width="4" height="1" fill="#451A03" />
+    </svg>
+  )
+}
+
+{
+  name === "chart" && (
+    <svg
+      viewBox="0 0 16 16"
+      class={className}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      style="shape-rendering: crispEdges;"
+      aria-hidden="true"
+    >
+      {/* Grid Axis */}
+      <rect x="1" y="2" width="1" height="12" fill="#0891B2" />
+      <rect x="1" y="14" width="14" height="1" fill="#0891B2" />
+      
+      {/* Bar 1 */}
+      <rect x="3" y="11" width="2" height="3" fill="#06B6D4" />
+      <rect x="3" y="11" width="1" height="3" fill="#22D3EE" />
+      
+      {/* Bar 2 */}
+      <rect x="7" y="7" width="2" height="7" fill="#06B6D4" />
+      <rect x="7" y="7" width="1" height="7" fill="#22D3EE" />
+      
+      {/* Bar 3 */}
+      <rect x="11" y="4" width="2" height="10" fill="#06B6D4" />
+      <rect x="11" y="4" width="1" height="10" fill="#22D3EE" />
+      
+      {/* Trend Line (Glowing cyan) */}
+      <rect x="2" y="12" width="2" height="1" fill="#E0F7FA" />
+      <rect x="4" y="10" width="2" height="1" fill="#E0F7FA" />
+      <rect x="6" y="8" width="2" height="1" fill="#E0F7FA" />
+      <rect x="8" y="7" width="2" height="1" fill="#E0F7FA" />
+      <rect x="10" y="5" width="2" height="1" fill="#E0F7FA" />
+      <rect x="12" y="3" width="2" height="1" fill="#E0F7FA" />
+      
+      {/* Arrowhead */}
+      <rect x="13" y="2" width="1" height="1" fill="#E0F7FA" />
+      <rect x="12" y="2" width="1" height="1" fill="#22D3EE" />
+      <rect x="13" y="4" width="1" height="1" fill="#22D3EE" />
+    </svg>
+  )
+}
+
+{
+  name === "swords" && (
+    <svg
+      viewBox="0 0 16 16"
+      class={className}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      style="shape-rendering: crispEdges;"
+      aria-hidden="true"
+    >
+      {/* Sword 1 (Top-Left to Bottom-Right) */}
+      {/* Blade */}
+      <rect x="13" y="1" width="2" height="2" fill="#E2E8F0" />
+      <rect x="12" y="2" width="2" height="2" fill="#CBD5E1" />
+      <rect x="11" y="3" width="2" height="2" fill="#94A3B8" />
+      <rect x="10" y="4" width="2" height="2" fill="#CBD5E1" />
+      <rect x="9" y="5" width="2" height="2" fill="#94A3B8" />
+      <rect x="8" y="6" width="2" height="2" fill="#64748B" />
+      <rect x="7" y="7" width="2" height="2" fill="#475569" />
+      <rect x="6" y="8" width="2" height="2" fill="#334155" />
+      {/* Crossguard */}
+      <rect x="4" y="9" width="3" height="1" fill="#F43F5E" />
+      <rect x="5" y="10" width="1" height="2" fill="#F43F5E" />
+      {/* Hilt */}
+      <rect x="3" y="11" width="2" height="2" fill="#9F1239" />
+      {/* Pommel */}
+      <rect x="1" y="13" width="2" height="2" fill="#E11D48" />
+
+      {/* Sword 2 (Top-Right to Bottom-Left) */}
+      {/* Blade */}
+      <rect x="1" y="1" width="2" height="2" fill="#E2E8F0" />
+      <rect x="2" y="2" width="2" height="2" fill="#CBD5E1" />
+      <rect x="3" y="3" width="2" height="2" fill="#94A3B8" />
+      <rect x="4" y="4" width="2" height="2" fill="#CBD5E1" />
+      <rect x="5" y="5" width="2" height="2" fill="#94A3B8" />
+      <rect x="6" y="6" width="2" height="2" fill="#64748B" />
+      <rect x="7" y="7" width="2" height="2" fill="#475569" />
+      <rect x="8" y="8" width="2" height="2" fill="#334155" />
+      {/* Crossguard */}
+      <rect x="9" y="9" width="3" height="1" fill="#F43F5E" />
+      <rect x="10" y="10" width="1" height="2" fill="#F43F5E" />
+      {/* Hilt */}
+      <rect x="11" y="11" width="2" height="2" fill="#9F1239" />
+      {/* Pommel */}
+      <rect x="13" y="13" width="2" height="2" fill="#E11D48" />
+    </svg>
+  )
+}
+
+{
+  name === "question" && (
+    <svg
+      viewBox="0 0 16 16"
+      class={className}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      style="shape-rendering: crispEdges;"
+      aria-hidden="true"
+    >
+      {/* Backshadow / 3D Extrusion (Teal/Dark Slate) */}
+      <rect x="5" y="3" width="7" height="3" fill="#042F2E" />
+      <rect x="10" y="4" width="3" height="4" fill="#042F2E" />
+      <rect x="9" y="7" width="3" height="2" fill="#042F2E" />
+      <rect x="7" y="8" width="3" height="3" fill="#042F2E" />
+      <rect x="7" y="12" width="3" height="3" fill="#042F2E" />
+
+      {/* Main Face (Vibrant Lime/Emerald Green) */}
+      <rect x="5" y="2" width="6" height="2" fill="#10B981" />
+      <rect x="4" y="3" width="2" height="2" fill="#10B981" />
+      <rect x="10" y="3" width="2" height="4" fill="#10B981" />
+      <rect x="8" y="7" width="2" height="3" fill="#10B981" />
+      <rect x="7" y="11" width="2" height="2" fill="#10B981" />
+
+      {/* Front Highlights (Mint Green) */}
+      <rect x="5" y="2" width="3" height="1" fill="#A7F3D0" />
+      <rect x="4" y="3" width="1" height="1" fill="#A7F3D0" />
+      <rect x="8" y="7" width="1" height="1" fill="#A7F3D0" />
+      <rect x="7" y="11" width="1" height="1" fill="#A7F3D0" />
+      
+      {/* Shading/Shadows on Face (Deep Emerald) */}
+      <rect x="11" y="4" width="1" height="3" fill="#047857" />
+      <rect x="9" y="8" width="1" height="2" fill="#047857" />
+      <rect x="8" y="12" width="1" height="1" fill="#047857" />
+    </svg>
+  )
+}

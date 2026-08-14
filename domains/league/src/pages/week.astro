@@ -1,0 +1,11 @@
+---
+import Layout from "@/layouts/main.astro"
+import { WeekPage } from "@/components/week/WeekPage"
+---
+
+<Layout
+  title="Ranked Leagues Leaderboards"
+  description="View the current and past leaderboards for Ranked Leagues."
+>
+  <WeekPage client:load />
+</Layout>

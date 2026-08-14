@@ -1,0 +1,126 @@
+@import "@fontsource-variable/inter";
+
+:root,
+:root[data-theme="light"] {
+  --sl-font: "Inter Variable", sans-serif;
+
+  /* Colors for light mode */
+  --sl-color-bg: oklch(1 0 0); /* background */
+  --sl-color-bg-nav: oklch(1 0 0);
+  --sl-color-bg-sidebar: oklch(0.987 0.002 197.1); /* sidebar */
+  --sl-color-text: oklch(0.148 0.004 228.8); /* foreground */
+  --sl-color-white: oklch(0.148 0.004 228.8);
+  --sl-color-accent: oklch(0.672 0.217 141.5); /* bright green primary */
+  --sl-color-accent-high: oklch(0.5 0.2 141.5);
+  --sl-color-accent-low: oklch(0.9 0.1 141.5);
+  --sl-color-hairline: oklch(0.925 0.005 214.3); /* border */
+  --sl-color-text-accent: oklch(0.672 0.217 141.5);
+}
+
+:root[data-theme="dark"] {
+  /* Colors for dark mode */
+  --sl-color-bg: oklch(0.18 0.005 240); /* very dark grey/black background */
+  --sl-color-bg-nav: oklch(0.18 0.005 240);
+  --sl-color-bg-sidebar: oklch(0.2 0.005 240); /* sidebar */
+  --sl-color-text: oklch(0.9 0 0); /* dim foreground */
+  --sl-color-white: oklch(1 0 0);
+  --sl-color-accent: oklch(0.7 0.2 141.5);
+  --sl-color-accent-high: oklch(0.85 0.15 141.5);
+  --sl-color-accent-low: oklch(0.25 0.05 141.5);
+  --sl-color-hairline: oklch(1 0 0 / 8%); /* border */
+  --sl-color-text-accent: oklch(0.7 0.2 141.5);
+}
+
+/* Make the docs title smaller */
+.site-title {
+  font-size: 1.125rem !important; /* text-lg */
+  font-weight: 600 !important;
+}
+.site-title span {
+  font-size: 1.125rem !important;
+}
+
+/* Update the sidebar so you can't collapse sections */
+/* Disable pointer events on the summary to prevent clicking and remove the caret icon */
+.sidebar details summary,
+.sidebar-pane details summary,
+.sidebar-content details summary,
+starlight-sidebar details summary,
+sl-sidebar-state-manager details summary {
+  pointer-events: none !important;
+  cursor: default !important;
+}
+.sidebar details summary .caret,
+.sidebar-pane details summary .caret,
+.sidebar-content details summary .caret,
+starlight-sidebar details summary .caret,
+sl-sidebar-state-manager details summary .caret,
+.sidebar details summary svg,
+.sidebar-pane details summary svg,
+.sidebar-content details summary svg,
+starlight-sidebar details summary svg,
+sl-sidebar-state-manager details summary svg {
+  display: none !important;
+}
+
+.large.label,
+.sidebar details summary h2,
+sl-sidebar-state-manager details summary h2 {
+  font-size: 0.875rem !important;
+  font-weight: 700 !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  color: var(--sl-color-white) !important;
+  margin-bottom: 0.25rem;
+}
+
+/* Hide the expand/collapse all button if it appears */
+.sidebar-pane button,
+sl-sidebar-state-manager button.sidebar-toggle {
+  display: none !important;
+}
+
+/* Remove the background color from the selected file in the left sidebar, only highlight the text */
+.sidebar a[aria-current="page"],
+.sidebar-pane a[aria-current="page"],
+.sidebar-content a[aria-current="page"],
+sl-sidebar-state-manager a[aria-current="page"] {
+  background-color: transparent !important;
+  color: var(--sl-color-text-accent) !important;
+  font-weight: 500 !important;
+}
+
+.sidebar a,
+.sidebar-pane a,
+.sidebar-content a {
+  font-size: 0.875rem !important;
+}
+
+/* Make headers smaller in the main content area */
+.sl-markdown-content h1 {
+  font-size: 2rem !important;
+}
+.sl-markdown-content h2 {
+  font-size: 1.5rem !important;
+}
+.sl-markdown-content h3 {
+  font-size: 1.25rem !important;
+}
+.sl-markdown-content h4 {
+  font-size: 1.125rem !important;
+}
+.sl-markdown-content h5 {
+  font-size: 1rem !important;
+}
+.sl-markdown-content h6 {
+  font-size: 0.875rem !important;
+}
+
+/* Make right sidebar header smaller */
+.right-sidebar h2 {
+  font-size: 0.875rem !important;
+  font-weight: 700 !important;
+}
+.sl-toc a {
+  font-size: 0.875rem !important;
+}
