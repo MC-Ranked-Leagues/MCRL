@@ -26,7 +26,6 @@ pnpm-debug.log*
 scripts/data/
 tests/data/
 db_snapshots/
-bot/
 nonPublicScripts/
 
 plans/
