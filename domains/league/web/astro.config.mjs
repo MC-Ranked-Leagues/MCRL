@@ -28,7 +28,7 @@ export default defineConfig({
         {
           icon: "github",
           label: "GitHub",
-          href: "https://github.com/Notava1ble/mscl-website",
+          href: "https://github.com/MC-Ranked-Leagues/MCRL",
         },
         {
           icon: "discord",

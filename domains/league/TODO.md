@@ -1,6 +1,0 @@
-- [x] Make sure listPlayerMatches Read API is not broken by the changes
-- [x] In the unregisterPlayer API make sure the player can be removed only if they havent played any matches.
-- [ ] Allow getting matchData by player name in the read api.
-- [ ] Make sure only one competition per league can be active at a time. This is enforced by the bot, but keep in mind.
-- [ ] Make multiple tests to the api using old data. Include edge cases :)
-- [ ] Add a bool to competitions `useRelegateUsed` to know if the /relegate command was used. If yes, block further /relegate commands for that competition.

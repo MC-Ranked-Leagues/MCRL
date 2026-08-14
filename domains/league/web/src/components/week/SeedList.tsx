@@ -25,6 +25,8 @@ const SEED_TYPE_LABELS: Record<NonNullable<Seed["type"]>, string> = {
   SHIPWRECK: "Shipwreck",
 };
 
+const SEED_API_URL = import.meta.env.PUBLIC_SEED_API_URL;
+
 const SeedList = ({
   weekNumber,
   leagueTier,
@@ -45,9 +47,11 @@ const SeedList = ({
     setHasError(false);
 
     try {
-      const res = await fetch(
-        `https://pastel-shrimp-251.convex.site/api/seeds/history?weekNumber=${weekNumber}&leagueNumber=${leagueTier}`
-      );
+      const url = new URL("/api/seeds/history", SEED_API_URL);
+      url.searchParams.set("weekNumber", String(weekNumber));
+      url.searchParams.set("leagueNumber", String(leagueTier));
+
+      const res = await fetch(url);
       if (!res.ok) throw new Error(`Request failed: ${res.status}`);
       const data = await res.json();
       setSeeds(data);

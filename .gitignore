@@ -33,9 +33,7 @@ lerna-debug.log*
 *.sw?
 
 # Private working documents and backups
-plans/
 backups/
-*.plan.md
 *.idea.md
 *.report.md
 *.report.html

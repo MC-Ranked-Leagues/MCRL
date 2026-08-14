@@ -1,45 +1,82 @@
-# Welcome to your Convex + React (Vite) + Convex Auth app
+# Seed
 
-This is a [Convex](https://convex.dev/) project created with [`npm create convex`](https://www.npmjs.com/package/create-convex).
+Seed coordinates tournament seeds from league-scoped upload through weekly use
+and historical publication. It includes role-based uploader and host workflows,
+comments, audit logging, and a public seed-history view.
 
-After the initial setup (<2 minutes) you'll have a working full-stack app using:
+Read [`CONTEXT.md`](CONTEXT.md) before changing domain behavior or terminology.
 
-- Convex as your backend (database, server logic)
-- [React](https://react.dev/) as your frontend (web page interactivity)
-- [Vite](https://vitest.dev/) for optimized web hosting
-- [Tailwind](https://tailwindcss.com/) for building great looking UI
-- [Convex Auth](https://labs.convex.dev/auth) for authentication
+## Structure
 
-## Get started
-
-If you just cloned this codebase and didn't use `npm create convex`, run:
-
-```
-npm install
-npm run dev
+```text
+web/       React and Vite application
+convex/    Domain schema, authentication, functions, and HTTP interface
 ```
 
-If you're reading this README on GitHub and want to use this template, run:
+## Setup
 
+From the repository root:
+
+```sh
+bun install
+cp domains/seed/.env.example domains/seed/.env.local
 ```
-npm create convex@latest -- -t react-vite-convexauth
+
+Select the existing Seed Convex development deployment before starting local
+development.
+
+## Development
+
+Run the web application and Convex together:
+
+```sh
+bun run --filter @mcrl/seed dev
 ```
 
-For more information on how to configure Convex Auth, check out the [Convex Auth docs](https://labs.convex.dev/auth/).
+They can also be started separately with `dev:web` and `dev:backend`.
 
-For more examples of different Convex Auth flows, check out this [example repo](https://www.convex.dev/templates/convex-auth).
+## Environment
 
-## Learn more
+Local values belong in `domains/seed/.env.local`:
 
-To learn more about developing your project with Convex, check out:
+| Variable            | Purpose                                            |
+| ------------------- | -------------------------------------------------- |
+| `CONVEX_DEPLOYMENT` | Selects the Seed Convex development deployment     |
+| `VITE_CONVEX_URL`   | Connects the website to the Seed Convex deployment |
 
-- The [Tour of Convex](https://docs.convex.dev/get-started) for a thorough introduction to Convex principles.
-- The rest of [Convex docs](https://docs.convex.dev/) to learn about all Convex features.
-- [Stack](https://stack.convex.dev/) for in-depth articles on advanced topics.
+The Seed Convex deployment requires these backend variables:
 
-## Join the community
+- `SITE_URL`
+- `AUTH_DISCORD_ID`
+- `AUTH_DISCORD_SECRET`
+- `JWT_PRIVATE_KEY`
+- `JWKS`
+- `READ_API_KEY_SEEDS`
+- `WRITE_API_KEY_SEEDS`
 
-Join thousands of developers building full-stack apps with Convex:
+Configure backend variables in Convex, not in the frontend environment.
+`CONVEX_SITE_URL` is provided automatically inside Convex functions.
 
-- Join the [Convex Discord community](https://convex.dev/community) to get help in real-time.
-- Follow [Convex on GitHub](https://github.com/get-convex/), star and contribute to the open-source implementation of Convex.
+## Published-history interface
+
+Seed exposes published seed history at:
+
+```text
+GET /api/seeds/history?weekNumber=<week>&leagueNumber=<league>
+```
+
+This is the interface consumed by League. Callers should depend on the HTTP
+interface rather than importing Seed's internal implementation.
+
+## Commands
+
+Run these from `domains/seed` or through the `@mcrl/seed` workspace filter:
+
+| Command              | Purpose                                |
+| -------------------- | -------------------------------------- |
+| `bun run typecheck`  | Check TypeScript diagnostics           |
+| `bun run test`       | Run the test suite once                |
+| `bun run test:watch` | Run tests in watch mode                |
+| `bun run build`      | Build the web application              |
+| `bun run lint`       | Lint the domain                        |
+| `bun run format`     | Format the domain with the root policy |
