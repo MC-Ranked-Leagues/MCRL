@@ -7,6 +7,7 @@ import starlight from "@astrojs/starlight"
 // https://astro.build/config
 export default defineConfig({
   vite: {
+    envDir: "..",
     plugins: [tailwindcss()],
     optimizeDeps: {
       include: ["react", "react-dom", "react-dom/client"],

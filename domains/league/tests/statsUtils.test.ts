@@ -5,7 +5,7 @@ import {
   formatDuration,
   mergeWeeklyPerformance,
   type PlayerStats,
-} from "../src/components/stats/stats-utils"
+} from "../web/src/components/stats/stats-utils"
 
 describe("stats player URL helper", () => {
   test("persists player selection and removes the legacy league filter", () => {

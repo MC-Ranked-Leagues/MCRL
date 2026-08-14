@@ -6,7 +6,7 @@
   "trailingComma": "es5",
   "printWidth": 80,
   "plugins": ["prettier-plugin-astro", "prettier-plugin-tailwindcss"],
-  "tailwindStylesheet": "src/global.css",
+  "tailwindStylesheet": "web/src/global.css",
   "tailwindFunctions": ["cn", "cva"],
   "overrides": [
     {

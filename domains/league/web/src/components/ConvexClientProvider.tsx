@@ -1,4 +1,3 @@
-// src/components/ConvexClientProvider.tsx
 import { ConvexProvider, ConvexReactClient } from "convex/react"
 import type { ReactNode } from "react"
 
