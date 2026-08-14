@@ -9,12 +9,12 @@ import convexPlugin from "@convex-dev/eslint-plugin";
 export default defineConfig([
   {
     ignores: [
-      "dist",
+      "web/dist",
       "eslint.config.js",
       "convex/_generated",
       "postcss.config.js",
       "tailwind.config.js",
-      "vite.config.ts",
+      "web/vite.config.ts",
     ],
   },
   {
@@ -77,7 +77,7 @@ export default defineConfig([
     },
   },
   {
-    files: ["src/components/ui/**/*.{ts,tsx}"],
+    files: ["web/src/components/ui/**/*.{ts,tsx}"],
     rules: {
       "react-refresh/only-export-components": "off",
     },

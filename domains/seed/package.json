@@ -5,15 +5,16 @@
   "type": "module",
   "scripts": {
     "dev": "npm-run-all --parallel dev:frontend dev:backend",
-    "dev:frontend": "vite",
+    "dev:frontend": "vite --config web/vite.config.ts",
     "dev:backend": "convex dev",
-    "build": "tsc -b && vite build",
-    "lint": "tsc && eslint .  --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "build": "tsc -b && vite build --config web/vite.config.ts",
+    "typecheck": "tsc -b",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "test": "vitest",
     "test:once": "vitest run",
     "test:debug": "vitest --inspect-brk --no-file-parallelism",
     "test:coverage": "vitest run --coverage --coverage.reporter=text",
-    "preview": "vite preview"
+    "preview": "vite preview --config web/vite.config.ts"
   },
   "dependencies": {
     "@auth/core": "0.37.0",

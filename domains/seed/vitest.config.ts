@@ -15,7 +15,7 @@ export default defineConfig({
         extends: true,
         test: {
           name: "frontend",
-          include: ["src/**/*.test.{ts,tsx,js,jsx}"],
+          include: ["web/src/**/*.test.{ts,tsx,js,jsx}"],
           exclude: [...configDefaults.exclude, "convex/**"],
           environment: "jsdom",
         },
