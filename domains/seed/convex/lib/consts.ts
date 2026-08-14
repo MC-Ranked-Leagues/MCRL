@@ -1,0 +1,8 @@
+export const MAX_WEEK_EXPIRATION_COUNT = 1000;
+
+export const MAX_LEAGUE_SEED_LIST_COUNT = 500;
+export const MAX_ADMIN_SEED_LIST_COUNT = 1000;
+export const MAX_SEED_COMMENT_LIST_COUNT = 100;
+export const MAX_SEED_COMMENT_BODY_LENGTH = 500;
+export const MAX_SEED_IMPORT_COUNT = 500;
+export const NUMERIC_SEED_PATTERN = /^-?[0-9]+$/;

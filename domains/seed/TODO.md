@@ -1,0 +1,5 @@
+- [ ] admin dashboard that shows how many seeds we have in each league + other info
+- [x] logging
+- [x] Public facing page where users can see past seeds
+  - [x] should allow to browse seeds per week per league
+  - [x] should show seeds in the current week when they get marked as used
