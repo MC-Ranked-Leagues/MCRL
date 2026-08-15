@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import {
   getCompletedTimeMs,
   getImprovedFastestTimeMs,
-} from "../convex/lib/playerFastestTime";
+} from "./playerFastestTime";
 
 describe("player fastest time", () => {
   test("accepts a player's first completed time", () => {

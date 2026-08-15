@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { calculateRegistrationAverageTimeMs } from "../convex/lib/registrationAverage";
+import { calculateRegistrationAverageTimeMs } from "./registrationAverage";
 
 describe("registration average", () => {
   test("keeps players with no played results unranked", () => {

@@ -1,11 +1,11 @@
 import { describe, expect, test } from "vitest";
-import type { Id } from "../convex/_generated/dataModel";
+import type { Id } from "../../../../convex/_generated/dataModel";
 import {
   buildPlayerUrl,
   formatDuration,
   mergeWeeklyPerformance,
   type PlayerStats,
-} from "../web/src/components/stats/stats-utils";
+} from "./stats-utils";
 
 describe("stats player URL helper", () => {
   test("persists player selection and removes the legacy league filter", () => {

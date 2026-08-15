@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { compareWeekStandingRegistrations } from "../convex/lib/weekStandings";
+import { compareWeekStandingRegistrations } from "./weekStandings";
 
 describe("weekly standings ordering", () => {
   test("orders by points and uses average time as the tiebreaker", () => {
