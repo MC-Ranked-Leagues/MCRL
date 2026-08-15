@@ -4,7 +4,8 @@
   "packageManager": "bun@1.3.14",
   "workspaces": [
     "domains/league",
-    "domains/seed"
+    "domains/seed",
+    "packages/*"
   ],
   "scripts": {
     "dev:league": "bun run --filter @mcrl/league dev",

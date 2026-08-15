@@ -22,8 +22,17 @@ domains/
   seed/
     web/
     convex/
-shared/
+packages/
+  contracts/
+  shared/
 ```
+
+## Packages
+
+| Package           | Responsibility                                           |
+| ----------------- | -------------------------------------------------------- |
+| `@mcrl/contracts` | Runtime API schemas and their inferred TypeScript types  |
+| `@mcrl/shared`    | Domain-neutral code genuinely shared by multiple domains |
 
 ## Requirements
 
