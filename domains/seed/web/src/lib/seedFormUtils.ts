@@ -1,5 +1,5 @@
 import type { KeyboardEvent } from "react";
-import type { Id } from "../../../convex/_generated/dataModel";
+import type { Id } from "@/convex/_generated/dataModel";
 import type { SeedType } from "./consts";
 
 export const MAX_SEED_IMPORT_COUNT = 500;

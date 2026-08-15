@@ -2,7 +2,7 @@ import { useQuery } from "convex/react";
 import { ChevronLeft, ChevronRight, FileClock, RotateCcw } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router";
-import { api } from "../../../../convex/_generated/api";
+import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import {
   Empty,

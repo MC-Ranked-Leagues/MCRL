@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { useQuery } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
+import { api } from "@/convex/_generated/api";
 import ConvexClientProvider from "@/components/ConvexClientProvider";
 import { WeekSelector } from "./WeekSelector";
 import { LeagueSelector } from "./LeagueSelector";

@@ -7,9 +7,9 @@ import {
   useState,
 } from "react";
 import { SendHorizonal } from "lucide-react";
-import { api } from "../../../convex/_generated/api";
-import type { Id } from "../../../convex/_generated/dataModel";
-import { MAX_SEED_COMMENT_BODY_LENGTH } from "../../../convex/lib/consts";
+import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
+import { MAX_SEED_COMMENT_BODY_LENGTH } from "@/convex/lib/consts";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { FieldError } from "@/components/ui/field";
 import {

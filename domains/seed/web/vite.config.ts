@@ -9,8 +9,12 @@ export default defineConfig({
   envDir: path.resolve(__dirname, ".."),
   plugins: [react(), tailwindcss()],
   resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "src"),
-    },
+    alias: [
+      {
+        find: "@/convex",
+        replacement: path.resolve(__dirname, "../convex"),
+      },
+      { find: "@", replacement: path.resolve(__dirname, "src") },
+    ],
   },
 });

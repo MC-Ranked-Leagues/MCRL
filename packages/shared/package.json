@@ -2,5 +2,14 @@
   "name": "@mcrl/shared",
   "private": true,
   "version": "0.0.0",
-  "type": "module"
+  "type": "module",
+  "exports": {},
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
+    "format": "bun run --cwd ../.. prettier --write packages/shared",
+    "format:check": "bun run --cwd ../.. prettier --check packages/shared"
+  }
 }

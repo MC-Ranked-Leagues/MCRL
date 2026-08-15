@@ -19,6 +19,34 @@
 - Keep domain internals private. Cross-domain communication should use a clear
   interface such as an HTTP endpoint or a deliberately shared contract.
 
+## Architecture and imports
+
+- `domains/league` and `domains/seed` are private workspace applications. Do
+  not expose or import their Convex or web implementations as package APIs.
+- A domain must never import another domain's Convex files, generated types, or
+  other implementation files. Cross-domain communication uses public APIs and
+  schemas from `@mcrl/contracts`.
+- `@mcrl/contracts` contains runtime API schemas and types inferred from those
+  schemas. Never expose Convex-specific `Doc`, `Id`, generated data models, or
+  other backend implementation types through a contract.
+- Give packages explicit subpath exports. Do not add a package-wide barrel
+  `index.ts`.
+- Add code to `@mcrl/shared` only when at least two workspaces use a stable,
+  domain-neutral abstraction. Do not create generic dumping-ground modules.
+- Use `@/*` for imports rooted at the current domain's `web/src` directory and
+  `@/convex/*` only when that web app imports its own domain's Convex files.
+  Use relative imports for nearby implementation code.
+- Use workspace package imports across package boundaries. Do not use aliases
+  or filesystem-relative paths to bypass package exports.
+- Declare internal workspace dependencies with `workspace:*` and synchronized
+  third-party dependency versions through the root Bun catalog.
+- Keep unit tests beside the files they test. Use separate test directories only
+  for integration tests, shared fixtures, or genuinely cross-module scenarios.
+- Root `scripts/` contains repository maintenance tools. It is not a package and
+  must remain covered by `scripts/tsconfig.json` and the root lint command.
+- If any of these rules make a change or a fix impossible/harder to make, report
+  to the user
+
 ## Verification
 
 - Run typecheck frequently while working.

@@ -2,8 +2,8 @@ import { useMemo } from "react";
 import { useQuery } from "convex/react";
 import { ShieldCheck, Users } from "lucide-react";
 import { Outlet, useNavigate, useParams } from "react-router";
-import { api } from "../../../../../convex/_generated/api";
-import type { Doc, Id } from "../../../../../convex/_generated/dataModel";
+import { api } from "@/convex/_generated/api";
+import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { UserRoleBadges } from "@/components/UserRoleBadges";
 import { Badge } from "@/components/ui/badge";
 import {

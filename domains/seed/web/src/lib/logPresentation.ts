@@ -18,7 +18,7 @@ import {
   UserPlus,
   type LucideIcon,
 } from "lucide-react";
-import type { Doc } from "../../../convex/_generated/dataModel";
+import type { Doc } from "@/convex/_generated/dataModel";
 
 export const LOG_PAGE_SIZE = 25;
 

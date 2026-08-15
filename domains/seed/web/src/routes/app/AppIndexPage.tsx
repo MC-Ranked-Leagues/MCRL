@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "convex/react";
 import { FormEvent, useState } from "react";
-import { api } from "../../../../convex/_generated/api";
+import { api } from "@/convex/_generated/api";
 import {
   getManualSeedFormErrors,
   sanitizeSeedNumber,

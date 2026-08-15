@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import type { Id } from "../../../../convex/_generated/dataModel";
+import type { Id } from "@/convex/_generated/dataModel";
 import {
   buildPlayerUrl,
   formatDuration,

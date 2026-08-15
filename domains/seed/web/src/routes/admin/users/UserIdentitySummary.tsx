@@ -1,4 +1,4 @@
-import type { Doc } from "../../../../../convex/_generated/dataModel";
+import type { Doc } from "@/convex/_generated/dataModel";
 import { UserDetailValue } from "@/components/UserDetailValue";
 import { UserRoleBadges } from "@/components/UserRoleBadges";
 import { getLeagueListLabel } from "@/lib/userAccess";

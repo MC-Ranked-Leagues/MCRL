@@ -13,6 +13,7 @@
 
     /* Import paths */
     "paths": {
+      "@/convex/*": ["./convex/*"],
       "@/*": ["./web/src/*"]
     }
   },

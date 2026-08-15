@@ -19,8 +19,8 @@ import {
 import { useMutation } from "convex/react";
 import { Trash, Trophy } from "lucide-react";
 import { useState } from "react";
-import { api } from "../../../convex/_generated/api";
-import { type Doc, type Id } from "../../../convex/_generated/dataModel";
+import { api } from "@/convex/_generated/api";
+import { type Doc, type Id } from "@/convex/_generated/dataModel";
 import { AlertDialog } from "./ui/alert-dialog";
 import { DeleteAlert } from "./dialogs/DeleteDialog";
 

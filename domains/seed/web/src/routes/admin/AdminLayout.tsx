@@ -1,6 +1,6 @@
 import { useQuery } from "convex/react";
 import { Navigate, Outlet } from "react-router";
-import { api } from "../../../../convex/_generated/api";
+import { api } from "@/convex/_generated/api";
 
 export function AdminLayout() {
   const user = useQuery(api.users.currentUser);

@@ -8,8 +8,8 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Outlet, useNavigate, useParams } from "react-router";
-import { api } from "../../../../convex/_generated/api";
-import type { Doc, Id } from "../../../../convex/_generated/dataModel";
+import { api } from "@/convex/_generated/api";
+import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { SeedStatusBadge } from "@/components/SeedStatusBadge";
 import { SeedValueTableCell } from "@/components/SeedValueTableCell";
 import { Badge } from "@/components/ui/badge";

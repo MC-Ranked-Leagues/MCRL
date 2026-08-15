@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from "convex/react";
 import { Beaker, CalendarClock, PauseCircle, PlayCircle } from "lucide-react";
 import { useState } from "react";
-import { api } from "../../../../convex/_generated/api";
+import { api } from "@/convex/_generated/api";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   AlertDialog,

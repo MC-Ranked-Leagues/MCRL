@@ -25,6 +25,7 @@ domains/
 packages/
   contracts/
   shared/
+scripts/        Repository maintenance tools (not a workspace package)
 ```
 
 ## Packages
@@ -45,19 +46,22 @@ Run these from the repository root:
 
 | Command                | Purpose                                                       |
 | ---------------------- | ------------------------------------------------------------- |
-| `bun run dev:league`   | Start the League web application                              |
+| `bun run dev:league`   | Start the League web application and Convex process           |
 | `bun run dev:seed`     | Start the Seed web application and Convex development process |
-| `bun run typecheck`    | Typecheck both workspaces                                     |
-| `bun run test`         | Run both test suites once                                     |
+| `bun run typecheck`    | Typecheck every workspace and the root scripts                |
+| `bun run test`         | Run every workspace test suite once                           |
 | `bun run build`        | Build both web applications                                   |
 | `bun run lint`         | Lint both workspaces                                          |
 | `bun run format`       | Format the repository                                         |
 | `bun run format:check` | Check repository formatting                                   |
 
-League's Convex development process is started separately:
+Each domain can also start just its web or Convex process:
 
 ```sh
-bun run --filter @mcrl/league dev:backend
+bun run dev:league:web
+bun run dev:league:convex
+bun run dev:seed:web
+bun run dev:seed:convex
 ```
 
 Domain-specific commands and environment requirements are documented in each

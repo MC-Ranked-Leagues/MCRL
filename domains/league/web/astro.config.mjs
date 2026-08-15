@@ -1,6 +1,7 @@
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "astro/config";
 import react from "@astrojs/react";
+import { fileURLToPath } from "node:url";
 
 import starlight from "@astrojs/starlight";
 
@@ -9,6 +10,18 @@ export default defineConfig({
   vite: {
     envDir: "..",
     plugins: [tailwindcss()],
+    resolve: {
+      alias: [
+        {
+          find: "@/convex",
+          replacement: fileURLToPath(new URL("../convex", import.meta.url)),
+        },
+        {
+          find: "@",
+          replacement: fileURLToPath(new URL("./src", import.meta.url)),
+        },
+      ],
+    },
     optimizeDeps: {
       include: ["react", "react-dom", "react-dom/client"],
     },

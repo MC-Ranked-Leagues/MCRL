@@ -1,6 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import type { Id } from "../../../../convex/_generated/dataModel";
+import type { Id } from "@/convex/_generated/dataModel";
 import { CrownIcon } from "lucide-react";
 
 interface MatchRow {

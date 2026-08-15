@@ -1,8 +1,8 @@
 import { useQuery } from "convex/react";
 import { Clock, Users } from "lucide-react";
 import { Outlet, useNavigate, useParams } from "react-router";
-import { api } from "../../../../../convex/_generated/api";
-import type { Doc, Id } from "../../../../../convex/_generated/dataModel";
+import { api } from "@/convex/_generated/api";
+import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { Badge } from "@/components/ui/badge";
 import {
   Empty,

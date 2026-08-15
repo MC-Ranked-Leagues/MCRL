@@ -33,7 +33,7 @@ Run the web application and Convex together:
 bun run --filter @mcrl/seed dev
 ```
 
-They can also be started separately with `dev:web` and `dev:backend`.
+They can also be started separately with `dev:web` and `dev:convex`.
 
 ## Environment
 
@@ -72,11 +72,11 @@ interface rather than importing Seed's internal implementation.
 
 Run these from `domains/seed` or through the `@mcrl/seed` workspace filter:
 
-| Command              | Purpose                                |
-| -------------------- | -------------------------------------- |
-| `bun run typecheck`  | Check TypeScript diagnostics           |
-| `bun run test`       | Run the test suite once                |
-| `bun run test:watch` | Run tests in watch mode                |
-| `bun run build`      | Build the web application              |
-| `bun run lint`       | Lint the domain                        |
-| `bun run format`     | Format the domain with the root policy |
+| Command              | Purpose                                   |
+| -------------------- | ----------------------------------------- |
+| `bun run typecheck`  | Check web, config, and Convex diagnostics |
+| `bun run test`       | Run the test suite once                   |
+| `bun run test:watch` | Run tests in watch mode                   |
+| `bun run build`      | Build the web application                 |
+| `bun run lint`       | Lint the domain                           |
+| `bun run format`     | Format the domain with the root policy    |

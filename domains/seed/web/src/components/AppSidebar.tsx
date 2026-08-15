@@ -46,8 +46,8 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { sortLeaguesByNumberAndName } from "@/lib/utils";
-import { api } from "../../../convex/_generated/api";
-import type { Doc } from "../../../convex/_generated/dataModel";
+import { api } from "@/convex/_generated/api";
+import type { Doc } from "@/convex/_generated/dataModel";
 
 const adminLinks = [
   {

@@ -1,6 +1,6 @@
 import { useMutation } from "convex/react";
 import { type FormEvent, useCallback, useEffect, useState } from "react";
-import { api } from "../../../../convex/_generated/api";
+import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import {
   DialogClose,

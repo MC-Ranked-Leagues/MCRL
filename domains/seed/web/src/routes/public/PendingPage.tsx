@@ -9,8 +9,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { useConvexAuth, useQuery } from "convex/react";
 import { Navigate } from "react-router";
-import { api } from "../../../../convex/_generated/api";
-import type { Doc } from "../../../../convex/_generated/dataModel";
+import { api } from "@/convex/_generated/api";
+import type { Doc } from "@/convex/_generated/dataModel";
 
 export function PendingPage() {
   const { isAuthenticated, isLoading } = useConvexAuth();

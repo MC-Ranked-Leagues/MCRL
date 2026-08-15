@@ -1,5 +1,4 @@
 # Domain-private data and tools
-scripts/data/
 tests/data/
 nonPublicScripts/
 docker/

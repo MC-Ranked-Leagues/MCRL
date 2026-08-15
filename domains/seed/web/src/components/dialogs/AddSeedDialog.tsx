@@ -1,6 +1,6 @@
 import { AlertCircleIcon, XIcon } from "lucide-react";
 import { type FormEvent, useState } from "react";
-import type { Doc, Id } from "../../../../convex/_generated/dataModel";
+import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,7 +39,7 @@ import {
 } from "@/lib/seedFormUtils";
 import { validateManualSeedForm } from "@/lib/validators";
 import { useMutation, useQuery } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
+import { api } from "@/convex/_generated/api";
 
 const EMPTY_SEED_FORM_VALUES: SeedFormValues = {
   type: null,

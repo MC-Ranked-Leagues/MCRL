@@ -9,22 +9,21 @@ historical competition data written by tournament operations.
 ```text
 web/       Astro and React public website
 convex/    Domain schema, functions, and HTTP interface
-scripts/   Maintenance and historical-data scripts
-tests/     Domain tests
 ```
 
 ## Development
 
-Run the web application:
+Run the web application and Convex together:
+
+```sh
+bun run --filter @mcrl/league dev
+```
+
+They can also be started separately:
 
 ```sh
 bun run --filter @mcrl/league dev:web
-```
-
-Run Convex in another terminal:
-
-```sh
-bun run --filter @mcrl/league dev:backend
+bun run --filter @mcrl/league dev:convex
 ```
 
 ## Commands
@@ -33,7 +32,7 @@ Run these from `domains/league` or through the `@mcrl/league` workspace filter:
 
 | Command              | Purpose                                |
 | -------------------- | -------------------------------------- |
-| `bun run typecheck`  | Check Astro and TypeScript diagnostics |
+| `bun run typecheck`  | Check web and Convex diagnostics       |
 | `bun run test`       | Run the test suite once                |
 | `bun run test:watch` | Run tests in watch mode                |
 | `bun run build`      | Build the public website               |

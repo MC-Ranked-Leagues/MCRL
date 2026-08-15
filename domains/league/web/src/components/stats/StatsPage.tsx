@@ -11,7 +11,7 @@ import ConvexClientProvider from "@/components/ConvexClientProvider";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { api } from "../../../../convex/_generated/api";
+import { api } from "@/convex/_generated/api";
 import { PlayerStatsDashboard } from "./PlayerStatsDashboard";
 import { StatsPlayerBrowser } from "./StatsPlayerBrowser";
 import { buildPlayerUrl, type PlayerListEntry } from "./stats-utils";

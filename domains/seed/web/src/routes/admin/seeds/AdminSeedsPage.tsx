@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useSearchParams } from "react-router";
 import { toast } from "sonner";
-import { api } from "../../../../../convex/_generated/api";
+import { api } from "@/convex/_generated/api";
 import { SeedValueTableCell } from "@/components/SeedValueTableCell";
 import { DeleteSeedDialog } from "@/components/DeleteSeedDialog";
 import { Badge } from "@/components/ui/badge";
