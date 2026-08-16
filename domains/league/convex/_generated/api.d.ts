@@ -12,6 +12,7 @@ import type * as development from "../development.js";
 import type * as http from "../http.js";
 import type * as leaderboard from "../leaderboard.js";
 import type * as leagues from "../leagues.js";
+import type * as lib_matchOutcomes from "../lib/matchOutcomes.js";
 import type * as lib_playerFastestTime from "../lib/playerFastestTime.js";
 import type * as lib_playerListEntry from "../lib/playerListEntry.js";
 import type * as lib_readModels from "../lib/readModels.js";
@@ -38,6 +39,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   leaderboard: typeof leaderboard;
   leagues: typeof leagues;
+  "lib/matchOutcomes": typeof lib_matchOutcomes;
   "lib/playerFastestTime": typeof lib_playerFastestTime;
   "lib/playerListEntry": typeof lib_playerListEntry;
   "lib/readModels": typeof lib_readModels;
