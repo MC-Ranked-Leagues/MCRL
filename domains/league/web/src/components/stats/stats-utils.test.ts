@@ -95,14 +95,19 @@ describe("stats data formatting", () => {
     };
 
     const weeks = mergeWeeklyPerformance(stats);
+    const [weekOne, weekTwo] = weeks;
+
+    if (!weekOne || !weekTwo) {
+      throw new Error("Expected performance for weeks one and two");
+    }
 
     expect(weeks.map((week) => week.weekNumber)).toEqual([1, 2]);
-    expect(weeks[0].averageTimeMs).toBeNull();
-    expect(weeks[1]).toMatchObject({
+    expect(weekOne.averageTimeMs).toBeNull();
+    expect(weekTwo).toMatchObject({
       leagueNumber: 2,
       movement: "promoted",
     });
-    expect(weeks[1].matchDetails.map((match) => match.matchNumber)).toEqual([
+    expect(weekTwo.matchDetails.map((match) => match.matchNumber)).toEqual([
       1, 2, 3,
     ]);
   });

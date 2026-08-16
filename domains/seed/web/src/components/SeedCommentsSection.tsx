@@ -39,7 +39,7 @@ type CommentGroup = {
   author: Id<"users">;
   authorImage: string | null;
   authorName: string;
-  comments: SeedComment[];
+  comments: [SeedComment, ...SeedComment[]];
 };
 
 export function SeedCommentsSection({

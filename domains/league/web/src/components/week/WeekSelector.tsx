@@ -25,16 +25,19 @@ export function WeekSelector({
     (week) => week.weekNumber === selectedWeekNumber
   );
   const currentWeek = weeks[currentIndex];
+  if (!currentWeek) {
+    return <div className="h-10 w-48 animate-pulse rounded bg-muted"></div>;
+  }
 
-  const hasNext = currentIndex > 0;
-  const hasPrev = currentIndex < weeks.length - 1;
+  const nextWeek = weeks[currentIndex - 1];
+  const previousWeek = weeks[currentIndex + 1];
 
   const handlePrev = () => {
-    if (hasPrev) onSelect(weeks[currentIndex + 1].weekNumber);
+    if (previousWeek) onSelect(previousWeek.weekNumber);
   };
 
   const handleNext = () => {
-    if (hasNext) onSelect(weeks[currentIndex - 1].weekNumber);
+    if (nextWeek) onSelect(nextWeek.weekNumber);
   };
 
   return (
@@ -43,7 +46,7 @@ export function WeekSelector({
         variant="ghost"
         size="icon"
         onClick={handlePrev}
-        disabled={!hasPrev}
+        disabled={!previousWeek}
         className="text-muted-foreground hover:text-foreground"
       >
         <ChevronLeft className="h-5 w-5" />
@@ -59,7 +62,7 @@ export function WeekSelector({
         variant="ghost"
         size="icon"
         onClick={handleNext}
-        disabled={!hasNext}
+        disabled={!nextWeek}
         className="text-muted-foreground hover:text-foreground"
       >
         <ChevronRight className="h-5 w-5" />

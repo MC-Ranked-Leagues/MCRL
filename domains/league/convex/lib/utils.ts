@@ -43,7 +43,9 @@ export async function timingSafeEqual(a: string, b: string): Promise<boolean> {
   const aBytes = new Uint8Array(aHmac);
   const bBytes = new Uint8Array(bHmac);
   let diff = 0;
-  for (let i = 0; i < aBytes.length; i += 1) diff |= aBytes[i] ^ bBytes[i];
+  for (let i = 0; i < aBytes.length; i += 1) {
+    diff |= aBytes[i]! ^ bBytes[i]!;
+  }
   return diff === 0;
 }
 

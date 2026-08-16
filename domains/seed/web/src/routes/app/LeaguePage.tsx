@@ -271,10 +271,12 @@ function SeedDistributionCard({
             const isFilled =
               row.count >= row.required && row.missingTypes.length === 0;
             const isOverfilled = row.count > row.required;
-            const hasMissingTypeWarning =
+            const missingTypeWarning =
               row.required > 1 &&
               row.missingTypes.length === 1 &&
-              row.count >= row.required - 1;
+              row.count >= row.required - 1
+                ? row.missingTypes[0]
+                : undefined;
             const progressValue = Math.min(
               Math.round((row.count / row.required) * 100),
               100
@@ -288,10 +290,10 @@ function SeedDistributionCard({
                 <div className="flex min-w-0 items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">{row.label}</p>
-                    {hasMissingTypeWarning ? (
+                    {missingTypeWarning ? (
                       <p className="flex items-center gap-1 text-xs text-amber-700 dark:text-amber-400">
                         <CircleAlert className="size-3 shrink-0" />
-                        Missing {SEED_TYPES[row.missingTypes[0]]}
+                        Missing {SEED_TYPES[missingTypeWarning]}
                       </p>
                     ) : (
                       <p className="text-xs text-muted-foreground">

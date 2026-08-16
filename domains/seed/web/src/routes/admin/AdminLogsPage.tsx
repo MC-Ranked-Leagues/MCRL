@@ -61,7 +61,7 @@ export function AdminLogsPage() {
     actorType: "all",
     cursors: [null],
   });
-  const cursor = view.cursors[view.cursors.length - 1];
+  const cursor = view.cursors[view.cursors.length - 1] ?? null;
   const logsPage = useQuery(api.logs.list, {
     paginationOpts: { numItems: LOG_PAGE_SIZE, cursor },
     ...(view.eventType === "all" ? {} : { eventType: view.eventType }),

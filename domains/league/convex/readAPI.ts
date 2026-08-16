@@ -51,7 +51,8 @@ export const listPlayerMatches = internalQuery({
       )
       .collect();
 
-    if (matchResults.length === 0) {
+    const firstMatchResult = matchResults[0];
+    if (!firstMatchResult) {
       return {
         playerName: player.ign,
         weekNumber: args.weekNumber,
@@ -61,8 +62,8 @@ export const listPlayerMatches = internalQuery({
       };
     }
 
-    const competitionId = matchResults[0].competitionId;
-    const leagueTier = matchResults[0].leagueTier;
+    const competitionId = firstMatchResult.competitionId;
+    const leagueTier = firstMatchResult.leagueTier;
     const allSameComp = matchResults.every(
       (r) => r.competitionId === competitionId
     );

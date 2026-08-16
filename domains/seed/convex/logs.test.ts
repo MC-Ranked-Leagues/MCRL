@@ -57,7 +57,7 @@ describe("audit logs", () => {
     });
 
     expect(secondPage.page).toHaveLength(1);
-    expect(secondPage.page[0].targetLabel).toBe("League One");
+    expect(secondPage.page[0]?.targetLabel).toBe("League One");
 
     const filteredPage = await admin.query(api.logs.list, {
       paginationOpts: { numItems: 25, cursor: null },
@@ -109,6 +109,6 @@ describe("audit logs", () => {
       "testing.resumed",
       "testing.paused",
     ]);
-    expect(logs.page[0].summary).toContain("week 4 to week 5");
+    expect(logs.page[0]?.summary).toContain("week 4 to week 5");
   });
 });

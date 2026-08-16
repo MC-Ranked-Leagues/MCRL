@@ -33,7 +33,9 @@ export const syncPlayerInfo = internalMutation({
         throw new Error("Duplicate existing players");
       }
 
-      if (existing.length === 0) {
+      const existingPlayer = existing[0];
+
+      if (!existingPlayer) {
         console.info(
           `uuid ${player.uuid} (${player.ign}) does not match any value in the database`
         );
@@ -47,8 +49,6 @@ export const syncPlayerInfo = internalMutation({
         });
         continue;
       }
-
-      const existingPlayer = existing[0];
 
       await ctx.db.patch(existingPlayer._id, {
         uuid: player.uuid,

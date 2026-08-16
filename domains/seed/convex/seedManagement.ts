@@ -255,10 +255,14 @@ export const reorderSeed = mutation({
       return null;
     }
 
-    [group[currentIndex], group[nextIndex]] = [
-      group[nextIndex],
-      group[currentIndex],
-    ];
+    const currentSeed = group[currentIndex];
+    const nextSeed = group[nextIndex];
+    if (!currentSeed || !nextSeed) {
+      return null;
+    }
+
+    group[currentIndex] = nextSeed;
+    group[nextIndex] = currentSeed;
     for (const [index, item] of group.entries()) {
       const seedNumber = index + 1;
       if (item.seedNumber !== seedNumber) {

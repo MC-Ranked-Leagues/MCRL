@@ -96,7 +96,7 @@ describe("seed deletion", () => {
     expect(afterDeletion.seed).toBeNull();
     expect(afterDeletion.comments).toEqual([]);
     expect(afterDeletion.remainingSeeds).toHaveLength(1);
-    expect(afterDeletion.remainingSeeds[0].seedNumber).toBe(1);
+    expect(afterDeletion.remainingSeeds[0]?.seedNumber).toBe(1);
     expect(afterDeletion.league).toMatchObject({
       seedCount: 1,
       usedSeedCount: 0,

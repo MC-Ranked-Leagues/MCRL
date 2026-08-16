@@ -99,7 +99,8 @@ export function AdminSeedsPage() {
       : settings?.currentWeekNumber;
 
   useEffect(() => {
-    if (!settings || !leagues || leagues.length === 0) return;
+    const firstLeague = leagues?.[0];
+    if (!settings || !firstLeague) return;
 
     const nextParams = new URLSearchParams(searchParams);
     const hasValidLeague = leagues.some(
@@ -110,7 +111,7 @@ export function AdminSeedsPage() {
       requestedWeekNumber >= 1 &&
       requestedWeekNumber <= settings.currentWeekNumber;
 
-    if (!hasValidLeague) nextParams.set("league", leagues[0]._id);
+    if (!hasValidLeague) nextParams.set("league", firstLeague._id);
     if (!hasValidWeek) {
       nextParams.set("week", String(settings.currentWeekNumber));
     }
