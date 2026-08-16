@@ -1,8 +1,8 @@
 import { ConvexError } from "convex/values";
 
-export function getErrorMessage(error: unknown, fallback: string) {
+export function getErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof ConvexError) {
-    const data = error.data;
+    const data: unknown = error.data;
 
     if (
       typeof data === "object" &&

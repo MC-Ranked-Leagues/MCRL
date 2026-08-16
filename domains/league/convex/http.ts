@@ -21,7 +21,7 @@ import {
   jsonResponse,
   validateApiKey,
 } from "./lib/utils";
-import { z } from "zod";
+import type { z } from "zod";
 
 const http = httpRouter();
 

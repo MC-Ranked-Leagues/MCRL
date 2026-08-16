@@ -1,9 +1,9 @@
 import type { FunctionReturnType } from "convex/server";
 import type { api } from "@/convex/_generated/api";
 
-export type PlayerListEntry =
-  | FunctionReturnType<typeof api.leaderboard.getFastestPlayers>[number]
-  | FunctionReturnType<typeof api.players.searchPlayers>[number];
+export type PlayerListEntry = FunctionReturnType<
+  typeof api.leaderboard.getFastestPlayers
+>[number];
 export type PlayerStats = NonNullable<
   FunctionReturnType<typeof api.playerStats.getPlayerStats>
 >;

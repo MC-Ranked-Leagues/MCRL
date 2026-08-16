@@ -1,25 +1,38 @@
 import { Button as BaseButton, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-interface CustomButtonProps extends React.ComponentProps<typeof BaseButton> {
-  href?: string;
-  target?: "_self" | "_blank";
-  minecraft?: boolean;
-}
+type BaseButtonProps = React.ComponentProps<typeof BaseButton>;
 
-export function CustomButton({
-  className,
-  href,
-  target = "_self",
-  minecraft = true,
-  variant = "default",
-  onClick,
-  children,
-  ...props
-}: CustomButtonProps) {
+type SharedButtonProps = Pick<
+  BaseButtonProps,
+  "children" | "className" | "size" | "variant"
+> & {
+  minecraft?: boolean;
+};
+
+type CustomButtonProps =
+  | (SharedButtonProps &
+      Omit<
+        React.AnchorHTMLAttributes<HTMLAnchorElement>,
+        keyof SharedButtonProps | "href" | "target"
+      > & {
+        href: string;
+        target?: "_self" | "_blank";
+      })
+  | (SharedButtonProps &
+      Omit<BaseButtonProps, keyof SharedButtonProps | "href" | "target">);
+
+export function CustomButton(props: CustomButtonProps) {
+  const {
+    className,
+    minecraft = true,
+    variant = "default",
+    size = "default",
+    children,
+  } = props;
   // classes
   const buttonStyles = cn(
-    buttonVariants({ variant }),
+    buttonVariants({ variant, size }),
     // Core animations and transitions
     "relative overflow-hidden transition-all duration-200 active:translate-y-0.5 active:scale-95",
 
@@ -38,26 +51,46 @@ export function CustomButton({
 
   const content = <span className="relative z-10">{children}</span>;
 
-  // anchor tag if there's a href
-  if (href) {
+  if ("href" in props) {
+    const {
+      className: _className,
+      children: _children,
+      href,
+      minecraft: _minecraft,
+      size: _size,
+      target = "_self",
+      variant: _variant,
+      ...anchorProps
+    } = props;
+
     return (
       <a
-        href={href}
-        target={target}
         className={buttonStyles}
-        {...(props as any)}
+        href={href}
+        rel={target === "_blank" ? "noopener noreferrer" : undefined}
+        target={target}
+        {...anchorProps}
       >
         {content}
       </a>
     );
   }
 
+  const {
+    className: _className,
+    children: _children,
+    minecraft: _minecraft,
+    size: _size,
+    variant: _variant,
+    ...buttonProps
+  } = props;
+
   return (
     <BaseButton
       variant={variant}
+      size={size}
       className={buttonStyles}
-      onClick={onClick}
-      {...props}
+      {...buttonProps}
     >
       {content}
     </BaseButton>

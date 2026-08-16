@@ -34,7 +34,7 @@ export async function ensureRegistrationMatchOutcomes(
     let duplicatesRemoved = 0;
     while (existingResults.length > 1) {
       for (const duplicate of existingResults.slice(1)) {
-        await ctx.db.delete(duplicate._id);
+        await ctx.db.delete("matchResults", duplicate._id);
         duplicatesRemoved += 1;
       }
 
@@ -57,7 +57,9 @@ export async function ensureRegistrationMatchOutcomes(
 
     if (existingResult) {
       if (existingResult.missed === undefined) {
-        await ctx.db.patch(existingResult._id, { missed: false });
+        await ctx.db.patch("matchResults", existingResult._id, {
+          missed: false,
+        });
       }
       continue;
     }

@@ -78,7 +78,7 @@ export async function applyWeekCompetitionDelta(
     });
   }
 
-  return await ctx.db.patch(existing._id, {
+  return await ctx.db.patch("weeks", existing._id, {
     activeCompetitionCount: Math.max(
       0,
       existing.activeCompetitionCount + delta
@@ -102,7 +102,7 @@ export async function ensureWeekHasActiveCompetition(
     return existing._id;
   }
 
-  await ctx.db.patch(existing._id, { activeCompetitionCount: 1 });
+  await ctx.db.patch("weeks", existing._id, { activeCompetitionCount: 1 });
   return existing._id;
 }
 
@@ -161,7 +161,7 @@ export async function syncPlayerRegistrationSnapshots(
       continue;
     }
 
-    await ctx.db.patch(registration._id, {
+    await ctx.db.patch("registrations", registration._id, {
       playerIgn: player.ign,
     });
   }
@@ -180,7 +180,7 @@ export async function syncPlayerWinnerSnapshots(
   for (const match of matches) {
     if (match.winnerName === player.ign) continue;
 
-    await ctx.db.patch(match._id, {
+    await ctx.db.patch("matches", match._id, {
       winnerName: player.ign,
     });
   }
@@ -204,15 +204,15 @@ export async function recomputeMatchWinnerSnapshot(
     )[0];
 
   if (!winner) {
-    await ctx.db.patch(matchId, {
+    await ctx.db.patch("matches", matchId, {
       winnerPlayerId: null,
       winnerName: null,
     });
     return;
   }
 
-  const player = await ctx.db.get(winner.playerId);
-  await ctx.db.patch(matchId, {
+  const player = await ctx.db.get("players", winner.playerId);
+  await ctx.db.patch("matches", matchId, {
     winnerPlayerId: winner.playerId,
     winnerName: player?.ign ?? null,
   });

@@ -22,7 +22,10 @@ export const backfillRegistrationAverageTimes = internalMutation({
       .paginate(args.paginationOpts);
 
     for (const registration of page.page) {
-      const competition = await ctx.db.get(registration.competitionId);
+      const competition = await ctx.db.get(
+        "competitions",
+        registration.competitionId
+      );
       if (!competition) {
         console.warn(
           `Skipping registration ${registration._id}: competition ${registration.competitionId} was not found.`
@@ -39,7 +42,7 @@ export const backfillRegistrationAverageTimes = internalMutation({
         )
         .take(128);
 
-      await ctx.db.patch(registration._id, {
+      await ctx.db.patch("registrations", registration._id, {
         averageTimeMs: calculateRegistrationAverageTimeMs(
           results,
           competition.maxTimeLimitMs
@@ -84,7 +87,10 @@ export const backfillMissedMatchResults = internalMutation({
       .paginate(args.paginationOpts);
 
     for (const registration of page.page) {
-      const competition = await ctx.db.get(registration.competitionId);
+      const competition = await ctx.db.get(
+        "competitions",
+        registration.competitionId
+      );
       if (!competition) {
         console.warn(
           `Skipping registration ${registration._id}: competition ${registration.competitionId} was not found.`
@@ -107,7 +113,7 @@ export const backfillMissedMatchResults = internalMutation({
         )
         .take(128);
 
-      await ctx.db.patch(registration._id, {
+      await ctx.db.patch("registrations", registration._id, {
         averageTimeMs: calculateRegistrationAverageTimeMs(
           results,
           competition.maxTimeLimitMs
@@ -163,7 +169,7 @@ export const backfillPlayerFastestTimes = internalMutation({
     }
 
     for (const [playerId, fastestTimeMs] of fastestTimesByPlayer) {
-      const player = await ctx.db.get(playerId);
+      const player = await ctx.db.get("players", playerId);
       if (!player) continue;
 
       const improvedFastestTimeMs = getImprovedFastestTimeMs(
@@ -172,7 +178,7 @@ export const backfillPlayerFastestTimes = internalMutation({
       );
       if (improvedFastestTimeMs === undefined) continue;
 
-      await ctx.db.patch(playerId, {
+      await ctx.db.patch("players", playerId, {
         fastestTimeMs: improvedFastestTimeMs,
       });
     }

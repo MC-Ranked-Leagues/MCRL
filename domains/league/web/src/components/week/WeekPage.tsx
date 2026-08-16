@@ -21,6 +21,16 @@ const LazyDetailsPanel = lazy(async () => {
   return { default: module.DetailsPanel };
 });
 
+function readUrlNumber(name: "week" | "league") {
+  if (typeof window === "undefined") return null;
+
+  const value = new URL(window.location.href).searchParams.get(name);
+  if (!value || value === "latest") return null;
+
+  const parsedValue = Number.parseInt(value, 10);
+  return Number.isFinite(parsedValue) ? parsedValue : null;
+}
+
 function DetailsPanelFallback({ showBorder = true }: { showBorder?: boolean }) {
   return (
     <div
@@ -40,15 +50,14 @@ function WeekContent() {
   const leagues = useQuery(api.leagues.listLeagues);
 
   const [selectedWeekNumber, setSelectedWeekNumber] = useState<number | null>(
-    null
+    () => readUrlNumber("week")
   );
   const [selectedLeagueTier, setSelectedLeagueTier] = useState<number | null>(
-    null
+    () => readUrlNumber("league")
   );
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [isUrlInitialized, setIsUrlInitialized] = useState(false);
   const weekNumbers = useMemo(
     () => new Set((weeks ?? []).map((week) => week.weekNumber)),
     [weeks]
@@ -57,43 +66,6 @@ function WeekContent() {
     () => new Set((leagues ?? []).map((league) => league.leagueTier)),
     [leagues]
   );
-
-  useEffect(() => {
-    if (
-      typeof window === "undefined" ||
-      !weeks ||
-      !leagues ||
-      isUrlInitialized
-    ) {
-      return;
-    }
-
-    const searchParams = new URL(window.location.href).searchParams;
-    const urlWeek = searchParams.get("week");
-    const urlLeague = searchParams.get("league");
-
-    const parsedWeek =
-      urlWeek && urlWeek !== "latest"
-        ? Number.parseInt(urlWeek, 10)
-        : Number.NaN;
-    const parsedLeague = urlLeague
-      ? Number.parseInt(urlLeague, 10)
-      : Number.NaN;
-
-    if (Number.isFinite(parsedWeek)) {
-      if (weekNumbers.has(parsedWeek)) {
-        setSelectedWeekNumber(parsedWeek);
-      }
-    }
-
-    if (Number.isFinite(parsedLeague)) {
-      if (leagueTiers.has(parsedLeague)) {
-        setSelectedLeagueTier(parsedLeague);
-      }
-    }
-
-    setIsUrlInitialized(true);
-  }, [weeks, leagues, isUrlInitialized, weekNumbers, leagueTiers]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;

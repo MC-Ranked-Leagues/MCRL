@@ -1,5 +1,6 @@
 import { httpRouter } from "convex/server";
 import { ConvexError } from "convex/values";
+import { SeedHistoryResponseSchema } from "@mcrl/contracts/seed-history";
 import { auth } from "./auth";
 import { httpAction } from "./_generated/server";
 import {
@@ -9,7 +10,7 @@ import {
   jsonResponse,
   validateApiKey,
 } from "./lib/utils";
-import z from "zod";
+import type z from "zod";
 import { internal } from "./_generated/api";
 import {
   DiscordUserInfoQuerySchema,
@@ -113,7 +114,7 @@ http.route({
         return jsonError(result.error, result.status);
       }
 
-      return jsonResponse(result.seeds, 200, {
+      return jsonResponse(SeedHistoryResponseSchema.parse(result.seeds), 200, {
         "Cache-Control": result.isCurrentWeek
           ? "public, max-age=30"
           : "public, max-age=86400",
@@ -159,10 +160,10 @@ http.route({
     runReadRoute({
       request,
       routeLabel: "GET /api/users/discord",
-      run: async (payload) => {
+      run: async () => {
         const result = await ctx.runQuery(
           internal.users.listActiveUsersAPI,
-          payload as any
+          {}
         );
         return { ok: true, result };
       },

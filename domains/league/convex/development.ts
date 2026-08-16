@@ -50,7 +50,7 @@ export const syncPlayerInfo = internalMutation({
         continue;
       }
 
-      await ctx.db.patch(existingPlayer._id, {
+      await ctx.db.patch("players", existingPlayer._id, {
         uuid: player.uuid,
         ign: player.ign,
         lowercaseIgn: player.lowercaseIgn,
@@ -58,7 +58,7 @@ export const syncPlayerInfo = internalMutation({
         currentLeagueNumber: player.currentLeagueNumber,
       });
 
-      const updatedPlayer = await ctx.db.get(existingPlayer._id);
+      const updatedPlayer = await ctx.db.get("players", existingPlayer._id);
       if (!updatedPlayer) {
         console.error(`failed to create player ${player.uuid}: ${player.ign}`);
         throw new Error("Duplicate existing players");

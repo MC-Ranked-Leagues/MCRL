@@ -1,11 +1,11 @@
 import { useMutation, useQuery } from "convex/react";
-import { FormEvent, useState } from "react";
+import type { FormEvent } from "react";
+import { useState } from "react";
 import { api } from "@/convex/_generated/api";
+import type { SeedFormErrors, SeedFormValues } from "@/lib/seedFormUtils";
 import {
   getManualSeedFormErrors,
   sanitizeSeedNumber,
-  SeedFormErrors,
-  SeedFormValues,
 } from "@/lib/seedFormUtils";
 import { Skeleton } from "@/components/ui/skeleton";
 import {

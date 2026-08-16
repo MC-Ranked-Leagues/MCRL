@@ -43,7 +43,7 @@ export function AdminLeaguesPage() {
               <Plus data-icon="inline-start" />
               Add league
             </DialogTrigger>
-            <AddLeagueDialog isOpen={isDialogOpen} onClose={closeDialog} />
+            {isDialogOpen && <AddLeagueDialog onClose={closeDialog} />}
           </Dialog>
         </div>
       </div>

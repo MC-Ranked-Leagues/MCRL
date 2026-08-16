@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { z } from "zod";
 import {
   Tooltip,
   TooltipContent,
@@ -6,69 +7,34 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-type UserProfile = {
-  uuid: string;
-  nickname: string;
-  roleType: number;
-  eloRate?: number;
-  eloRank?: number;
-  country?: string;
-};
+const matchPayloadSchema = z.object({
+  players: z.array(
+    z.object({
+      uuid: z.string(),
+      nickname: z.string(),
+    })
+  ),
+  completions: z.array(
+    z.object({
+      uuid: z.string(),
+      time: z.number(),
+    })
+  ),
+  timelines: z.array(
+    z.object({
+      uuid: z.string(),
+      time: z.number(),
+      type: z.string(),
+    })
+  ),
+});
 
-type MatchSeed = {
-  id?: string;
-  overworld?: string;
-  nether?: string;
-  endTowers?: number[];
-  variations?: string[];
-};
+const matchApiResponseSchema = z.object({
+  data: z.union([matchPayloadSchema, z.null(), z.string()]),
+});
 
-type MatchAPIResponseType = {
-  status: string;
-  data:
-    | {
-        id: string;
-        type: number;
-        season: number;
-        category?: string;
-        date: string;
-        players: UserProfile[];
-        spectators: UserProfile[];
-        seed?: MatchSeed;
-        result: {
-          uuid: string;
-          time: string;
-        };
-        forefeited: boolean;
-        decayed: boolean;
-        rank: {
-          season?: number;
-          allTime?: number;
-        };
-        tag?: string;
-        beginner: boolean;
-        vod: {
-          uuid: string;
-          url: string;
-          startsAt: string;
-        }[];
-        completions: {
-          uuid: string;
-          time: number;
-        }[];
-        timelines: {
-          uuid: string;
-          time: number;
-          type: string;
-        }[];
-        replayExist: boolean;
-      }
-    | null
-    | string
-    | "Too many requests";
-};
-
-type MatchPayload = Exclude<MatchAPIResponseType["data"], null | string>;
+type MatchPayload = z.infer<typeof matchPayloadSchema>;
+type MatchDataValue = MatchPayload | string | null;
 
 const formatTime = (ms: number) => {
   if (ms === 0) return "0:00.00";
@@ -129,12 +95,12 @@ const phaseNames: Record<Phase | "forfeit", string> = {
   forfeit: "Forfeited",
 };
 
-const matchDataCache = new Map<string, MatchAPIResponseType["data"] | null>();
+const matchDataCache = new Map<string, MatchDataValue>();
 
 const MatchData = ({ matchId }: { matchId: string | null }) => {
   const [loadedMatchData, setLoadedMatchData] = useState<{
     matchId: string;
-    data: MatchAPIResponseType["data"] | null;
+    data: MatchDataValue;
   } | null>(null);
 
   const matchData = useMemo(() => {
@@ -156,13 +122,18 @@ const MatchData = ({ matchId }: { matchId: string | null }) => {
     const controller = new AbortController();
     let cancelled = false;
 
-    (async () => {
+    void (async () => {
       try {
         const response = await fetch(
           `https://api.mcsrranked.com/matches/${matchId}`,
           { signal: controller.signal }
         );
-        const data: MatchAPIResponseType = await response.json();
+        if (!response.ok) {
+          throw new Error(`Request failed: ${response.status}`);
+        }
+
+        const rawData: unknown = await response.json();
+        const data = matchApiResponseSchema.parse(rawData);
         const payload = data.data ?? null;
         matchDataCache.set(matchId, payload);
         if (!cancelled) {

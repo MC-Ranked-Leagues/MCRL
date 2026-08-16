@@ -1,6 +1,6 @@
 import z from "zod";
 import { seedTypesArray } from "./consts";
-import { Id } from "@/convex/_generated/dataModel";
+import type { Id } from "@/convex/_generated/dataModel";
 
 export const seedTypeValidator = z.enum(seedTypesArray);
 export const seedValueValidator = z

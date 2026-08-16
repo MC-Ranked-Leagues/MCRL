@@ -1,26 +1,22 @@
-import { useCallback, useEffect, useState } from "react";
+import {
+  SeedHistoryResponseSchema,
+  type PublishedSeed,
+} from "@mcrl/contracts/seed-history";
+import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
-type Seed = {
-  order: number;
-  overworld: string;
-  nether: string;
-  end: string;
-  rng: string;
-  type:
-    | "BURIED_TREASURE"
-    | "VILLAGE"
-    | "DESERT_TEMPLE"
-    | "RUINED_PORTAL"
-    | "SHIPWRECK"
-    | null;
+type SeedLoadState = {
+  requestKey: string;
+  status: "success" | "error";
+  seeds: PublishedSeed[];
 };
 
-const SEED_TYPE_LABELS: Record<NonNullable<Seed["type"]>, string> = {
+const SEED_TYPE_LABELS: Record<NonNullable<PublishedSeed["type"]>, string> = {
   BURIED_TREASURE: "Buried Treasure",
   VILLAGE: "Village",
   DESERT_TEMPLE: "Desert Temple",
+  JUNGLE_PYRAMID: "Jungle Pyramid",
   RUINED_PORTAL: "Ruined Portal",
   SHIPWRECK: "Shipwreck",
 };
@@ -36,41 +32,60 @@ const SeedList = ({
   leagueTier: number | null;
   showBorder?: boolean;
 }) => {
-  const [seeds, setSeeds] = useState<Seed[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [hasError, setHasError] = useState(false);
-
-  const fetchSeeds = useCallback(async () => {
-    if (weekNumber === null || leagueTier === null) return;
-
-    setIsLoading(true);
-    setHasError(false);
-
-    try {
-      const url = new URL("/api/seeds/history", SEED_API_URL);
-      url.searchParams.set("weekNumber", String(weekNumber));
-      url.searchParams.set("leagueNumber", String(leagueTier));
-
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`Request failed: ${res.status}`);
-      const data = await res.json();
-      setSeeds(data);
-    } catch (err) {
-      console.error("Error fetching seeds:", err);
-      setSeeds([]);
-      setHasError(true);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [weekNumber, leagueTier]);
+  const [loadState, setLoadState] = useState<SeedLoadState | null>(null);
+  const requestKey =
+    weekNumber === null || leagueTier === null
+      ? null
+      : `${weekNumber}:${leagueTier}`;
 
   useEffect(() => {
-    fetchSeeds();
-  }, [fetchSeeds]);
+    if (weekNumber === null || leagueTier === null) return;
+
+    const controller = new AbortController();
+    const currentRequestKey = `${weekNumber}:${leagueTier}`;
+
+    void (async () => {
+      try {
+        const url = new URL("/api/seeds/history", SEED_API_URL);
+        url.searchParams.set("weekNumber", String(weekNumber));
+        url.searchParams.set("leagueNumber", String(leagueTier));
+
+        const response = await fetch(url, { signal: controller.signal });
+        if (!response.ok) {
+          throw new Error(`Request failed: ${response.status}`);
+        }
+
+        const rawData: unknown = await response.json();
+        const seeds = SeedHistoryResponseSchema.parse(rawData);
+        setLoadState({
+          requestKey: currentRequestKey,
+          status: "success",
+          seeds,
+        });
+      } catch (error) {
+        if (controller.signal.aborted) return;
+
+        console.error("Error fetching seeds:", error);
+        setLoadState({
+          requestKey: currentRequestKey,
+          status: "error",
+          seeds: [],
+        });
+      }
+    })();
+
+    return () => controller.abort();
+  }, [weekNumber, leagueTier]);
 
   if (weekNumber === null || leagueTier === null) {
     return null;
   }
+
+  const currentLoadState =
+    loadState?.requestKey === requestKey ? loadState : null;
+  const isLoading = currentLoadState === null;
+  const hasError = currentLoadState?.status === "error";
+  const seeds = currentLoadState?.seeds ?? [];
 
   return (
     <div

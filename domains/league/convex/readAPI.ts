@@ -75,7 +75,7 @@ export const listPlayerMatches = internalQuery({
     // Load the match metadata for each imported player outcome.
     const matchIds = [...new Set(matchResults.map((r) => r.matchId))];
     const matchesById = new Map(
-      (await Promise.all(matchIds.map((id) => ctx.db.get(id))))
+      (await Promise.all(matchIds.map((id) => ctx.db.get("matches", id))))
         .filter(Boolean)
         .map((m) => [m!._id, m!])
     );

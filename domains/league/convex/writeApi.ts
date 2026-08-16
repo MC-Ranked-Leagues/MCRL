@@ -103,12 +103,12 @@ async function applyRegistrationPointDelta(
   const computedSeedPoints = registration.computedSeedPoints + seedPointsDelta;
   const totalPoints = registration.totalPoints + seedPointsDelta;
 
-  await ctx.db.patch(registration._id, {
+  await ctx.db.patch("registrations", registration._id, {
     computedSeedPoints,
     totalPoints,
   });
 
-  return await ctx.db.get(registration._id);
+  return await ctx.db.get("registrations", registration._id);
 }
 
 async function recalculateRegistrationAverageTime(
@@ -126,7 +126,7 @@ async function recalculateRegistrationAverageTime(
     )
     .take(128);
 
-  await ctx.db.patch(registration._id, {
+  await ctx.db.patch("registrations", registration._id, {
     averageTimeMs: calculateRegistrationAverageTimeMs(
       results,
       competition.maxTimeLimitMs
@@ -149,7 +149,7 @@ async function deleteMatchResultsForMatch(
     if (batch.length === 0) break;
 
     for (const result of batch) {
-      await ctx.db.delete(result._id);
+      await ctx.db.delete("matchResults", result._id);
       deleted += 1;
     }
   }
@@ -181,7 +181,7 @@ async function deleteCompetitionData(
 
     for (const match of matches) {
       deletedMatchResults += await deleteMatchResultsForMatch(ctx, match._id);
-      await ctx.db.delete(match._id);
+      await ctx.db.delete("matches", match._id);
       deletedMatches += 1;
     }
   }
@@ -195,7 +195,7 @@ async function deleteCompetitionData(
     if (registrations.length === 0) break;
 
     for (const registration of registrations) {
-      await ctx.db.delete(registration._id);
+      await ctx.db.delete("registrations", registration._id);
       deletedRegistrations += 1;
     }
   }
@@ -255,7 +255,7 @@ export const createOrRestartCompetition = internalMutation({
     if (existingCompetition?.status === "active") {
       const deleted = await deleteCompetitionData(ctx, existingCompetition._id);
       await ensureWeekHasActiveCompetition(ctx, args.weekNumber);
-      await ctx.db.patch(existingCompetition._id, {
+      await ctx.db.patch("competitions", existingCompetition._id, {
         startingTime: args.startingTime,
         maxTimeLimitMs: args.maxTimeLimitMs,
         status: "active",
@@ -311,7 +311,9 @@ export const updateCompetitionStatus = internalMutation({
       return { ok: true, competitionId: competition._id, status: args.status };
     }
 
-    await ctx.db.patch(competition._id, { status: args.status });
+    await ctx.db.patch("competitions", competition._id, {
+      status: args.status,
+    });
     await applyWeekCompetitionDelta(
       ctx,
       competition.weekNumber,
@@ -358,6 +360,7 @@ export const registerPlayer = internalMutation({
 
     if (player) {
       await ctx.db.patch(
+        "players",
         player._id,
         buildPlayerPatch({
           uuid: args.uuid,
@@ -367,7 +370,7 @@ export const registerPlayer = internalMutation({
           currentLeagueNumber: args.leagueTier,
         })
       );
-      player = await ctx.db.get(player._id);
+      player = await ctx.db.get("players", player._id);
     } else {
       const playerId = await ctx.db.insert("players", {
         currentLeagueNumber: args.leagueTier,
@@ -376,7 +379,7 @@ export const registerPlayer = internalMutation({
         lowercaseIgn: normalizedLowercaseIgn,
         ...(args.elo !== undefined ? { elo: args.elo } : {}),
       });
-      player = await ctx.db.get(playerId);
+      player = await ctx.db.get("players", playerId);
       if (!player) {
         return fail(500, "Player could not be created.");
       }
@@ -408,7 +411,7 @@ export const registerPlayer = internalMutation({
       });
       registrationCreated = true;
     } else {
-      await ctx.db.patch(existingRegistration._id, {
+      await ctx.db.patch("registrations", existingRegistration._id, {
         ...buildRegistrationSnapshot(player, competition),
       });
     }
@@ -467,7 +470,7 @@ export const unregisterPlayer = internalMutation({
       return fail(404, "Registration not found.");
     }
 
-    await ctx.db.delete(registration._id);
+    await ctx.db.delete("registrations", registration._id);
 
     return {
       ok: true,
@@ -584,7 +587,7 @@ export const clearMatchResults = internalMutation({
     }
 
     const deleted = await deleteMatchResultsForMatch(ctx, match._id);
-    await ctx.db.patch(match._id, {
+    await ctx.db.patch("matches", match._id, {
       rankedMatchId: undefined,
       winnerPlayerId: null,
       winnerName: null,
@@ -661,8 +664,10 @@ export const importMatchData = internalMutation({
     let match = await getMatch(ctx, competition._id, args.matchNumber);
     if (match) {
       if (match.rankedMatchId !== args.rankedMatchId) {
-        await ctx.db.patch(match._id, { rankedMatchId: args.rankedMatchId });
-        match = await ctx.db.get(match._id);
+        await ctx.db.patch("matches", match._id, {
+          rankedMatchId: args.rankedMatchId,
+        });
+        match = await ctx.db.get("matches", match._id);
       }
     } else {
       const matchId = await ctx.db.insert("matches", {
@@ -672,7 +677,7 @@ export const importMatchData = internalMutation({
         winnerPlayerId: null,
         winnerName: null,
       });
-      match = await ctx.db.get(matchId);
+      match = await ctx.db.get("matches", matchId);
     }
 
     if (!match) {
@@ -735,7 +740,7 @@ export const importMatchData = internalMutation({
     );
 
     for (const existingResult of existingResults) {
-      await ctx.db.delete(existingResult._id);
+      await ctx.db.delete("matchResults", existingResult._id);
     }
 
     for (const registration of registrations) {
@@ -763,7 +768,7 @@ export const importMatchData = internalMutation({
           result
         );
         if (fastestTimeMs !== undefined) {
-          await ctx.db.patch(player._id, { fastestTimeMs });
+          await ctx.db.patch("players", player._id, { fastestTimeMs });
         }
         continue;
       }
@@ -798,7 +803,11 @@ export const importMatchData = internalMutation({
       );
     }
 
-    await ctx.db.patch(match._id, buildMatchWinnerPatch(playersForWinner));
+    await ctx.db.patch(
+      "matches",
+      match._id,
+      buildMatchWinnerPatch(playersForWinner)
+    );
 
     return {
       ok: true,
@@ -855,7 +864,7 @@ export const setPointAdjustment = internalMutation({
     const manualAdjustmentDelta =
       args.manualAdjustmentPoints - registration.manualAdjustmentPoints;
 
-    await ctx.db.patch(registration._id, {
+    await ctx.db.patch("registrations", registration._id, {
       manualAdjustmentPoints: args.manualAdjustmentPoints,
       totalPoints: registration.totalPoints + manualAdjustmentDelta,
     });
@@ -927,10 +936,12 @@ export const processMovements = internalMutation({
       }
 
       await ensureLeague(ctx, Math.max(1, args.leagueTier - 1));
-      await ctx.db.patch(player._id, {
+      await ctx.db.patch("players", player._id, {
         currentLeagueNumber: Math.max(1, args.leagueTier - 1),
       });
-      await ctx.db.patch(registration._id, { movementStatus: "promoted" });
+      await ctx.db.patch("registrations", registration._id, {
+        movementStatus: "promoted",
+      });
       touchedPlayerIds.add(player._id);
     }
 
@@ -950,10 +961,12 @@ export const processMovements = internalMutation({
       }
 
       await ensureLeague(ctx, args.leagueTier + 1);
-      await ctx.db.patch(player._id, {
+      await ctx.db.patch("players", player._id, {
         currentLeagueNumber: args.leagueTier + 1,
       });
-      await ctx.db.patch(registration._id, { movementStatus: "demoted" });
+      await ctx.db.patch("registrations", registration._id, {
+        movementStatus: "demoted",
+      });
       touchedPlayerIds.add(player._id);
     }
 
@@ -967,7 +980,9 @@ export const processMovements = internalMutation({
     let unchangedCount = 0;
     for (const registration of registrations) {
       if (touchedPlayerIds.has(registration.playerId)) continue;
-      await ctx.db.patch(registration._id, { movementStatus: "none" });
+      await ctx.db.patch("registrations", registration._id, {
+        movementStatus: "none",
+      });
       unchangedCount += 1;
     }
 
@@ -1012,7 +1027,7 @@ export const updatePlayerLeague = internalMutation({
       };
     }
 
-    await ctx.db.patch(player._id, {
+    await ctx.db.patch("players", player._id, {
       currentLeagueNumber: args.leagueTier,
     });
 

@@ -1,5 +1,5 @@
 import { useMutation } from "convex/react";
-import { type FormEvent, useCallback, useEffect, useState } from "react";
+import { type FormEvent, useState } from "react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,30 +31,18 @@ import {
 } from "../../lib/leagueFormUtils";
 import { getErrorMessage } from "@/lib/errors";
 
-export function AddLeagueDialog({
-  isOpen,
-  onClose,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-}) {
+export function AddLeagueDialog({ onClose }: { onClose: () => void }) {
   const addLeague = useMutation(api.leagues.addLeague);
   const [leagueNumber, setLeagueNumber] = useState("");
   const [leagueName, setLeagueName] = useState("");
   const [errors, setErrors] = useState<LeagueFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const resetForm = useCallback(() => {
+  const resetForm = () => {
     setLeagueNumber("");
     setLeagueName("");
     setErrors({});
-  }, []);
-
-  useEffect(() => {
-    if (!isOpen) {
-      resetForm();
-    }
-  }, [isOpen, resetForm]);
+  };
 
   const closeDialog = () => {
     resetForm();

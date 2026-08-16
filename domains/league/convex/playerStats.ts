@@ -7,7 +7,7 @@ export const getPlayerStats = query({
     playerId: v.id("players"),
   },
   handler: async (ctx, args) => {
-    const player = await ctx.db.get(args.playerId);
+    const player = await ctx.db.get("players", args.playerId);
     if (!player) return null;
 
     const [registrations, playerResults] = await Promise.all([

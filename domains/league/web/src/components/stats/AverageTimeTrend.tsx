@@ -77,7 +77,9 @@ export function AverageTimeTrend({ weeks }: { weeks: WeeklyPerformance[] }) {
         padding: 12,
         textStyle: { color: popoverForeground, fontSize: 12 },
         formatter: (rawParams: unknown) => {
-          const params = Array.isArray(rawParams) ? rawParams[0] : rawParams;
+          const params: unknown = Array.isArray(rawParams)
+            ? rawParams[0]
+            : rawParams;
           if (
             !params ||
             typeof params !== "object" ||

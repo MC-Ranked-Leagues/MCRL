@@ -1,4 +1,4 @@
-import Discord from "@auth/core/providers/discord";
+import Discord, { type DiscordProfile } from "@auth/core/providers/discord";
 import { convexAuth } from "@convex-dev/auth/server";
 import { ConvexError } from "convex/values";
 import {
@@ -12,7 +12,7 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
   providers: [
     Discord({
       authorization: "https://discord.com/oauth2/authorize?scope=identify",
-      profile(profile) {
+      profile(profile: DiscordProfile) {
         const name = profile.username;
 
         return {

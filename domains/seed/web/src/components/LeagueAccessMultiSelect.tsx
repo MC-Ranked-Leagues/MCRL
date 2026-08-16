@@ -63,7 +63,7 @@ export function LeagueAccessMultiSelect({
         <ComboboxContent anchor={anchorRef}>
           <ComboboxEmpty>No leagues found.</ComboboxEmpty>
           <ComboboxList>
-            {(leagueId) => (
+            {(leagueId: Id<"leagues">) => (
               <ComboboxItem key={leagueId} value={leagueId}>
                 {getLabel(leagueId)}
               </ComboboxItem>

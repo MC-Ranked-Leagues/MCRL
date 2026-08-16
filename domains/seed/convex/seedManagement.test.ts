@@ -219,9 +219,9 @@ describe("admin seed management", () => {
       isUsed: true,
       addedBy: adminId,
       usedBy: adminId,
-      usedAt: expect.any(Number),
       commentCount: 0,
     });
+    expect(result.seed?.usedAt).toBeTypeOf("number");
     expect(result.league).toMatchObject({ seedCount: 7, usedSeedCount: 3 });
     expect(result.log).toMatchObject({
       actorId: adminId,
@@ -329,8 +329,8 @@ describe("admin seed management", () => {
       isBt: true,
       isUsed: true,
       usedBy: adminId,
-      usedAt: expect.any(Number),
     });
+    expect(result.seed?.usedAt).toBeTypeOf("number");
     expect(result.league?.usedSeedCount).toBe(1);
     expect(result.log).toMatchObject({
       eventType: "seed.updated",

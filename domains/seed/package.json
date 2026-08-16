@@ -24,6 +24,7 @@
     "format:check": "bun run --cwd ../.. prettier --check domains/seed"
   },
   "dependencies": {
+    "@mcrl/contracts": "workspace:*",
     "@auth/core": "0.37.0",
     "@base-ui/react": "catalog:",
     "@convex-dev/auth": "^0.0.91",

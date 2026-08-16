@@ -200,7 +200,8 @@ function ChartTooltipContent({
           .map((item, index) => {
             const key = getChartConfigKey(nameKey ?? item.name ?? item.dataKey);
             const itemConfig = getPayloadConfigFromPayload(config, item, key);
-            const indicatorColor = color ?? item.payload?.fill ?? item.color;
+            const indicatorColor =
+              color ?? getStringProperty(item.payload, "fill") ?? item.color;
 
             return (
               <div
@@ -211,7 +212,7 @@ function ChartTooltipContent({
                 )}
               >
                 {formatter && item?.value !== undefined && item.name ? (
-                  formatter(item.value, item.name, item, index, item.payload)
+                  formatter(item.value, item.name, item, index, payload)
                 ) : (
                   <>
                     {itemConfig?.icon ? (
@@ -347,15 +348,13 @@ function getPayloadConfigFromPayload(
     key in payload &&
     typeof payload[key as keyof typeof payload] === "string"
   ) {
-    configLabelKey = payload[key as keyof typeof payload] as string;
+    configLabelKey = payload[key as keyof typeof payload];
   } else if (
     payloadPayload &&
     key in payloadPayload &&
     typeof payloadPayload[key as keyof typeof payloadPayload] === "string"
   ) {
-    configLabelKey = payloadPayload[
-      key as keyof typeof payloadPayload
-    ] as string;
+    configLabelKey = payloadPayload[key as keyof typeof payloadPayload];
   }
 
   return configLabelKey in config ? config[configLabelKey] : config[key];
@@ -365,6 +364,15 @@ function getChartConfigKey(value: unknown) {
   return typeof value === "string" || typeof value === "number"
     ? `${value}`
     : "value";
+}
+
+function getStringProperty(value: unknown, key: string) {
+  if (typeof value !== "object" || value === null || !(key in value)) {
+    return undefined;
+  }
+
+  const property = value[key as keyof typeof value];
+  return typeof property === "string" ? property : undefined;
 }
 
 export {
