@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/select";
 import { getUploadSeedTypes, SEED_TYPES } from "@/lib/consts";
 import { Button } from "@/components/ui/button";
+import { RecentUploads } from "./RecentUploads";
 
 const EMPTY_SEED_FORM_VALUES: SeedFormValues = {
   type: null,
@@ -62,10 +63,6 @@ export function AppIndexPage() {
   const user = useQuery(api.users.currentUser);
   const settings = useQuery(api.settings.current);
   const accessableLeagues = useQuery(api.leagues.listSeedUploadLeagueOptions);
-  console.log("accessableLeagues", accessableLeagues);
-
-  const isUploader = user?.roles.includes("uploader") ?? false;
-  const isAdmin = user?.roles.includes("admin") ?? false;
   const isLoading =
     user === undefined ||
     accessableLeagues === undefined ||
@@ -88,7 +85,14 @@ export function AppIndexPage() {
     );
   }
 
-  if (!isAdmin && !isUploader) {
+  const isAdmin = user?.roles.includes("admin") ?? false;
+  const isUploader = user?.roles.includes("uploader") ?? false;
+  const isHost = user?.roles.includes("host") ?? false;
+  const canUploadAsHost =
+    isHost && accessableLeagues.some((league) => !league.seedUploadDisabled);
+  const canUpload = isAdmin || isUploader || canUploadAsHost;
+
+  if (!canUpload) {
     return (
       <div className="flex w-full flex-col gap-4 rounded-lg bg-card p-4 text-center text-card-foreground">
         <h2 className="text-lg font-semibold">You are not an uploader</h2>
@@ -145,8 +149,8 @@ export function AppIndexPage() {
   };
 
   return (
-    <div className="flex w-full flex-col gap-4 lg:flex-row lg:items-start">
-      <Card className="flex-1">
+    <div className="flex w-full flex-col gap-4">
+      <Card>
         <CardHeader>
           <CardTitle>Add seed</CardTitle>
           <CardDescription>Add a seed to a league</CardDescription>
@@ -279,6 +283,9 @@ export function AppIndexPage() {
           </CardFooter>
         </form>
       </Card>
+      <RecentUploads
+        enableJunglePyramidSeeds={settings?.enableJunglePyramidSeeds ?? false}
+      />
     </div>
   );
 }

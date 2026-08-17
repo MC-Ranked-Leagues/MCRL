@@ -25,7 +25,7 @@ An uploaded seed is assigned to a league and the current week with `isExpired: f
 - **Expired** — retained after week advancement and hidden from normal league routes.
 - **Deleted** — permanently removed with its comments; an immutable audit event remains.
 
-Uploaders are expected to upload usable seeds. Incorrect input is corrected by deleting the active unused record and uploading the corrected seed again.
+Uploaders are expected to upload usable seeds. The original uploader can correct the type and four seed values in place while the seed is active, unused, assigned to the current week, still in an accessible upload league, and seed testing is open. Deleting and re-uploading remains available for eligible seeds when replacing the record is preferable.
 
 ## Core Rules
 
@@ -39,6 +39,7 @@ Uploaders are expected to upload usable seeds. Incorrect input is corrected by d
 - Admins and hosts for the league may mark an active seed used.
 - Only admins can reverse used state, through the unlocked admin archive.
 - Used and expired seeds are read-only in normal workflows.
+- Original uploaders can edit the type and seed values of their active, unused current-week seeds while testing is open and they retain access to the upload league.
 - Comments are discussion history attached to a seed.
 
 ## Deletion
@@ -65,6 +66,8 @@ The current upload surfaces accept one seed at a time and require:
 - seed type.
 
 Values are trimmed and validated as whole-number strings. Duplicate overworld values are rejected. The seed receives the next position in its league and current week, the league counter is incremented, and the upload is logged.
+
+The `/app` upload surface also lists the current user's five newest accessible uploads from the current week. Eligible seeds can be edited in place without changing their ID, uploader, league, week, order, upload time, status, or comments. Successful edits preserve global overworld uniqueness and write a `seed.updated` audit event.
 
 Supported seed types are buried treasure, village, desert temple, jungle pyramid, ruined portal, and shipwreck. Jungle pyramid uploads can be controlled by the experimental tournament setting.
 
