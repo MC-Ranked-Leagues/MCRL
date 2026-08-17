@@ -47,6 +47,8 @@
     "test:league": "bun run --filter @mcrl/league test",
     "test:seed": "bun run --filter @mcrl/seed test",
     "build": "bun run --filter '@mcrl/*' build",
+    "build:cloudflare:league": "bun ci && bun run build:league",
+    "build:cloudflare:seed": "bun ci && bun run build:seed",
     "build:league": "bun run --filter @mcrl/league build",
     "build:seed": "bun run --filter @mcrl/seed build",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
