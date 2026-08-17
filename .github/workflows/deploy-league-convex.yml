@@ -1,0 +1,47 @@
+name: Deploy League Convex
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - domains/league/convex/**
+      - domains/league/convex.json
+      - domains/league/package.json
+      - packages/**
+      - package.json
+      - bun.lock
+      - .github/workflows/deploy-league-convex.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-league-convex-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy League production
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CONVEX_DEPLOY_KEY: ${{ secrets.LEAGUE_CONVEX_DEPLOY_KEY }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck League Convex
+        run: bun run --filter @mcrl/league typecheck:convex
+
+      - name: Deploy League Convex
+        working-directory: domains/league
+        run: bunx convex deploy
