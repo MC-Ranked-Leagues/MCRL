@@ -32,8 +32,10 @@ import { getUploadSeedTypes, SEED_TYPES } from "@/lib/consts";
 import { getErrorMessage } from "@/lib/errors";
 import {
   getManualSeedFormErrors,
+  parseMinecraftSeedClipboard,
   preventNonNumericSeedInput,
   sanitizeSeedNumber,
+  type SeedDimensionValues,
   type SeedFormErrors,
   type SeedFormValues,
 } from "@/lib/seedFormUtils";
@@ -241,6 +243,9 @@ function AddSeedDialog({
               id="overworld-seed"
               label="Overworld seed"
               error={manualErrors.overworld}
+              onSeedBundlePaste={(seeds) =>
+                setManualValues((current) => ({ ...current, ...seeds }))
+              }
               value={manualValues.overworld}
               onChange={(value) =>
                 updateManualValue("overworld", sanitizeSeedNumber(value))
@@ -301,12 +306,14 @@ export function SeedNumberField({
   value,
   error,
   onChange,
+  onSeedBundlePaste,
 }: {
   id: string;
   label: string;
   value: string;
   error?: string;
   onChange: (value: string) => void;
+  onSeedBundlePaste?: (values: SeedDimensionValues) => void;
 }) {
   return (
     <Field data-invalid={Boolean(error)}>
@@ -317,6 +324,20 @@ export function SeedNumberField({
         inputMode="numeric"
         onChange={(event) => onChange(event.currentTarget.value)}
         onKeyDown={preventNonNumericSeedInput}
+        onPaste={(event) => {
+          if (!onSeedBundlePaste) {
+            return;
+          }
+
+          const seeds = parseMinecraftSeedClipboard(
+            event.clipboardData.getData("text")
+          );
+
+          if (seeds) {
+            event.preventDefault();
+            onSeedBundlePaste(seeds);
+          }
+        }}
         pattern="-?[0-9]*"
         placeholder="-198106162748994949"
         required

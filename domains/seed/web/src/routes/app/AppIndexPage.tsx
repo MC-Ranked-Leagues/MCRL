@@ -239,6 +239,9 @@ export function AppIndexPage() {
                   id="overworld-seed"
                   label="Overworld seed"
                   error={manualErrors.overworld}
+                  onSeedBundlePaste={(seeds) =>
+                    setManualValues((current) => ({ ...current, ...seeds }))
+                  }
                   value={manualValues.overworld}
                   onChange={(value) =>
                     updateManualValue("overworld", sanitizeSeedNumber(value))

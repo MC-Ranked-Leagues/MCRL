@@ -18,6 +18,11 @@ export type SeedFormErrors = Partial<Record<keyof SeedFormValues, string>> & {
   file?: string;
 };
 
+export type SeedDimensionValues = Pick<
+  SeedFormValues,
+  "overworld" | "nether" | "end" | "rng"
+>;
+
 export type SeedUploadInput = {
   type: SeedType;
   leagueId?: Id<"leagues">;
@@ -34,6 +39,53 @@ export function sanitizeSeedNumber(value: string) {
   const digits = value.replace(/\D/g, "");
 
   return `${sign}${digits}`;
+}
+
+export function parseMinecraftSeedClipboard(
+  value: string
+): SeedDimensionValues | null {
+  const labelToField = {
+    Overworld: "overworld",
+    Nether: "nether",
+    "The End": "end",
+    RNG: "rng",
+  } as const;
+  const seeds: Partial<SeedDimensionValues> = {};
+  const lines = value.trim().split(/\r?\n/);
+
+  if (lines.length !== 4) {
+    return null;
+  }
+
+  for (const line of lines) {
+    const match = line.match(
+      /^\s*(Overworld|Nether|The End|RNG):\s*(-?\d+)\s*$/
+    );
+
+    if (!match) {
+      return null;
+    }
+
+    const [, label, seed] = match;
+    const field = labelToField[label as keyof typeof labelToField];
+
+    if (seeds[field] !== undefined) {
+      return null;
+    }
+
+    seeds[field] = seed;
+  }
+
+  if (
+    seeds.overworld === undefined ||
+    seeds.nether === undefined ||
+    seeds.end === undefined ||
+    seeds.rng === undefined
+  ) {
+    return null;
+  }
+
+  return seeds as SeedDimensionValues;
 }
 
 export function preventNonNumericSeedInput(

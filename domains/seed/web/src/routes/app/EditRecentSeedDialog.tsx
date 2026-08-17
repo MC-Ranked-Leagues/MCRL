@@ -172,6 +172,9 @@ export function EditRecentSeedDialog({
                 onChange={(value) =>
                   updateValue("overworld", sanitizeSeedNumber(value))
                 }
+                onSeedBundlePaste={(seeds) =>
+                  setValues((current) => ({ ...current, ...seeds }))
+                }
                 value={values.overworld}
               />
               <SeedNumberField
