@@ -14,6 +14,7 @@ import {
 import { requireSettings } from "./lib/settings";
 import {
   MAX_ADMIN_SEED_LIST_COUNT,
+  MAX_LEAGUE_LIST_COUNT,
   MAX_LEAGUE_SEED_LIST_COUNT,
   NUMERIC_SEED_PATTERN,
 } from "./lib/consts";
@@ -217,6 +218,73 @@ export const listAllSeeds = query({
   },
 });
 
+const RECENT_UPLOAD_COUNT = 5;
+
+export const listRecentUploads = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await requireActiveUser(ctx);
+    const settings = await requireSettings(ctx);
+    const leagues = user.roles.includes("admin")
+      ? await ctx.db
+          .query("leagues")
+          .withIndex("by_leagueNumber")
+          .take(MAX_LEAGUE_LIST_COUNT)
+      : (
+          await Promise.all(
+            [
+              ...(user.roles.includes("uploader")
+                ? (user.uploaderLeagues ?? [])
+                : []),
+              ...(user.roles.includes("host") ? (user.hostLeagueId ?? []) : []),
+            ]
+              .filter((leagueId, index, leagueIds) =>
+                leagueIds.slice(0, index).every((id) => id !== leagueId)
+              )
+              .map((leagueId) => ctx.db.get("leagues", leagueId))
+          )
+        ).filter(
+          (league): league is Doc<"leagues"> =>
+            league !== null && canViewLeague(user, league)
+        );
+
+    const uploadsByLeague = await Promise.all(
+      leagues.map(async (league) => ({
+        league,
+        seeds: await ctx.db
+          .query("seeds")
+          .withIndex("by_addedBy_and_assignedWeekNumber_and_leagueId", (q) =>
+            q
+              .eq("addedBy", user._id)
+              .eq("assignedWeekNumber", settings.currentWeekNumber)
+              .eq("leagueId", league._id)
+          )
+          .order("desc")
+          .take(RECENT_UPLOAD_COUNT),
+      }))
+    );
+
+    return uploadsByLeague
+      .flatMap(({ league, seeds }) =>
+        seeds.map((seed) => {
+          const editDisabledReason = getRecentSeedEditDisabledReason(
+            seed,
+            settings
+          );
+
+          return {
+            ...seed,
+            leagueName: league.leagueName,
+            canEdit: editDisabledReason === undefined,
+            ...(editDisabledReason ? { editDisabledReason } : {}),
+          };
+        })
+      )
+      .sort((a, b) => b._creationTime - a._creationTime)
+      .slice(0, RECENT_UPLOAD_COUNT);
+  },
+});
+
 export const listSeedsByLeague = query({
   args: {
     leagueId: v.id("leagues"),
@@ -339,6 +407,119 @@ export const deleteSeed = mutation({
     }
 
     await hardDeleteSeed(ctx, seed, user);
+
+    return null;
+  },
+});
+
+export const updateRecentSeed = mutation({
+  args: {
+    seedId: v.id("seeds"),
+    overworld: v.string(),
+    nether: v.string(),
+    end: v.string(),
+    rng: v.string(),
+    type: seedTypeValidator,
+  },
+  handler: async (ctx, args) => {
+    const user = await requireActiveUser(ctx);
+    const seed = await ctx.db.get("seeds", args.seedId);
+
+    if (!seed) {
+      throw new ConvexError({
+        code: "SEED_NOT_FOUND",
+        message: "The requested seed does not exist",
+      });
+    }
+    if (seed.isExpired !== false) {
+      throw new ConvexError({
+        code: "SEED_EXPIRED",
+        message: "Expired seeds are read-only",
+      });
+    }
+    if (seed.isUsed) {
+      throw new ConvexError({
+        code: "SEED_ALREADY_USED",
+        message: "Used seeds are read-only",
+      });
+    }
+    if (seed.leagueId === undefined || seed.assignedWeekNumber === undefined) {
+      throw new ConvexError({
+        code: "SEED_UNASSIGNED",
+        message: "Only assigned seeds can be edited",
+      });
+    }
+
+    const settings = await requireSeedTestingOpen(ctx);
+    if (seed.assignedWeekNumber !== settings.currentWeekNumber) {
+      throw new ConvexError({
+        code: "SEED_NOT_CURRENT_WEEK",
+        message: "Only current-week seeds can be edited",
+      });
+    }
+    if (seed.addedBy !== user._id) {
+      throw new ConvexError({
+        code: "FORBIDDEN",
+        message: "Only the original uploader can edit this seed",
+      });
+    }
+
+    const league = await ctx.db.get("leagues", seed.leagueId);
+    if (!league || !canViewLeague(user, league)) {
+      throw new ConvexError({
+        code: "FORBIDDEN",
+        message: "You can no longer edit seeds in this league",
+      });
+    }
+    if (args.type === "JUNGLE_PYRAMID" && !settings.enableJunglePyramidSeeds) {
+      throw new ConvexError({
+        code: "EXPERIMENTAL_SEED_TYPE_DISABLED",
+        message: "Jungle pyramid seed uploads are not currently enabled",
+      });
+    }
+
+    const values = await normalizeSeed(ctx, {
+      leagueId: seed.leagueId,
+      overworld: args.overworld,
+      nether: args.nether,
+      end: args.end,
+      rng: args.rng,
+      type: args.type,
+    });
+    const duplicate = await ctx.db
+      .query("seeds")
+      .withIndex("by_owseed", (q) => q.eq("overworld", values.overworld))
+      .unique();
+    if (duplicate && duplicate._id !== seed._id) {
+      throw new ConvexError({
+        code: "DUPLICATE_SEED",
+        message: "Seed already exists",
+      });
+    }
+
+    const changedFields = getEditableSeedChangedFields(seed, values);
+    if (changedFields.length === 0) {
+      return null;
+    }
+
+    await ctx.db.patch("seeds", seed._id, {
+      overworld: values.overworld,
+      nether: values.nether,
+      end: values.end,
+      rng: values.rng,
+      type: values.type,
+      isBt: values.type === "BURIED_TREASURE",
+    });
+
+    await writeLog(ctx, {
+      eventType: "seed.updated",
+      actor: user,
+      actorType: getPrimaryActorType(user),
+      targetType: "seed",
+      targetId: seed._id,
+      targetLabel: getSeedLogLabel(seed),
+      summary: `Updated ${formatFieldList(changedFields)} for seed #${seed.seedNumber ?? "unknown"} in week ${seed.assignedWeekNumber}.`,
+    });
 
     return null;
   },
@@ -745,6 +926,43 @@ async function requireSeedTestingOpen(ctx: MutationCtx) {
   }
 
   return settings;
+}
+
+function getRecentSeedEditDisabledReason(
+  seed: Doc<"seeds">,
+  settings: Doc<"settings">
+) {
+  if (seed.isExpired !== false) return "Expired seeds are read-only";
+  if (seed.isUsed) return "Used seeds are read-only";
+  if (seed.leagueId === undefined || seed.assignedWeekNumber === undefined) {
+    return "Only assigned seeds can be edited";
+  }
+  if (seed.assignedWeekNumber !== settings.currentWeekNumber) {
+    return "Only current-week seeds can be edited";
+  }
+  if (settings.seedTestingPaused) {
+    return "Seeds cannot be edited while seed testing is paused";
+  }
+
+  return undefined;
+}
+
+function getEditableSeedChangedFields(
+  seed: Doc<"seeds">,
+  values: Omit<SeedUploadInput, "leagueId">
+) {
+  const changedFields: string[] = [];
+  if (seed.overworld !== values.overworld) changedFields.push("overworld");
+  if (seed.nether !== values.nether) changedFields.push("nether");
+  if (seed.end !== values.end) changedFields.push("end");
+  if (seed.rng !== values.rng) changedFields.push("RNG");
+  if (seed.type !== values.type) changedFields.push("seed type");
+  return changedFields;
+}
+
+function formatFieldList(fields: string[]) {
+  if (fields.length === 1) return fields[0];
+  return `${fields.slice(0, -1).join(", ")} and ${fields[fields.length - 1]}`;
 }
 
 function validateNumericSeedString(value: string, label: string) {

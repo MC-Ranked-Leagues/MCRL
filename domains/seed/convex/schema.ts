@@ -78,6 +78,11 @@ export default defineSchema({
     .index("by_number_league_expired", ["seedNumber", "leagueId", "isExpired"])
     .index("by_owseed", ["overworld"])
     .index("by_leagueId", ["leagueId"])
+    .index("by_addedBy_and_assignedWeekNumber_and_leagueId", [
+      "addedBy",
+      "assignedWeekNumber",
+      "leagueId",
+    ])
     .index("by_leagueId_and_assignedWeekNumber_and_seedNumber", [
       "leagueId",
       "assignedWeekNumber",

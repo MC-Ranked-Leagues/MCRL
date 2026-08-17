@@ -12,7 +12,7 @@ The application shell redirects unauthenticated users to `/` and pending users t
 
 ## Application Routes
 
-- `/app` — uploader-focused seed upload surface.
+- `/app` — uploader-focused seed upload surface with the current user's five newest accessible uploads from the current week.
 - `/app/account` — current identity, roles, and league access.
 - `/app/settings` — redirects to `/app/account`.
 - `/app/league/:leagueId` — active seeds visible in one league.
@@ -29,6 +29,7 @@ Uploader and host access share the same league routes. Controls are capability-d
 - Hosts can view their host leagues and mark active seeds used.
 - Admins can view every league and change an active unused seed's league.
 - Seed details always reserve space for the delete icon. It is enabled only for admins, the original uploader, or a host of the seed's league while testing is running and the seed is active and unused.
+- On `/app`, original uploaders can edit seed type and values in place for active, unused current-week seeds while testing is open and they retain upload access to the league. The edit preserves the seed's identity, assignment, order, upload time, status, and comments.
 - Normal deletion permanently deletes the seed and comments, compacts league order, updates counters, and records an audit event.
 - Used and expired seeds are corrected or deleted only through the unlocked admin seed archive.
 
