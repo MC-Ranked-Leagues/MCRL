@@ -55,6 +55,8 @@
 - Consider broader tests for multi-feature work, complicated behavior, or core
   rewrites.
 - Run lint at the end and report any remaining errors.
+- Checks must run for the smallest effected area, meaning if the seed domain
+  changes, typecheck and lint only that domain using the provided scripts.
 
 ## League domain
 
