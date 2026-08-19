@@ -565,11 +565,7 @@ export const clearMatchResults = internalMutation({
     }
 
     const deleted = await deleteMatchResultsForMatch(ctx, match._id);
-    await ctx.db.patch("matches", match._id, {
-      rankedMatchId: undefined,
-      winnerPlayerId: null,
-      winnerName: null,
-    });
+    await ctx.db.delete("matches", match._id);
 
     for (const [playerId, deletedPoints] of deletedPointsByPlayer) {
       await applyRegistrationPointDelta(
@@ -579,6 +575,22 @@ export const clearMatchResults = internalMutation({
         -deletedPoints
       );
       await recalculateRegistrationAverageTime(ctx, competition, playerId);
+
+      const remainingResults = await ctx.db
+        .query("matchResults")
+        .withIndex("by_player", (q) => q.eq("playerId", playerId))
+        .collect();
+      let fastestTimeMs: number | undefined;
+      for (const result of remainingResults) {
+        const improvedFastestTimeMs = getImprovedFastestTimeMs(
+          fastestTimeMs,
+          result
+        );
+        if (improvedFastestTimeMs !== undefined) {
+          fastestTimeMs = improvedFastestTimeMs;
+        }
+      }
+      await ctx.db.patch("players", playerId, { fastestTimeMs });
     }
 
     return {
