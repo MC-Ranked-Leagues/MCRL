@@ -1,4 +1,4 @@
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import { internalMutation, type MutationCtx } from "./_generated/server";
 import {
@@ -20,24 +20,15 @@ type ApiSuccess<T extends Record<string, unknown> = Record<string, never>> = {
   ok: true;
 } & T;
 
-type ApiFailure = {
-  ok: false;
-  status: number;
-  error: string;
-};
-
-type ApiResult<T extends Record<string, unknown> = Record<string, never>> =
-  ApiSuccess<T> | ApiFailure;
-
 type CompetitionDoc = Doc<"competitions">;
 type PlayerDoc = Doc<"players">;
 type MatchDoc = Doc<"matches">;
 type RegistrationDoc = Doc<"registrations">;
 
 // PII info is already public in the MCSRRanked api, so nothing im logging/storing is sensitive.
-function fail(status: number, error: string): ApiFailure {
+function throwWriteError(status: number, error: string): never {
   console.error(`[Write API] ${status} ${error}`);
-  return { ok: false, status, error };
+  throw new ConvexError({ status, error });
 }
 
 async function getCompetition(
@@ -53,14 +44,10 @@ async function getCompetition(
     .unique();
 }
 
-function ensureCompetitionWritable(
-  competition: CompetitionDoc
-): ApiFailure | null {
+function ensureCompetitionWritable(competition: CompetitionDoc): void {
   if (competition.status === "ended") {
-    return fail(403, "Competition already finalized.");
+    throwWriteError(403, "Competition already finalized.");
   }
-
-  return null;
 }
 
 async function getMatch(
@@ -233,7 +220,7 @@ export const createOrRestartCompetition = internalMutation({
     ctx,
     args
   ): Promise<
-    ApiResult<{
+    ApiSuccess<{
       competitionId: Id<"competitions">;
       action: "created" | "restarted";
       deletedRegistrations?: number;
@@ -249,7 +236,7 @@ export const createOrRestartCompetition = internalMutation({
     );
 
     if (existingCompetition?.status === "ended") {
-      return fail(403, "Week already finalized.");
+      throwWriteError(403, "Week already finalized.");
     }
 
     if (existingCompetition?.status === "active") {
@@ -296,7 +283,10 @@ export const updateCompetitionStatus = internalMutation({
     ctx,
     args
   ): Promise<
-    ApiResult<{ competitionId: Id<"competitions">; status: "active" | "ended" }>
+    ApiSuccess<{
+      competitionId: Id<"competitions">;
+      status: "active" | "ended";
+    }>
   > => {
     const competition = await getCompetition(
       ctx,
@@ -304,7 +294,7 @@ export const updateCompetitionStatus = internalMutation({
       args.weekNumber
     );
     if (!competition) {
-      return fail(404, "Competition not found.");
+      throwWriteError(404, "Competition not found.");
     }
 
     if (competition.status === args.status) {
@@ -335,7 +325,7 @@ export const registerPlayer = internalMutation({
     ctx,
     args
   ): Promise<
-    ApiResult<{
+    ApiSuccess<{
       competitionId: Id<"competitions">;
       playerId: Id<"players">;
       registrationCreated: boolean;
@@ -348,12 +338,9 @@ export const registerPlayer = internalMutation({
       args.weekNumber
     );
     if (!competition) {
-      return fail(404, "Competition not found.");
+      throwWriteError(404, "Competition not found.");
     }
-    const competitionLock = ensureCompetitionWritable(competition);
-    if (competitionLock) {
-      return competitionLock;
-    }
+    ensureCompetitionWritable(competition);
 
     const normalizedLowercaseIgn = args.ign.toLowerCase();
     let player = await getPlayerByUuid(ctx, args.uuid);
@@ -381,12 +368,12 @@ export const registerPlayer = internalMutation({
       });
       player = await ctx.db.get("players", playerId);
       if (!player) {
-        return fail(500, "Player could not be created.");
+        throwWriteError(500, "Player could not be created.");
       }
     }
 
     if (!player) {
-      return fail(500, "Player could not be loaded.");
+      throwWriteError(500, "Player could not be loaded.");
     }
 
     await syncPlayerRegistrationSnapshots(ctx, player._id, player);
@@ -438,7 +425,7 @@ export const unregisterPlayer = internalMutation({
     ctx,
     args
   ): Promise<
-    ApiResult<{
+    ApiSuccess<{
       competitionId: Id<"competitions">;
       playerId: Id<"players">;
     }>
@@ -449,16 +436,13 @@ export const unregisterPlayer = internalMutation({
       args.weekNumber
     );
     if (!competition) {
-      return fail(404, "Competition not found.");
+      throwWriteError(404, "Competition not found.");
     }
-    const competitionLock = ensureCompetitionWritable(competition);
-    if (competitionLock) {
-      return competitionLock;
-    }
+    ensureCompetitionWritable(competition);
 
     const player = await getPlayerByUuid(ctx, args.uuid);
     if (!player) {
-      return fail(404, "Player not found.");
+      throwWriteError(404, "Player not found.");
     }
 
     const registration = await getRegistration(
@@ -467,7 +451,7 @@ export const unregisterPlayer = internalMutation({
       player._id
     );
     if (!registration) {
-      return fail(404, "Registration not found.");
+      throwWriteError(404, "Registration not found.");
     }
 
     await ctx.db.delete("registrations", registration._id);
@@ -490,7 +474,7 @@ export const createEmptyMatch = internalMutation({
     ctx,
     args
   ): Promise<
-    ApiResult<{
+    ApiSuccess<{
       competitionId: Id<"competitions">;
       matchId: Id<"matches">;
       created: boolean;
@@ -502,12 +486,9 @@ export const createEmptyMatch = internalMutation({
       args.weekNumber
     );
     if (!competition) {
-      return fail(404, "Competition not found.");
+      throwWriteError(404, "Competition not found.");
     }
-    const competitionLock = ensureCompetitionWritable(competition);
-    if (competitionLock) {
-      return competitionLock;
-    }
+    ensureCompetitionWritable(competition);
 
     const existingMatch = await getMatch(
       ctx,
@@ -549,7 +530,7 @@ export const clearMatchResults = internalMutation({
     ctx,
     args
   ): Promise<
-    ApiResult<{
+    ApiSuccess<{
       competitionId: Id<"competitions">;
       matchId: Id<"matches">;
       deleted: number;
@@ -561,16 +542,13 @@ export const clearMatchResults = internalMutation({
       args.weekNumber
     );
     if (!competition) {
-      return fail(404, "Competition not found.");
+      throwWriteError(404, "Competition not found.");
     }
-    const competitionLock = ensureCompetitionWritable(competition);
-    if (competitionLock) {
-      return competitionLock;
-    }
+    ensureCompetitionWritable(competition);
 
     const match = await getMatch(ctx, competition._id, args.matchNumber);
     if (!match) {
-      return fail(404, "Match not found.");
+      throwWriteError(404, "Match not found.");
     }
 
     const deletedPointsByPlayer = new Map<Id<"players">, number>();
@@ -632,7 +610,7 @@ export const importMatchData = internalMutation({
     ctx,
     args
   ): Promise<
-    ApiResult<{
+    ApiSuccess<{
       competitionId: Id<"competitions">;
       matchId: Id<"matches">;
       upserted: number;
@@ -644,12 +622,9 @@ export const importMatchData = internalMutation({
       args.weekNumber
     );
     if (!competition) {
-      return fail(404, "Competition not found.");
+      throwWriteError(404, "Competition not found.");
     }
-    const competitionLock = ensureCompetitionWritable(competition);
-    if (competitionLock) {
-      return competitionLock;
-    }
+    ensureCompetitionWritable(competition);
 
     const seenUuids = new Set<string>();
     const duplicateUuid = args.results.find((result) => {
@@ -658,7 +633,7 @@ export const importMatchData = internalMutation({
       return false;
     });
     if (duplicateUuid) {
-      return fail(400, `Duplicate result for uuid ${duplicateUuid.uuid}.`);
+      throwWriteError(400, `Duplicate result for uuid ${duplicateUuid.uuid}.`);
     }
 
     let match = await getMatch(ctx, competition._id, args.matchNumber);
@@ -681,7 +656,7 @@ export const importMatchData = internalMutation({
     }
 
     if (!match) {
-      return fail(500, "Match could not be created.");
+      throwWriteError(500, "Match could not be created.");
     }
 
     const existingResults = await ctx.db
@@ -710,7 +685,7 @@ export const importMatchData = internalMutation({
     for (const result of args.results) {
       const player = await getPlayerByUuid(ctx, result.uuid);
       if (!player) {
-        return fail(404, `Player not found for uuid ${result.uuid}.`);
+        throwWriteError(404, `Player not found for uuid ${result.uuid}.`);
       }
 
       const registration = await getRegistration(
@@ -719,7 +694,7 @@ export const importMatchData = internalMutation({
         player._id
       );
       if (!registration) {
-        return fail(404, `Registration not found for uuid ${result.uuid}.`);
+        throwWriteError(404, `Registration not found for uuid ${result.uuid}.`);
       }
 
       playersForWinner.push({
@@ -829,7 +804,7 @@ export const setPointAdjustment = internalMutation({
     ctx,
     args
   ): Promise<
-    ApiResult<{
+    ApiSuccess<{
       registrationId: Id<"registrations">;
       manualAdjustmentPoints: number;
     }>
@@ -840,16 +815,13 @@ export const setPointAdjustment = internalMutation({
       args.weekNumber
     );
     if (!competition) {
-      return fail(404, "Competition not found.");
+      throwWriteError(404, "Competition not found.");
     }
-    const competitionLock = ensureCompetitionWritable(competition);
-    if (competitionLock) {
-      return competitionLock;
-    }
+    ensureCompetitionWritable(competition);
 
     const player = await getPlayerByUuid(ctx, args.uuid);
     if (!player) {
-      return fail(404, "Player not found.");
+      throwWriteError(404, "Player not found.");
     }
 
     const registration = await getRegistration(
@@ -858,7 +830,7 @@ export const setPointAdjustment = internalMutation({
       player._id
     );
     if (!registration) {
-      return fail(404, "Registration not found.");
+      throwWriteError(404, "Registration not found.");
     }
 
     const manualAdjustmentDelta =
@@ -892,7 +864,7 @@ export const processMovements = internalMutation({
     ctx,
     args
   ): Promise<
-    ApiResult<{
+    ApiSuccess<{
       competitionId: Id<"competitions">;
       promotedCount: number;
       demotedCount: number;
@@ -905,7 +877,7 @@ export const processMovements = internalMutation({
       args.weekNumber
     );
     if (!competition) {
-      return fail(404, "Competition not found.");
+      throwWriteError(404, "Competition not found.");
     }
 
     const demotedLookup = new Set(args.demotedUuids);
@@ -913,7 +885,10 @@ export const processMovements = internalMutation({
       demotedLookup.has(uuid)
     );
     if (overlap.length > 0) {
-      return fail(400, `uuid ${overlap[0]} cannot be promoted and demoted.`);
+      throwWriteError(
+        400,
+        `uuid ${overlap[0]} cannot be promoted and demoted.`
+      );
     }
 
     const promotedSet = new Set(args.promotedUuids);
@@ -923,7 +898,7 @@ export const processMovements = internalMutation({
     for (const uuid of Array.from(promotedSet)) {
       const player = await getPlayerByUuid(ctx, uuid);
       if (!player) {
-        return fail(404, `Player not found for uuid ${uuid}.`);
+        throwWriteError(404, `Player not found for uuid ${uuid}.`);
       }
 
       const registration = await getRegistration(
@@ -932,7 +907,7 @@ export const processMovements = internalMutation({
         player._id
       );
       if (!registration) {
-        return fail(404, `Registration not found for uuid ${uuid}.`);
+        throwWriteError(404, `Registration not found for uuid ${uuid}.`);
       }
 
       await ensureLeague(ctx, Math.max(1, args.leagueTier - 1));
@@ -948,7 +923,7 @@ export const processMovements = internalMutation({
     for (const uuid of Array.from(demotedSet)) {
       const player = await getPlayerByUuid(ctx, uuid);
       if (!player) {
-        return fail(404, `Player not found for uuid ${uuid}.`);
+        throwWriteError(404, `Player not found for uuid ${uuid}.`);
       }
 
       const registration = await getRegistration(
@@ -957,7 +932,7 @@ export const processMovements = internalMutation({
         player._id
       );
       if (!registration) {
-        return fail(404, `Registration not found for uuid ${uuid}.`);
+        throwWriteError(404, `Registration not found for uuid ${uuid}.`);
       }
 
       await ensureLeague(ctx, args.leagueTier + 1);
@@ -1005,7 +980,7 @@ export const updatePlayerLeague = internalMutation({
     ctx,
     args
   ): Promise<
-    ApiResult<{
+    ApiSuccess<{
       playerId: Id<"players">;
       previousLeagueTier: number;
       leagueTier: number;
@@ -1015,7 +990,7 @@ export const updatePlayerLeague = internalMutation({
 
     const player = await getPlayerByUuid(ctx, args.uuid);
     if (!player) {
-      return fail(404, "Player not found.");
+      throwWriteError(404, "Player not found.");
     }
 
     if (player.currentLeagueNumber === args.leagueTier) {

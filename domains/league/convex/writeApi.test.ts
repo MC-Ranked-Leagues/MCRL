@@ -1,5 +1,6 @@
 import { convexTest } from "convex-test";
-import { describe, expect, test } from "vitest";
+import { ConvexError } from "convex/values";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import { internal } from "./_generated/api";
 import schema from "./schema";
 import { modules } from "./test.setup";
@@ -14,6 +15,10 @@ const players = {
   alex: { uuid: "alex-uuid", ign: "Alex" },
   blair: { uuid: "blair-uuid", ign: "Blair" },
 };
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
 
 async function setupCompetition() {
   const t = convexTest(schema, modules);
@@ -34,6 +39,67 @@ async function setupCompetition() {
 }
 
 describe("match result imports", () => {
+  test("throws and rolls back when an imported player does not exist", async () => {
+    const t = await setupCompetition();
+
+    const importResult = t.mutation(internal.writeApi.importMatchData, {
+      leagueTier: 1,
+      weekNumber: 1,
+      matchNumber: 1,
+      rankedMatchId: "ranked-1",
+      results: [
+        {
+          uuid: "unknown-uuid",
+          timeMs: 60_000,
+          dnf: false,
+          placement: 1,
+          pointsWon: 10,
+        },
+      ],
+    });
+
+    await expect(importResult).rejects.toBeInstanceOf(ConvexError);
+
+    const matches = await t.run(async (ctx) =>
+      ctx.db.query("matches").collect()
+    );
+    expect(matches).toEqual([]);
+  });
+
+  test("preserves the HTTP error response for a failed import", async () => {
+    vi.stubEnv("WRITER_API_KEY", "test-writer-key");
+    const t = await setupCompetition();
+
+    const response = await t.fetch("/api/write/match/results", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-api-key": "test-writer-key",
+      },
+      body: JSON.stringify({
+        leagueTier: 1,
+        weekNumber: 1,
+        matchNumber: 1,
+        rankedMatchId: "ranked-1",
+        results: [
+          {
+            uuid: "unknown-uuid",
+            timeMs: 60_000,
+            dnf: false,
+            placement: 1,
+            pointsWon: 10,
+          },
+        ],
+      }),
+    });
+
+    expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({
+      error: "Player not found for uuid unknown-uuid.",
+      status: 404,
+    });
+  });
+
   test("stores explicit misses and includes them after a player's first result", async () => {
     const t = await setupCompetition();
 
