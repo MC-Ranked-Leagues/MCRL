@@ -241,7 +241,55 @@ describe("match result imports", () => {
     });
   });
 
-  test("clearing an import removes its outcomes and averages", async () => {
+  test("clearing an import deletes its match and outcomes", async () => {
+    const t = await setupCompetition();
+
+    const imported = await t.mutation(internal.writeApi.importMatchData, {
+      leagueTier: 1,
+      weekNumber: 1,
+      matchNumber: 1,
+      rankedMatchId: "ranked-1",
+      results: [
+        {
+          uuid: players.alex.uuid,
+          timeMs: 60_000,
+          dnf: false,
+          placement: 1,
+          pointsWon: 10,
+        },
+      ],
+    });
+    const cleared = await t.mutation(internal.writeApi.clearMatchResults, {
+      leagueTier: 1,
+      weekNumber: 1,
+      matchNumber: 1,
+    });
+
+    const state = await t.run(async (ctx) => ({
+      alex: await ctx.db
+        .query("players")
+        .withIndex("by_uuid", (q) => q.eq("uuid", players.alex.uuid))
+        .unique(),
+      match: await ctx.db.query("matches").first(),
+      registrations: await ctx.db.query("registrations").collect(),
+      results: await ctx.db.query("matchResults").collect(),
+    }));
+
+    expect(state.results).toEqual([]);
+    expect(state.match).toBeNull();
+    expect(cleared).toEqual({
+      ok: true,
+      competitionId: imported.competitionId,
+      matchId: imported.matchId,
+      deleted: 2,
+    });
+    expect(
+      state.registrations.map((registration) => registration.averageTimeMs)
+    ).toEqual([null, null]);
+    expect(state.alex?.fastestTimeMs).toBeUndefined();
+  });
+
+  test("clearing a match recalculates points, averages, and fastest times", async () => {
     const t = await setupCompetition();
 
     await t.mutation(internal.writeApi.importMatchData, {
@@ -259,6 +307,22 @@ describe("match result imports", () => {
         },
       ],
     });
+    await t.mutation(internal.writeApi.importMatchData, {
+      leagueTier: 1,
+      weekNumber: 1,
+      matchNumber: 2,
+      rankedMatchId: "ranked-2",
+      results: [
+        {
+          uuid: players.alex.uuid,
+          timeMs: 80_000,
+          dnf: false,
+          placement: 1,
+          pointsWon: 6,
+        },
+      ],
+    });
+
     await t.mutation(internal.writeApi.clearMatchResults, {
       leagueTier: 1,
       weekNumber: 1,
@@ -266,15 +330,44 @@ describe("match result imports", () => {
     });
 
     const state = await t.run(async (ctx) => ({
-      match: await ctx.db.query("matches").first(),
-      registrations: await ctx.db.query("registrations").collect(),
-      results: await ctx.db.query("matchResults").collect(),
+      alex: await ctx.db
+        .query("players")
+        .withIndex("by_uuid", (q) => q.eq("uuid", players.alex.uuid))
+        .unique(),
+      alexRegistration: await ctx.db
+        .query("registrations")
+        .filter((q) => q.eq(q.field("playerIgn"), players.alex.ign))
+        .unique(),
+      matches: await ctx.db.query("matches").collect(),
     }));
 
-    expect(state.results).toEqual([]);
-    expect(state.match?.rankedMatchId).toBeUndefined();
-    expect(
-      state.registrations.map((registration) => registration.averageTimeMs)
-    ).toEqual([null, null]);
+    expect(state.matches.map((match) => match.matchNumber)).toEqual([2]);
+    expect(state.alexRegistration).toMatchObject({
+      averageTimeMs: 80_000,
+      computedSeedPoints: 6,
+      totalPoints: 6,
+    });
+    expect(state.alex?.fastestTimeMs).toBe(80_000);
+  });
+
+  test("clearing an empty match deletes it", async () => {
+    const t = await setupCompetition();
+
+    await t.mutation(internal.writeApi.createEmptyMatch, {
+      leagueTier: 1,
+      weekNumber: 1,
+      matchNumber: 1,
+    });
+    const cleared = await t.mutation(internal.writeApi.clearMatchResults, {
+      leagueTier: 1,
+      weekNumber: 1,
+      matchNumber: 1,
+    });
+
+    const matches = await t.run(async (ctx) =>
+      ctx.db.query("matches").collect()
+    );
+    expect(matches).toEqual([]);
+    expect(cleared.deleted).toBe(0);
   });
 });
