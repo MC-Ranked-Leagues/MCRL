@@ -1,4 +1,5 @@
 import { httpRouter } from "convex/server";
+import { ConvexError } from "convex/values";
 import { internal } from "./_generated/api";
 import { httpAction } from "./_generated/server";
 import {
@@ -33,7 +34,7 @@ async function runProtectedJsonRoute<T>(args: {
   request: Request;
   schema: z.ZodType<T>;
   routeLabel: string;
-  run: (payload: T) => Promise<RouteResult>;
+  run: (payload: T) => Promise<{ ok: true; [key: string]: unknown }>;
   successStatus?: number;
 }) {
   const authError = await validateApiKey(args.request, "WRITER_API_KEY");
@@ -44,13 +45,33 @@ async function runProtectedJsonRoute<T>(args: {
 
   try {
     const result = await args.run(bodyResult.data);
-    if (result.ok === false) {
-      return jsonError(result.error, result.status);
-    }
 
     console.info(`[${args.routeLabel}] Success`, result);
     return jsonResponse(result, args.successStatus ?? 200);
   } catch (error) {
+    if (error instanceof ConvexError) {
+      let data: unknown = error.data;
+
+      if (typeof data === "string") {
+        try {
+          data = JSON.parse(data);
+        } catch {
+          data = null;
+        }
+      }
+
+      if (
+        typeof data === "object" &&
+        data !== null &&
+        "status" in data &&
+        typeof data.status === "number" &&
+        "error" in data &&
+        typeof data.error === "string"
+      ) {
+        return jsonError(data.error, data.status);
+      }
+    }
+
     console.error(`[${args.routeLabel}] Unhandled error`, error);
     return jsonError("Internal server error.", 500);
   }

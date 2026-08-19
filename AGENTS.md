@@ -47,6 +47,13 @@
 - If any of these rules make a change or a fix impossible/harder to make, report
   to the user
 
+## Convex
+
+- In Convex mutations and internal mutations, signal failures by throwing a
+  `ConvexError`. Returning a failure value commits earlier writes because Convex
+  treats the transaction as successful. Queries may return result objects when
+  appropriate.
+
 ## Verification
 
 - Run typecheck frequently while working.
@@ -72,6 +79,3 @@
 - For new Seed logging actions, ask whether the action should be logged.
 - Before changing Seed Convex code, read
   `domains/seed/convex/_generated/ai/guidelines.md`.
-- In Convex mutations and internal mutations, signal failures by throwing a
-  `ConvexError`. Returning an error value counts as a successful transaction and
-  does not roll back earlier writes.
