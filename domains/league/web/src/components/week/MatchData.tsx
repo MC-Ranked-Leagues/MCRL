@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { z } from "zod";
+import { mcsrranked, type MatchDetail } from "mcsrranked-sdk";
 import {
   Tooltip,
   TooltipContent,
@@ -7,34 +7,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-const matchPayloadSchema = z.object({
-  players: z.array(
-    z.object({
-      uuid: z.string(),
-      nickname: z.string(),
-    })
-  ),
-  completions: z.array(
-    z.object({
-      uuid: z.string(),
-      time: z.number(),
-    })
-  ),
-  timelines: z.array(
-    z.object({
-      uuid: z.string(),
-      time: z.number(),
-      type: z.string(),
-    })
-  ),
-});
-
-const matchApiResponseSchema = z.object({
-  data: z.union([matchPayloadSchema, z.null(), z.string()]),
-});
-
-type MatchPayload = z.infer<typeof matchPayloadSchema>;
-type MatchDataValue = MatchPayload | string | null;
+type MatchDataValue = MatchDetail | null;
 
 const formatTime = (ms: number) => {
   if (ms === 0) return "0:00.00";
@@ -119,44 +92,30 @@ const MatchData = ({ matchId }: { matchId: string | null }) => {
       return;
     }
 
-    const controller = new AbortController();
     let cancelled = false;
 
     void (async () => {
       try {
-        const response = await fetch(
-          `https://api.mcsrranked.com/matches/${matchId}`,
-          { signal: controller.signal }
-        );
-        if (!response.ok) {
-          throw new Error(`Request failed: ${response.status}`);
-        }
-
-        const rawData: unknown = await response.json();
-        const data = matchApiResponseSchema.parse(rawData);
-        const payload = data.data ?? null;
-        matchDataCache.set(matchId, payload);
+        const match = await mcsrranked.matches.get(Number(matchId));
+        matchDataCache.set(matchId, match);
         if (!cancelled) {
-          setLoadedMatchData({ matchId, data: payload });
+          setLoadedMatchData({ matchId, data: match });
         }
       } catch (error) {
-        if (controller.signal.aborted) {
-          return;
-        }
+        if (cancelled) return;
         console.error("Error fetching match data:", error);
       }
     })();
 
     return () => {
       cancelled = true;
-      controller.abort();
     };
   }, [matchId]);
 
   const playerDataIndexes = useMemo(() => {
-    if (!matchData || typeof matchData === "string") return null;
+    if (!matchData) return null;
 
-    const timelinesByUuid = new Map<string, MatchPayload["timelines"]>();
+    const timelinesByUuid = new Map<string, MatchDetail["timelines"]>();
     for (const timeline of matchData.timelines) {
       const current = timelinesByUuid.get(timeline.uuid);
       if (current) {
@@ -183,7 +142,7 @@ const MatchData = ({ matchId }: { matchId: string | null }) => {
   }, [matchData]);
 
   const processedPlayers = useMemo(() => {
-    if (!matchData || typeof matchData === "string" || !playerDataIndexes) {
+    if (!matchData || !playerDataIndexes) {
       return [];
     }
 
@@ -286,8 +245,6 @@ const MatchData = ({ matchId }: { matchId: string | null }) => {
   if (matchData === undefined) return <div>Loading match data...</div>;
   if (matchData === null)
     return <div>No match data found for ID: {matchId}</div>;
-  if (typeof matchData === "string") return <div>Error: {matchData}</div>;
-
   return (
     <TooltipProvider>
       <div className="flex w-full flex-col gap-5 rounded-xl font-sans text-white">

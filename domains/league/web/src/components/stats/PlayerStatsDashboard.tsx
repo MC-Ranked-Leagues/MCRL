@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Activity, Clock3, Trophy, UserRoundX } from "lucide-react";
+import { mcsrranked } from "mcsrranked-sdk";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AverageTimeTrend } from "./AverageTimeTrend";
@@ -26,45 +27,26 @@ function useRankedElo(
   useEffect(() => {
     if (!playerName) return;
 
-    const controller = new AbortController();
+    let cancelled = false;
 
-    void fetch(
-      `https://api.mcsrranked.com/users/${encodeURIComponent(playerName)}`,
-      { signal: controller.signal }
-    )
-      .then(async (response) => {
-        if (!response.ok)
-          throw new Error(`MCSR Ranked returned ${response.status}`);
-
-        const payload: unknown = await response.json();
-        if (
-          !payload ||
-          typeof payload !== "object" ||
-          !("status" in payload) ||
-          payload.status !== "success" ||
-          !("data" in payload) ||
-          !payload.data ||
-          typeof payload.data !== "object" ||
-          !("eloRate" in payload.data) ||
-          (typeof payload.data.eloRate !== "number" &&
-            payload.data.eloRate !== null)
-        ) {
-          throw new Error("MCSR Ranked returned an unexpected response");
-        }
-
+    void mcsrranked.users
+      .get(playerName)
+      .then((player) => {
+        if (cancelled) return;
         setState({
           playerName,
           status: "success",
-          elo: payload.data.eloRate,
+          elo: player.eloRate,
         });
       })
-      .catch((error: unknown) => {
-        if (error instanceof DOMException && error.name === "AbortError")
-          return;
+      .catch(() => {
+        if (cancelled) return;
         setState({ playerName, status: "error" });
       });
 
-    return () => controller.abort();
+    return () => {
+      cancelled = true;
+    };
   }, [playerName]);
 
   if (state && state.playerName === playerName) return state;
