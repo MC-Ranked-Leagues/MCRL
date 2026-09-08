@@ -1,24 +1,19 @@
 {
-  "name": "@mcrl/league",
+  "name": "@mcrl/web",
   "type": "module",
   "version": "0.0.1",
   "private": true,
-  "exports": {},
   "scripts": {
-    "dev": "bun run --parallel 'dev:*'",
-    "dev:web": "astro dev --root web",
-    "dev:convex": "convex dev",
-    "build": "astro build --root web",
-    "preview": "astro preview --root web",
-    "astro": "astro --root web",
-    "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
-    "format": "bun run --cwd ../.. prettier --write domains/league",
-    "format:check": "bun run --cwd ../.. prettier --check domains/league",
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "lint": "bun run --cwd ../.. eslint apps/web --report-unused-disable-directives --max-warnings 0",
+    "format": "bun run --cwd ../.. prettier --write apps/web",
+    "format:check": "bun run --cwd ../.. prettier --check apps/web",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "bun run --parallel --no-exit-on-error 'typecheck:*'",
-    "typecheck:web": "astro check --root web",
-    "typecheck:convex": "tsc --noEmit -p convex/tsconfig.json"
+    "typecheck": "astro check"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.7",
@@ -26,6 +21,7 @@
     "@astrojs/starlight": "^0.38.2",
     "@base-ui/react": "catalog:",
     "@fontsource-variable/inter": "catalog:",
+    "@mcrl/backend": "workspace:*",
     "astro": "^6.0.8",
     "class-variance-authority": "catalog:",
     "clsx": "catalog:",
@@ -47,6 +43,7 @@
     "@types/react-dom": "catalog:",
     "shadcn": "catalog:",
     "tailwindcss": "catalog:",
-    "vite": "catalog:"
+    "vite": "catalog:",
+    "vitest": "catalog:"
   }
 }

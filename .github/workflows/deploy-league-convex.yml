@@ -5,9 +5,9 @@ on:
     branches:
       - main
     paths:
-      - domains/league/convex/**
-      - domains/league/convex.json
-      - domains/league/package.json
+      - backend/convex/**
+      - backend/convex.json
+      - backend/package.json
       - package.json
       - bun.lock
       - .github/workflows/deploy-league-convex.yml
@@ -39,8 +39,8 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Typecheck League Convex
-        run: bun run --filter @mcrl/league typecheck:convex
+        run: bun run --filter @mcrl/backend typecheck:convex
 
       - name: Deploy League Convex
-        working-directory: domains/league
+        working-directory: backend
         run: bunx convex deploy

@@ -3,66 +3,54 @@
 - Use Bun for package management and commands where applicable.
 - Do not commit without explicit user approval.
 - Do not run commands or make changes against production environments.
-- When asked a question, answer it without treating the question as permission
-  to make changes. For example, "Did you commit?" does not mean to commit.
-- When brainstorming, keep ideas short and meaningful, ask questions, and
-  encourage collaboration.
+- Answer questions without treating them as permission to make changes.
+- Keep brainstorming concise and collaborative.
 
 ## Code quality
 
-- Do not create abstractions or components that are only used once.
-- Prefer one file per React component unless closely related helper components
-  are clearer together.
-- Put reusable helper functions in the relevant domain's `lib` directory.
-- Before adding UI, look for existing components and similar hard-coded UI that
-  should be reused or extracted.
-- Keep domain internals private. Cross-domain communication should use a clear
-  interface such as an HTTP endpoint or a deliberately shared contract.
+- Avoid abstractions and React components used only once.
+- Prefer one file per React component unless closely related helpers are clearer
+  together.
+- Put reusable helpers in the relevant application's `lib` directory.
+- Reuse existing UI before adding another implementation of the same pattern.
+- Keep implementation details private behind deliberate module interfaces.
 
 ## Architecture and imports
 
-- `domains/league` is a private workspace application. Keep its implementation
-  private; external consumers use deliberate HTTP interfaces.
+- `apps/web` is the public Astro and React application.
+- `backend` is the shared Convex workspace for the public website and future
+  admin and bot applications.
+- Applications import Convex function references and data types through explicit
+  `@mcrl/backend` subpath exports. They do not import backend files by filesystem
+  path.
 - League reads published Seed history through Seed Manager's HTTP interface.
-  Its local response schema lives in `domains/league/web/src/lib/seedHistoryResponse.ts`.
-  Coordinate interface changes with Seed Manager; never import its implementation.
-- Give future packages explicit subpath exports rather than a package-wide barrel.
-- Add shared packages only when at least two workspaces use a stable abstraction.
-- Use `@/*` for imports rooted at the current domain's `web/src` directory and
-  `@/convex/*` only when that web app imports its own domain's Convex files.
-  Use relative imports for nearby implementation code.
-- Use workspace package imports across package boundaries. Do not use aliases
-  or filesystem-relative paths to bypass package exports.
-- Declare internal workspace dependencies with `workspace:*` and synchronized
+  Its local response schema lives in `apps/web/src/lib/seedHistoryResponse.ts`.
+- Give future packages explicit subpath exports. Avoid package-wide barrel files.
+- Add shared packages when at least two workspaces use a stable abstraction.
+- Use `@/*` for imports rooted at an application's `src` directory.
+- Declare internal workspace dependencies with `workspace:*`. Synchronize shared
   third-party dependency versions through the root Bun catalog.
-- Keep unit tests beside the files they test. Use separate test directories only
-  for integration tests, shared fixtures, or genuinely cross-module scenarios.
-- Root `scripts/` contains repository maintenance tools. It is not a package and
-  must remain covered by `scripts/tsconfig.json` and the root lint command.
-- If any of these rules make a change or a fix impossible/harder to make, report
-  to the user
+- Keep unit tests beside the files they test. Use separate test directories for
+  integration tests, shared fixtures, or cross-module scenarios.
+- Root `scripts/` contains repository maintenance tools. It remains covered by
+  `scripts/tsconfig.json` and the root lint command.
+- Report any repository rule that makes a requested change harder or impossible.
 
 ## Convex
 
-- In Convex mutations and internal mutations, signal failures by throwing a
-  `ConvexError`. Returning a failure value commits earlier writes because Convex
-  treats the transaction as successful. Queries may return result objects when
-  appropriate.
+- In mutations and internal mutations, throw `ConvexError` for failures. Returning
+  a failure value commits earlier writes because Convex treats the transaction as
+  successful.
 
 ## Verification
 
-- Run typecheck frequently while working.
-- Prefer typecheck and existing tests over adding browser or custom tests for
-  small changes.
-- Consider broader tests for multi-feature work, complicated behavior, or core
-  rewrites.
-- Run lint at the end and report any remaining errors.
-- Checks must run for the smallest effected area, meaning if the seed domain
-  changes, typecheck and lint only that domain using the provided scripts.
+- Run typecheck frequently through the smallest affected script in `package.json`.
+- Prefer existing tests and typecheck for small changes.
+- Run broader existing tests and builds for migration or core changes.
+- Run lint at the end and report remaining errors.
 
-## League domain
+## League
 
-- Read `domains/league/SPEC.md` before product-facing League changes.
-- League is the public tournament history and statistics domain.
-- Its web application reads published seed history through Seed's HTTP
-  interface configured by `PUBLIC_SEED_API_URL`.
+- Read `SPEC.md` before product-facing League changes.
+- League is the public tournament history and statistics system.
+- The public website reads Seed history through `PUBLIC_SEED_API_URL`.

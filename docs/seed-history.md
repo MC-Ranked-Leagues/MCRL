@@ -11,9 +11,9 @@ The successful response is an array with a positive integer `order`, string
 Seed values remain strings to preserve precision. Current-week history includes
 used seeds; completed-week history includes expired seeds in seed order.
 
-Seed Manager owns this interface and its publication rules. Its intended new home
-is `MC-Ranked-Leagues/Seed-Manager`. The consumer schema in
-`domains/league/web/src/lib/seedHistoryResponse.ts` is a local copy of the former
+Seed Manager owns this interface and its publication rules. It lives in
+`MC-Ranked-Leagues/Seed-Manager`. The consumer schema in
+`apps/web/src/lib/seedHistoryResponse.ts` is a local copy of the former
 `@mcrl/contracts/seed-history` schema at MCRL commit `29cd375`.
 
 Coordinate changes with Seed Manager's producer schema at

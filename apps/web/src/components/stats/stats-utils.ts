@@ -1,5 +1,5 @@
 import type { FunctionReturnType } from "convex/server";
-import type { api } from "@/convex/_generated/api";
+import type { api } from "@mcrl/backend/api";
 
 export type PlayerListEntry = FunctionReturnType<
   typeof api.leaderboard.getFastestPlayers
