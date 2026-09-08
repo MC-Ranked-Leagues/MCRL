@@ -1,5 +1,4 @@
 import { defineConfig } from "vitest/config";
-import { sharedTestConfig } from "../../vitest.shared";
 
 export default defineConfig({
   test: {
@@ -7,7 +6,8 @@ export default defineConfig({
       {
         extends: true,
         test: {
-          ...sharedTestConfig,
+          clearMocks: true,
+          restoreMocks: true,
           name: "convex",
           include: ["convex/**/*.test.ts"],
           environment: "edge-runtime",
@@ -16,7 +16,8 @@ export default defineConfig({
       {
         extends: true,
         test: {
-          ...sharedTestConfig,
+          clearMocks: true,
+          restoreMocks: true,
           name: "web",
           include: ["web/src/**/*.test.{ts,tsx}"],
           environment: "node",

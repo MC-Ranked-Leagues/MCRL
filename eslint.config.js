@@ -59,7 +59,6 @@ export default defineConfig([
       "**/*.config.{js,mjs,cjs,ts}",
       "**/scripts/**/*.{js,mjs,cjs,ts}",
       "eslint.config.js",
-      "vitest.shared.ts",
     ],
     languageOptions: {
       globals: globals.node,
@@ -81,72 +80,7 @@ export default defineConfig([
             {
               group: ["@mcrl/seed", "@mcrl/seed/*", "**/seed/**"],
               message:
-                "League must use Seed's public API contracts, not Seed internals.",
-            },
-          ],
-        },
-      ],
-    },
-  },
-  {
-    files: ["domains/seed/**/*.{js,mjs,cjs,ts,tsx}"],
-    rules: {
-      "no-restricted-imports": [
-        "error",
-        {
-          patterns: [
-            {
-              group: ["@mcrl/league", "@mcrl/league/*", "**/league/**"],
-              message:
-                "Seed must use League's public API contracts, not League internals.",
-            },
-          ],
-        },
-      ],
-    },
-  },
-  {
-    files: ["packages/shared/**/*.{js,mjs,cjs,ts,tsx}"],
-    rules: {
-      "no-restricted-imports": [
-        "error",
-        {
-          patterns: [
-            {
-              group: [
-                "@mcrl/league",
-                "@mcrl/league/*",
-                "@mcrl/seed",
-                "@mcrl/seed/*",
-                "**/domains/**",
-              ],
-              message: "Shared code must not depend on domain internals.",
-            },
-          ],
-        },
-      ],
-    },
-  },
-  {
-    files: ["packages/contracts/**/*.{js,mjs,cjs,ts,tsx}"],
-    rules: {
-      "no-restricted-imports": [
-        "error",
-        {
-          patterns: [
-            {
-              group: [
-                "@mcrl/league",
-                "@mcrl/league/*",
-                "@mcrl/seed",
-                "@mcrl/seed/*",
-                "**/domains/**",
-                "**/convex/**",
-                "convex",
-                "convex/*",
-              ],
-              message:
-                "Contracts must remain independent of domains and Convex-specific types.",
+                "League must use Seed's HTTP interface, not Seed internals.",
             },
           ],
         },

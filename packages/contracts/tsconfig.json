@@ -1,9 +1,0 @@
-{
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "target": "ES2022",
-    "lib": ["ES2023"],
-    "exactOptionalPropertyTypes": true
-  },
-  "include": ["src/**/*.ts", "vitest.config.ts"]
-}

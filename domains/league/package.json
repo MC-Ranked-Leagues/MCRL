@@ -26,7 +26,6 @@
     "@astrojs/starlight": "^0.38.2",
     "@base-ui/react": "catalog:",
     "@fontsource-variable/inter": "catalog:",
-    "@mcrl/contracts": "workspace:*",
     "astro": "^6.0.8",
     "class-variance-authority": "catalog:",
     "clsx": "catalog:",
