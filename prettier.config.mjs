@@ -13,16 +13,16 @@ export default {
   plugins: [astro, tailwindcss],
   overrides: [
     {
-      files: "domains/league/**/*.{js,mjs,ts,tsx,astro,html,css}",
+      files: "apps/web/**/*.{js,mjs,ts,tsx,astro,html,css}",
       options: {
-        tailwindStylesheet: "./domains/league/web/src/global.css",
+        tailwindStylesheet: "./apps/web/src/global.css",
       },
     },
     {
-      files: "domains/league/**/*.astro",
+      files: "apps/web/**/*.astro",
       options: {
         parser: "astro",
-        tailwindStylesheet: "./domains/league/web/src/global.css",
+        tailwindStylesheet: "./apps/web/src/global.css",
       },
     },
   ],

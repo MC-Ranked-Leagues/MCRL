@@ -8,14 +8,9 @@ import starlight from "@astrojs/starlight";
 // https://astro.build/config
 export default defineConfig({
   vite: {
-    envDir: "..",
     plugins: [tailwindcss()],
     resolve: {
       alias: [
-        {
-          find: "@/convex",
-          replacement: fileURLToPath(new URL("../convex", import.meta.url)),
-        },
         {
           find: "@",
           replacement: fileURLToPath(new URL("./src", import.meta.url)),

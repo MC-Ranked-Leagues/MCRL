@@ -1,7 +1,7 @@
 import { lazy, Suspense } from "react";
 import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
+import { api } from "@mcrl/backend/api";
+import type { Id } from "@mcrl/backend/data-model";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 

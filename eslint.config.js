@@ -48,7 +48,7 @@ export default defineConfig([
     },
   },
   {
-    files: ["domains/*/web/**/*.{ts,tsx}"],
+    files: ["apps/**/*.{ts,tsx}"],
     extends: [reactHooks.configs.flat.recommended, reactRefresh.configs.vite],
     languageOptions: {
       globals: globals.browser,
@@ -65,26 +65,9 @@ export default defineConfig([
     },
   },
   {
-    files: ["domains/*/web/src/components/ui/**/*.{ts,tsx}"],
+    files: ["apps/*/src/components/ui/**/*.{ts,tsx}"],
     rules: {
       "react-refresh/only-export-components": "off",
-    },
-  },
-  {
-    files: ["domains/league/**/*.{js,mjs,cjs,ts,tsx}"],
-    rules: {
-      "no-restricted-imports": [
-        "error",
-        {
-          patterns: [
-            {
-              group: ["@mcrl/seed", "@mcrl/seed/*", "**/seed/**"],
-              message:
-                "League must use Seed's HTTP interface, not Seed internals.",
-            },
-          ],
-        },
-      ],
     },
   },
   ...convexPlugin.configs.recommended,
