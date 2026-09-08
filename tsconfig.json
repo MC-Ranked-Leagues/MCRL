@@ -5,5 +5,5 @@
     "lib": ["ES2023"],
     "types": ["node"]
   },
-  "include": ["vitest.shared.ts"]
+  "include": ["scripts/**/*.ts"]
 }

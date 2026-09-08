@@ -25,11 +25,5 @@ export default {
         tailwindStylesheet: "./domains/league/web/src/global.css",
       },
     },
-    {
-      files: "domains/seed/**/*.{js,mjs,ts,tsx,html,css}",
-      options: {
-        tailwindStylesheet: "./domains/seed/web/src/index.css",
-      },
-    },
   ],
 };

@@ -1,7 +1,7 @@
 import {
   SeedHistoryResponseSchema,
   type PublishedSeed,
-} from "@mcrl/contracts/seed-history";
+} from "@/lib/seedHistoryResponse";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";

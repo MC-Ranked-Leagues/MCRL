@@ -21,18 +21,13 @@
 
 ## Architecture and imports
 
-- `domains/league` and `domains/seed` are private workspace applications. Do
-  not expose or import their Convex or web implementations as package APIs.
-- A domain must never import another domain's Convex files, generated types, or
-  other implementation files. Cross-domain communication uses public APIs and
-  schemas from `@mcrl/contracts`.
-- `@mcrl/contracts` contains runtime API schemas and types inferred from those
-  schemas. Never expose Convex-specific `Doc`, `Id`, generated data models, or
-  other backend implementation types through a contract.
-- Give packages explicit subpath exports. Do not add a package-wide barrel
-  `index.ts`.
-- Add code to `@mcrl/shared` only when at least two workspaces use a stable,
-  domain-neutral abstraction. Do not create generic dumping-ground modules.
+- `domains/league` is a private workspace application. Keep its implementation
+  private; external consumers use deliberate HTTP interfaces.
+- League reads published Seed history through Seed Manager's HTTP interface.
+  Its local response schema lives in `domains/league/web/src/lib/seedHistoryResponse.ts`.
+  Coordinate interface changes with Seed Manager; never import its implementation.
+- Give future packages explicit subpath exports rather than a package-wide barrel.
+- Add shared packages only when at least two workspaces use a stable abstraction.
 - Use `@/*` for imports rooted at the current domain's `web/src` directory and
   `@/convex/*` only when that web app imports its own domain's Convex files.
   Use relative imports for nearby implementation code.
@@ -71,11 +66,3 @@
 - League is the public tournament history and statistics domain.
 - Its web application reads published seed history through Seed's HTTP
   interface configured by `PUBLIC_SEED_API_URL`.
-
-## Seed domain
-
-- Read `domains/seed/CONTEXT.md` before changing Seed domain behavior or
-  terminology.
-- For new Seed logging actions, ask whether the action should be logged.
-- Before changing Seed Convex code, read
-  `domains/seed/convex/_generated/ai/guidelines.md`.

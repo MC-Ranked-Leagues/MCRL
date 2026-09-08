@@ -1,74 +1,50 @@
 # MCRL
 
-MCRL is a monorepo for the Minecraft Speedrunning Ranked
-Leagues evevt.
-
-## Domains
-
-| Domain | Responsibility                                                             | Documentation                                          |
-| ------ | -------------------------------------------------------------------------- | ------------------------------------------------------ |
-| League | Public standings, match history, player statistics, and tournament history | [`domains/league/README.md`](domains/league/README.md) |
-| Seed   | Seed upload, assignment, host workflows, and published seed history        | [`domains/seed/README.md`](domains/seed/README.md)     |
-
-The League domain reads published seed history through Seed's HTTP interface.
+MCRL contains the League public website and its Convex backend for Minecraft
+Speedrunning Ranked Leagues. Tournament bot and admin applications can join this
+workspace when they are implemented.
 
 ## Structure
 
 ```text
-domains/
-  league/
-    web/
-    convex/
-  seed/
-    web/
-    convex/
-packages/
-  contracts/
-  shared/
-scripts/        Repository maintenance tools (not a workspace package)
+domains/league/
+  web/          Astro and React public website
+  convex/       League schema, functions, and HTTP interface
+scripts/        Repository maintenance tools
 ```
 
-## Packages
+Seed Manager is maintained separately. League reads its published seed history
+through `PUBLIC_SEED_API_URL`. See [the interface notes](docs/seed-history.md).
 
-| Package           | Responsibility                                           |
-| ----------------- | -------------------------------------------------------- |
-| `@mcrl/contracts` | Runtime API schemas and their inferred TypeScript types  |
-| `@mcrl/shared`    | Domain-neutral code genuinely shared by multiple domains |
+## Development
 
-## Requirements
-
-- Bun 1.3.14
-- Access to the appropriate Convex projects for backend development
-
-## Commands
-
-Run these from the repository root:
-
-| Command                | Purpose                                                       |
-| ---------------------- | ------------------------------------------------------------- |
-| `bun run dev:league`   | Start the League web application and Convex process           |
-| `bun run dev:seed`     | Start the Seed web application and Convex development process |
-| `bun run typecheck`    | Typecheck every workspace and the root scripts                |
-| `bun run test`         | Run every workspace test suite once                           |
-| `bun run build`        | Build both web applications                                   |
-| `bun run lint`         | Lint both workspaces                                          |
-| `bun run format`       | Format the repository                                         |
-| `bun run format:check` | Check repository formatting                                   |
-
-Each domain can also start just its web or Convex process:
+Use Bun 1.3.14 and configure a League Convex **development** deployment before
+starting the backend.
 
 ```sh
-bun run dev:league:web
-bun run dev:league:convex
-bun run dev:seed:web
-bun run dev:seed:convex
+bun install --frozen-lockfile
+bun run dev:league
 ```
 
-Domain-specific commands and environment requirements are documented in each
-domain README.
+`bun run dev:league:web` and `bun run dev:league:convex` start each process
+separately. See [the League README](domains/league/README.md) and `.env.example`
+inside that directory for setup details.
 
-## Repository guidance
+## Verification
 
-- [`AGENTS.md`](AGENTS.md) contains repository and domain-specific working
-  instructions.
-- [`TODO.md`](TODO.md) is the consolidated backlog.
+```sh
+bun run typecheck:league
+bun run test:league
+bun run build:league
+bun run lint:league
+```
+
+Root configuration or script changes also require `bun run typecheck:scripts`
+and `bun run lint`. Use `bun run format:check` to check formatting.
+
+The frontend hosting build runs from the repository root with
+`bun run build:cloudflare:league`. League's backend deployment workflow remains
+in `.github/workflows/deploy-league-convex.yml`.
+
+[AGENTS.md](AGENTS.md) contains working instructions, and [TODO.md](TODO.md)
+contains the backlog.

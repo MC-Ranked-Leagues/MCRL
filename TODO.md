@@ -6,9 +6,9 @@
 - [ ] Resolve the existing League lint errors and generated-file warnings.
 - [ ] Add simple workspace CI for frozen install, typecheck, tests, builds, and
       lint.
-- [ ] Configure deployment roots and build commands for both domains.
-- [ ] Configure a Git remote, push the monorepo, and test both deployed
-      applications before archiving the original repositories.
+- [ ] Configure deployment roots and build commands for League.
+- [ ] Configure a Git remote, push the monorepo, and test the deployed
+      application before archiving the original repositories.
 
 - [ ] Set up seed site url for seed list in leagues
 
@@ -22,12 +22,3 @@
 - [ ] Test the interface against historical data and edge cases.
 - [ ] Track whether `/relegate` was used for a competition and block subsequent
       `/relegate` operations for that competition.
-
-## Seed
-
-- [ ] Add an admin overview showing seed counts and other useful information for
-      each league.
-- [x] Add logging.
-- [x] Add a public page for browsing historical seeds.
-  - [x] Browse seeds by week and league.
-  - [x] Show current-week seeds after they are marked as used.
