@@ -1,5 +1,8 @@
 # Discord bot decisions
 
+The bot code is a migration from the old bot cloned at `.tmp` file under this
+projects root.
+
 Command definitions and handlers stay together because Discord validates the
 registered definition separately from the runtime handler.
 
@@ -18,7 +21,7 @@ History, Attach Files, Manage Roles, and Pin Messages. Pin Messages is distinct
 from Manage Messages. The bot deletes only its own messages, so it does not need
 Manage Messages.
 
-Future local persistence will use Drizzle with SQLite under `apps/bot/src/db`.
-The historical bot's `data.json` is migration evidence, not the new schema. The
-new schema and migration policy must be designed before storage implementation
-starts.
+Local persistence uses Drizzle with Bun's SQLite driver under `apps/bot/src/db`.
+The schema starts empty. Drizzle Kit generates versioned migrations in
+`apps/bot/drizzle`, and deployments apply those migrations explicitly. The
+historical bot's `data.json` is migration evidence, not the new schema.
