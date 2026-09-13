@@ -1,3 +1,4 @@
 import type { BotCommand } from "./command";
+import { pingCommand } from "./ping";
 
-export const commands: readonly BotCommand[] = [];
+export const commands = [pingCommand] satisfies readonly BotCommand[];
