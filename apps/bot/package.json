@@ -1,0 +1,21 @@
+{
+  "name": "@mcrl/bot",
+  "type": "module",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+    "start": "bun src/index.ts",
+    "commands:deploy": "bun src/deploy-commands.ts",
+    "lint": "bun run --cwd ../.. eslint apps/bot --report-unused-disable-directives --max-warnings 0",
+    "format": "bun run --cwd ../.. prettier --write apps/bot",
+    "format:check": "bun run --cwd ../.. prettier --check apps/bot",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "discord.js": "^14.27.0"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:"
+  }
+}

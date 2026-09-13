@@ -14,6 +14,7 @@ export default defineConfig([
     "**/.astro/**",
     "**/coverage/**",
     "**/convex/_generated/**",
+    ".tmp/**",
     "backups/**",
   ]),
   {
@@ -49,9 +50,16 @@ export default defineConfig([
   },
   {
     files: ["apps/**/*.{ts,tsx}"],
+    ignores: ["apps/bot/**"],
     extends: [reactHooks.configs.flat.recommended, reactRefresh.configs.vite],
     languageOptions: {
       globals: globals.browser,
+    },
+  },
+  {
+    files: ["apps/bot/**/*.ts"],
+    languageOptions: {
+      globals: globals.node,
     },
   },
   {
