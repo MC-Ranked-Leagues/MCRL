@@ -2,6 +2,10 @@ export interface BotConfig {
   token: string;
 }
 
+export interface DatabaseConfig {
+  fileName: string;
+}
+
 export interface CommandDeploymentConfig extends BotConfig {
   applicationId: string;
   guildId?: string;
@@ -25,6 +29,14 @@ export function loadBotConfig(
 ): BotConfig {
   return {
     token: requireEnvironmentVariable(environment, "DISCORD_TOKEN"),
+  };
+}
+
+export function loadDatabaseConfig(
+  environment: NodeJS.ProcessEnv = process.env
+): DatabaseConfig {
+  return {
+    fileName: requireEnvironmentVariable(environment, "DB_FILE_NAME"),
   };
 }
 

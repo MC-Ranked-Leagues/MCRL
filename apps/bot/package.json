@@ -7,15 +7,21 @@
     "dev": "bun --watch src/index.ts",
     "start": "bun src/index.ts",
     "commands:deploy": "bun src/deploy-commands.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio",
     "lint": "bun run --cwd ../.. eslint apps/bot --report-unused-disable-directives --max-warnings 0",
     "format": "bun run --cwd ../.. prettier --write apps/bot",
     "format:check": "bun run --cwd ../.. prettier --check apps/bot",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "discord.js": "^14.27.0"
+    "discord.js": "^14.27.0",
+    "drizzle-orm": "^0.45.2"
   },
   "devDependencies": {
-    "@types/node": "catalog:"
+    "@types/bun": "^1.4.2",
+    "@types/node": "catalog:",
+    "drizzle-kit": "^0.31.10"
   }
 }

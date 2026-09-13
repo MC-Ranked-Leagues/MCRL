@@ -12,6 +12,21 @@ bun run dev:bot
 The client requests only the `Guilds` intent. Add another intent only when a
 feature needs the events covered by that intent.
 
+## Database
+
+The bot uses Drizzle with Bun's built-in SQLite driver. Set `DB_FILE_NAME` to
+the SQLite file path. The schema in `src/db/schema.ts` is intentionally empty
+until the bot needs its first table.
+
+After adding a table, generate and apply its migration with:
+
+```sh
+bun run --filter @mcrl/bot db:generate
+bun run --filter @mcrl/bot db:migrate
+```
+
+Run `bun run --filter @mcrl/bot db:studio` to inspect the local database.
+
 ## Add commands
 
 Put each command definition and handler together in its own file under
@@ -36,5 +51,5 @@ script exits without changing Discord when the registry is empty.
 - `src/commands` holds the command contract, registry, and future command files.
 - `src/deploy-commands.ts` registers command definitions through Discord's REST
   API.
-- `src/db` is reserved for the future Drizzle and SQLite implementation.
+- `src/db` contains the Drizzle client and SQLite schema.
 - `src/lib` is reserved for helpers shared by multiple bot modules.

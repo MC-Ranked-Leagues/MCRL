@@ -4,6 +4,7 @@
 **/.astro/**
 **/coverage/**
 **/convex/_generated/**
+**/drizzle/meta/**
 **/public/**
 **/scripts/data/**
 **/tests/data/**

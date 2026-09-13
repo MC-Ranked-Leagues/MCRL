@@ -3,8 +3,7 @@
   "compilerOptions": {
     "target": "ES2023",
     "lib": ["ES2023"],
-    "types": ["node"],
-    "rootDir": "src"
+    "types": ["bun", "node"]
   },
-  "include": ["src"]
+  "include": ["src", "drizzle.config.ts"]
 }
