@@ -18,9 +18,20 @@ needs it.
 ## Configure Discord
 
 Stable guild, role, channel, and league settings live in `config/guilds.ts`.
-Each league has a public information channel and a default competition time
-limit. `/nm` can run in any channel and sends its public message to the selected
-league's information channel.
+Each league has `infoChannelId`, `chatChannelId`, `leagueRoleId`, and a default
+competition time limit. Configure these IDs for your server.
+
+- `/nm week` starts a competition for the league associated with the current info
+  or chat channel. Each league can have only one active competition.
+- `/assign user league` replaces the user's configured league roles with the
+  destination league role. It can run in any server channel.
+- `/toggle_registration` flips registration for the current channel's league.
+- `/dm` deletes that league's active competition and all its registrations,
+  matches, and results after the requester confirms within 60 seconds.
+
+All four commands require the configured command role. Competition and
+registration announcements go to the league's information channel.
+League 7 is special and sits outside the League 1–6 promotion/relegation range.
 
 After every slash command finishes or fails, the bot sends the actor, invocation
 channel, command text, and timestamp to the guild's configured log channel.
@@ -33,6 +44,13 @@ file path, then apply pending migrations with:
 ```sh
 bun run bot:migrate
 ```
+
+Migration `0002` enforces one active competition per guild and league. If an
+existing database contains multiple active weeks for a league, resolve those
+records before applying it. The migration fails rather than discarding data.
+
+Run the bot's database tests with `bun run --filter @mcrl/bot test`. They apply
+migrations to an in-memory database.
 
 After changing `src/db/schema.ts`, generate and apply a migration:
 

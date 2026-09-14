@@ -14,6 +14,7 @@
     "lint": "bun run --cwd ../.. eslint apps/bot --report-unused-disable-directives --max-warnings 0",
     "format": "bun run --cwd ../.. prettier --write apps/bot",
     "format:check": "bun run --cwd ../.. prettier --check apps/bot",
+    "test": "bun test src",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {

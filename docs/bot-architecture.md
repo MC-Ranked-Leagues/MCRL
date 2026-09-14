@@ -23,16 +23,15 @@ History, Attach Files, Manage Roles, and Pin Messages. Pin Messages is distinct
 from Manage Messages. The bot deletes only its own messages, so it does not need
 Manage Messages.
 
-Stable Discord configuration lives in `apps/bot/config/guilds.ts`. Each guild
-configures its command role and command-log channel, while each league configures
-its public information channel and default time limit. Runtime code reads this
-file directly. Commands can run in any channel and resolve their public output
-channel through the invoking guild and requested league.
+Stable Discord configuration lives in `apps/bot/config/guilds.ts`. Role IDs keep
+league assignment independent of Discord role names.
+
+League 7 is special. Future promotion and relegation must stay within Leagues 1–6;
+League 6 remains the relegation boundary.
 
 Local persistence uses Drizzle with Bun's SQLite driver under `apps/bot/src/db`.
-Competitions and future tournament state live in SQLite. Competitions are unique
-by guild, league, and week. Each competition copies the configured time limit
-when it starts so later default changes do not rewrite history.
+Competitions and future tournament state live in SQLite. Each competition copies
+the configured time limit when it starts so later default changes do not rewrite history.
 
 After every slash command finishes or fails, the bot sends the actor, invocation
 channel, rendered command, and Discord interaction timestamp to the invoking

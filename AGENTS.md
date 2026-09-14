@@ -14,13 +14,22 @@ makes a requested change harder or impossible.
 
 ## Code quality
 
-Prefer direct implementations. Avoid abstractions and React components used only
-once. Keep one React component per file unless closely related helpers are
+This repository is primarily maintained by humans. Keep code simple and easy to
+follow; choose direct implementations over extra layers or speculative flexibility.
+Avoid abstractions and React components used only once. Keep one React component per file unless closely related helpers are
 clearer beside it. Put reusable helpers in the relevant application's `lib`
 directory, reuse existing UI patterns, and keep implementation details behind
 deliberate module interfaces.
 
+Add concise comments where important or complex logic is hard to follow, including
+in tests. Explain intent, ordering constraints, or non-obvious setup and scenarios;
+leave straightforward code uncommented.
+
 ## Architecture and imports
+
+Keep architecture notes focused on rationale, constraints, and decisions that
+are not immediately apparent from the code. Omit descriptions that merely
+restate implementation details.
 
 `apps/web` is the public Astro and React application. `backend` is the shared
 Convex workspace for the public website and future admin and bot applications.
