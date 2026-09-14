@@ -41,3 +41,26 @@ result.
 Drizzle Kit generates versioned migrations in `apps/bot/drizzle`, and
 deployments apply those migrations explicitly. The historical bot's `data.json`
 is migration evidence, not the new schema.
+
+## Message lifecycle
+
+Registration messages stay separate from leaderboards so hosts control public
+announcements. Registration changes edit the tracked registration messages in place.
+When implemented, `/import` replaces only the previous leaderboard messages.
+Weekly cleanup preserves old registration and leaderboard messages in Discord.
+
+## Planned player and weekly lifecycle
+
+The event must work without reading Convex. Persistent players will link a Discord
+ID to multiple Minecraft accounts and a default Twitch; admins can link accounts
+manually. Registrations retain the account used for that competition.
+
+Keep only the latest three placements on each player, tagged with week and league.
+The rolling average uses their last three placements regardless of age, rather
+than three consecutive weeks. There will be no separate local results-history
+table; Convex retains published history. A future `/past` shows the retained three.
+
+Future guild-wide `/relegate` finalizes movements, advances a stored guild week,
+and cleans up completed competition data while preserving players and their three
+placements. `/nm` will use that stored week instead of a host-supplied number.
+Keep `/dm` as temporary cleanup until `/relegate` is implemented, then remove it.

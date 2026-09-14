@@ -8,8 +8,8 @@ import {
   requireCommandGuild,
   requireChannelLeague,
 } from "../lib/command-context";
-import { startCompetition } from "../db/competitions";
-import { formatDuration } from "../lib/time";
+import { getActiveCompetition, startCompetition } from "../db/competitions";
+import { updateRegistrationMessages } from "../lib/registration-messages";
 import type { BotCommand } from "./command";
 
 export const nmCommand = {
@@ -60,19 +60,20 @@ export const nmCommand = {
       return;
     }
 
+    const competition = getActiveCompetition(
+      interaction.guildId,
+      leagueNumber
+    )!;
     try {
-      await channel.send(
-        [
-          `Started the competition for **League ${leagueNumber}, Week ${weekNumber}**.`,
-          "Registration is closed.",
-          `Time limit: **${formatDuration(league.maxTimeLimitMs)}**.`,
-        ].join("\n")
-      );
+      await updateRegistrationMessages(channel, competition.id);
     } catch (error) {
-      // Creating the competition succeeds even if its announcement fails.
-      console.error("Competition created, but its announcement failed.", error);
+      // Keep the competition; a later registration update can retry the message.
+      console.error(
+        "Competition created, but its registration message failed.",
+        error
+      );
       await interaction.editReply(
-        `League ${leagueNumber}, Week ${weekNumber} was created, but I could not announce it in <#${league.infoChannelId}>.`
+        `League ${leagueNumber}, Week ${weekNumber} was created, but I could not post its registration message in <#${league.infoChannelId}>. /toggle_registration will retry the message when changing registration status.`
       );
       return;
     }

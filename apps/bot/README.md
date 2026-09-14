@@ -29,8 +29,9 @@ competition time limit. Configure these IDs for your server.
 - `/dm` deletes that league's active competition and all its registrations,
   matches, and results after the requester confirms within 60 seconds.
 
-All four commands require the configured command role. Competition and
-registration announcements go to the league's information channel.
+All four commands require the configured command role. `/nm` creates the tracked
+registration list in the information channel;
+`/toggle_registration` edits its status without posting an announcement.
 League 7 is special and sits outside the League 1–6 promotion/relegation range.
 
 After every slash command finishes or fails, the bot sends the actor, invocation
