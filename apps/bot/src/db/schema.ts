@@ -22,6 +22,10 @@ export const competitions = sqliteTable(
     registrationOpen: integer("registration_open", { mode: "boolean" })
       .notNull()
       .default(false),
+    registrationMessageIds: text("registration_message_ids", { mode: "json" })
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'`),
     maxTimeLimitMs: integer("max_time_limit_ms").notNull(),
     startedAt: integer("started_at", { mode: "timestamp_ms" }).notNull(),
     endedAt: integer("ended_at", { mode: "timestamp_ms" }),

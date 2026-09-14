@@ -1,7 +1,7 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 
 import { getDatabase } from ".";
-import { competitions } from "./schema";
+import { competitions, registrations } from "./schema";
 
 interface StartCompetitionInput {
   guildId: string;
@@ -72,4 +72,32 @@ export function deleteActiveCompetition(
       .returning({ id: competitions.id })
       .get() !== undefined
   );
+}
+
+export function getCompetitionRegistration(competitionId: number) {
+  const database = getDatabase();
+  const competition = database
+    .select()
+    .from(competitions)
+    .where(eq(competitions.id, competitionId))
+    .get();
+  if (!competition) return;
+  const players = database
+    .select()
+    .from(registrations)
+    .where(eq(registrations.competitionId, competitionId))
+    .orderBy(asc(registrations.registeredAt), asc(registrations.id))
+    .all();
+  return { competition, players };
+}
+
+export function saveRegistrationMessageIds(
+  competitionId: number,
+  messageIds: string[]
+) {
+  getDatabase()
+    .update(competitions)
+    .set({ registrationMessageIds: messageIds })
+    .where(eq(competitions.id, competitionId))
+    .run();
 }

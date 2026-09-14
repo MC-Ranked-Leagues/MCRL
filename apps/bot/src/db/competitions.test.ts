@@ -1,4 +1,6 @@
 import { afterAll, beforeEach, expect, test } from "bun:test";
+import type { SendableChannels } from "discord.js";
+import { updateRegistrationMessages } from "../lib/registration-messages";
 import { eq } from "drizzle-orm";
 
 import { applyDatabaseMigrations } from "../../scripts/migrate-database";
@@ -109,4 +111,100 @@ test("an ended competition cannot be deleted through an active-competition confi
     .where(eq(competitions.id, active.id))
     .run();
   expect(deleteActiveCompetition(input.guildId, active.id)).toBe(false);
+});
+
+// Only emulate the Discord methods the updater uses; all persistence uses real SQLite.
+function registrationChannel() {
+  const messages = new Map<string, string>();
+  let nextId = 1;
+  const channel = {
+    async send({ content }: { content: string }) {
+      const id = String(nextId++);
+      messages.set(id, content);
+      return { id };
+    },
+    messages: {
+      async fetch(id: string) {
+        if (!messages.has(id)) throw new Error("Unexpected message ID");
+        return {
+          async edit({ content }: { content: string }) {
+            messages.set(id, content);
+          },
+          async delete() {
+            messages.delete(id);
+          },
+        };
+      },
+    },
+  };
+  return { channel: channel as unknown as SendableChannels, messages };
+}
+
+test("registration toggles edit tracked messages and cleanup preserves Discord history", async () => {
+  startCompetition(input);
+  const active = getActiveCompetition(input.guildId, 5)!;
+  const { channel, messages } = registrationChannel();
+  expect(active.registrationMessageIds).toEqual([]);
+  await updateRegistrationMessages(channel, active.id);
+  const ids = getActiveCompetition(input.guildId, 5)!.registrationMessageIds;
+  expect(ids).toHaveLength(1);
+  expect(messages.get(ids[0]!)).toContain("Registration: **off**");
+  toggleRegistration(input.guildId, 5);
+  await updateRegistrationMessages(channel, active.id);
+  expect(
+    getActiveCompetition(input.guildId, 5)!.registrationMessageIds
+  ).toEqual(ids);
+  expect(messages.size).toBe(1);
+  expect(messages.get(ids[0]!)).toContain("Registration: **on**");
+
+  // A replacement competition gets its own list; the old week's messages remain.
+  deleteActiveCompetition(input.guildId, active.id);
+  startCompetition(input);
+  await updateRegistrationMessages(
+    channel,
+    getActiveCompetition(input.guildId, 5)!.id
+  );
+  expect(messages.size).toBe(2);
+  expect(messages.has(ids[0]!)).toBe(true);
+});
+
+test("overlapping updates share message IDs and long registrations use tracked overflow", async () => {
+  startCompetition(input);
+  const active = getActiveCompetition(input.guildId, 5)!;
+  for (let i = 0; i < 100; i++) {
+    database
+      .insert(registrations)
+      .values({
+        competitionId: active.id,
+        discordUserId: `user-${i}`,
+        discordUsername: `discord-player-${i}`,
+        minecraftUuid: `uuid-${i}`,
+        ign: `minecraft-${i}`,
+        registeredAt: new Date(),
+      })
+      .run();
+  }
+  const { channel, messages } = registrationChannel();
+  await Promise.all([
+    updateRegistrationMessages(channel, active.id),
+    updateRegistrationMessages(channel, active.id),
+  ]);
+  const ids = getActiveCompetition(input.guildId, 5)!.registrationMessageIds;
+  expect(ids.length).toBeGreaterThan(1);
+  expect(messages.size).toBe(ids.length);
+  expect(
+    [...messages.values()].every((content) => content.length <= 2000)
+  ).toBe(true);
+  expect([...messages.values()].join("\n")).toContain("100.");
+
+  // Shrinking the list removes only surplus chunks, retaining the first message.
+  database
+    .delete(registrations)
+    .where(eq(registrations.competitionId, active.id))
+    .run();
+  await updateRegistrationMessages(channel, active.id);
+  expect(
+    getActiveCompetition(input.guildId, 5)!.registrationMessageIds
+  ).toEqual([ids[0]!]);
+  expect(messages.size).toBe(1);
 });

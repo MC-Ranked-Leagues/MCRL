@@ -4,6 +4,7 @@ import {
   SlashCommandBuilder,
 } from "discord.js";
 
+import { updateRegistrationMessages } from "../lib/registration-messages";
 import { toggleRegistration } from "../db/competitions";
 import {
   requireChannelLeague,
@@ -42,14 +43,14 @@ export const toggleRegistrationCommand = {
       );
       if (!channel?.isSendable())
         throw new Error("Information channel cannot receive messages.");
-      await channel.send(content);
+      await updateRegistrationMessages(channel, competition.id);
     } catch (error) {
       console.error(
-        "Registration changed, but its announcement failed.",
+        "Registration changed, but its registration message could not be updated.",
         error
       );
       await interaction.editReply(
-        `${content} I could not announce it in <#${context.league.infoChannelId}>.`
+        `${content} I could not update its registration message in <#${context.league.infoChannelId}>.`
       );
       return;
     }

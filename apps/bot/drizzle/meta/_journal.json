@@ -22,6 +22,13 @@
       "when": 1789399290828,
       "tag": "0002_unique_black_bolt",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1789404564574,
+      "tag": "0003_wet_anita_blake",
+      "breakpoints": true
     }
   ]
 }
