@@ -5,5 +5,5 @@ import type {
 
 export interface BotCommand {
   data: Pick<SlashCommandBuilder, "name" | "toJSON">;
-  execute(interaction: ChatInputCommandInteraction): Promise<void>;
+  execute(interaction: ChatInputCommandInteraction<"cached">): Promise<void>;
 }

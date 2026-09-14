@@ -36,6 +36,8 @@
     "dev:bot": "bun run --filter @mcrl/bot dev",
     "start:bot": "bun run --filter @mcrl/bot start",
     "bot:deploy": "bun run --filter @mcrl/bot commands:deploy",
+    "bot:migrate": "bun run --filter @mcrl/bot db:migrate",
+    "bot:reset": "bun run --filter @mcrl/bot db:reset",
     "dev:web": "bun run --filter @mcrl/web dev",
     "dev:backend": "bun run --filter @mcrl/backend dev",
     "typecheck": "bun run --parallel --no-exit-on-error typecheck:workspaces typecheck:scripts",

@@ -5,5 +5,5 @@
     "lib": ["ES2023"],
     "types": ["bun", "node"]
   },
-  "include": ["src", "drizzle.config.ts"]
+  "include": ["src", "scripts", "config"]
 }
