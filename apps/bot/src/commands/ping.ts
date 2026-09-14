@@ -1,7 +1,6 @@
 import {
   ApplicationIntegrationType,
   InteractionContextType,
-  MessageFlags,
   SlashCommandBuilder,
 } from "discord.js";
 
@@ -15,9 +14,6 @@ export const pingCommand = {
     .setContexts(InteractionContextType.Guild),
 
   async execute(interaction) {
-    await interaction.reply({
-      content: "Pong!",
-      flags: MessageFlags.Ephemeral,
-    });
+    await interaction.editReply("Pong!");
   },
 } satisfies BotCommand;

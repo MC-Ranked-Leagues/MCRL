@@ -65,3 +65,8 @@ Before changing `apps/bot`, read the
 [Discord bot architecture](docs/bot-architecture.md). It explains the runtime,
 command layout, deployment boundary, required permissions, and planned
 persistence choices. Update it when one of those decisions changes.
+
+Never leave a bot instance or other long-running process active after agent
+work. Agents may start one for bounded verification, but must stop it and clean
+up any stale process lock before yielding. Only the I may choose what to leave
+running.

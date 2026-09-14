@@ -1,6 +1,5 @@
 import {
   Client,
-  Collection,
   Events,
   GatewayIntentBits,
   MessageFlags,
@@ -8,71 +7,62 @@ import {
 } from "discord.js";
 
 import { commands } from "./commands";
-import type { BotCommand } from "./commands/command";
+import { sendCommandLog } from "./lib/command-logging";
 
-async function handleInteraction(
-  interaction: Interaction,
-  registry: ReadonlyMap<string, BotCommand>
-): Promise<void> {
+async function handleInteraction(interaction: Interaction): Promise<void> {
   if (!interaction.isChatInputCommand()) {
     return;
   }
 
-  const command = registry.get(interaction.commandName);
-
-  if (!command) {
+  if (!interaction.inCachedGuild()) {
     await interaction.reply({
-      content: "This command is unavailable.",
+      content: "This command requires a server the bot is connected to.",
       flags: MessageFlags.Ephemeral,
     });
     return;
   }
 
+  // Handlers edit this private reply instead of managing acknowledgement themselves.
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
   try {
+    const command = commands.find(
+      (candidate) => candidate.data.name === interaction.commandName
+    );
+
+    if (!command) {
+      await interaction.editReply("This command is unavailable.");
+      return;
+    }
+
     await command.execute(interaction);
   } catch (error) {
     console.error(`Command /${interaction.commandName} failed.`, error);
-
-    const response = {
-      content: "The command could not be completed.",
-      flags: MessageFlags.Ephemeral,
-    } as const;
-
-    if (interaction.replied || interaction.deferred) {
-      await interaction.followUp(response);
-    } else {
-      await interaction.reply(response);
-    }
-  }
-}
-
-export function createBotClient(): Client {
-  const client = new Client({
-    intents: [GatewayIntentBits.Guilds],
-  });
-  const registry = new Collection<string, BotCommand>();
-
-  for (const command of commands) {
-    if (registry.has(command.data.name)) {
-      throw new Error(`Duplicate command: ${command.data.name}`);
-    }
-
-    registry.set(command.data.name, command);
-  }
-
-  client.once(Events.ClientReady, (readyClient) => {
-    console.info(`Discord bot connected as ${readyClient.user.tag}.`);
-  });
-
-  client.on(Events.InteractionCreate, (interaction) => {
-    void handleInteraction(interaction, registry).catch((error: unknown) => {
-      console.error("Failed to handle a Discord interaction.", error);
+    await interaction.editReply("The command could not be completed.");
+  } finally {
+    await sendCommandLog(interaction).catch((error: unknown) => {
+      console.error(
+        `Failed to log command /${interaction.commandName}.`,
+        error
+      );
     });
-  });
-
-  client.on(Events.Error, (error) => {
-    console.error("Discord client error.", error);
-  });
-
-  return client;
+  }
 }
+
+export const client = new Client({
+  intents: [GatewayIntentBits.Guilds],
+});
+
+client.once(Events.ClientReady, (readyClient) => {
+  console.info(`Discord bot connected as ${readyClient.user.tag}.`);
+});
+
+client.on(Events.InteractionCreate, (interaction) => {
+  void handleInteraction(interaction).catch((error: unknown) => {
+    console.error("Failed to handle a Discord interaction.", error);
+  });
+});
+
+client.on(Events.Error, (error) => {
+  console.error("Discord client error.", error);
+});
