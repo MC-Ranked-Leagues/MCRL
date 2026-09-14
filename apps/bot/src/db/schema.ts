@@ -32,6 +32,9 @@ export const competitions = sqliteTable(
       table.leagueNumber,
       table.weekNumber
     ),
+    uniqueIndex("competitions_guild_league_active_unique")
+      .on(table.guildId, table.leagueNumber)
+      .where(sql`${table.status} = 'active'`),
     check("competitions_week_number_positive", sql`${table.weekNumber} > 0`),
     check(
       "competitions_max_time_limit_ms_positive",

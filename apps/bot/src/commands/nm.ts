@@ -4,7 +4,10 @@ import {
   SlashCommandBuilder,
 } from "discord.js";
 
-import { guildConfiguration } from "../../config/guilds";
+import {
+  requireCommandGuild,
+  requireChannelLeague,
+} from "../lib/command-context";
 import { startCompetition } from "../db/competitions";
 import { formatDuration } from "../lib/time";
 import type { BotCommand } from "./command";
@@ -13,13 +16,6 @@ export const nmCommand = {
   data: new SlashCommandBuilder()
     .setName("nm")
     .setDescription("Start a new competition.")
-    .addIntegerOption((option) =>
-      option
-        .setName("league")
-        .setDescription("League number.")
-        .setRequired(true)
-        .setMinValue(1)
-    )
     .addIntegerOption((option) =>
       option
         .setName("week")
@@ -31,30 +27,12 @@ export const nmCommand = {
     .setContexts(InteractionContextType.Guild),
 
   async execute(interaction) {
-    const guild = guildConfiguration[interaction.guildId];
-
-    if (!guild) {
-      await interaction.editReply("This server is not configured.");
-      return;
-    }
-
-    if (!interaction.member.roles.cache.has(guild.commandRoleId)) {
-      await interaction.editReply(
-        "You do not have the required role to start a competition."
-      );
-      return;
-    }
-
-    const leagueNumber = interaction.options.getInteger("league", true);
+    const guild = await requireCommandGuild(interaction);
+    if (!guild) return;
+    const context = await requireChannelLeague(interaction, guild);
+    if (!context) return;
+    const { leagueNumber, league } = context;
     const weekNumber = interaction.options.getInteger("week", true);
-    const league = guild.leagues[leagueNumber];
-
-    if (!league) {
-      await interaction.editReply(
-        `League ${leagueNumber} is not configured for this server.`
-      );
-      return;
-    }
 
     const channel = await interaction.guild.channels.fetch(
       league.infoChannelId
@@ -77,7 +55,7 @@ export const nmCommand = {
 
     if (!created) {
       await interaction.editReply(
-        `Competition for League ${leagueNumber}, Week ${weekNumber} already exists in this server.`
+        `League ${leagueNumber} already has an active competition, or Week ${weekNumber} already exists.`
       );
       return;
     }
