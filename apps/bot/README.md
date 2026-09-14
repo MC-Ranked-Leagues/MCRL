@@ -23,13 +23,16 @@ competition time limit. Configure these IDs for your server.
 
 - `/nm week` starts a competition for the league associated with the current info
   or chat channel. Each league can have only one active competition.
+- `/reg` registers your Discord-linked MCSR Ranked account in the current league
+  and updates its registration list. Registration must be open, and you need the
+  league role or the command role.
 - `/assign user league` replaces the user's configured league roles with the
   destination league role. It can run in any server channel.
 - `/toggle_registration` flips registration for the current channel's league.
 - `/dm` deletes that league's active competition and all its registrations,
   matches, and results after the requester confirms within 60 seconds.
 
-All four commands require the configured command role. `/nm` creates the tracked
+Host commands require the configured command role. `/nm` creates the tracked
 registration list in the information channel;
 `/toggle_registration` edits its status without posting an announcement.
 League 7 is special and sits outside the League 1–6 promotion/relegation range.
