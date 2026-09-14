@@ -18,7 +18,7 @@ export function formatRegistrationMessages({
 }: Registration): string[] {
   const lines = [
     `**League ${competition.leagueNumber}, Week ${competition.weekNumber} Registration**`,
-    `Registration: **${competition.registrationOpen ? "on" : "off"}**`,
+    `Registration: **${competition.registrationOpen ? "ON" : "OFF"}**`,
     `Time limit: **${formatDuration(competition.maxTimeLimitMs)}**`,
     "",
     ...players.map(

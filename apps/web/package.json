@@ -28,7 +28,7 @@
     "convex": "catalog:",
     "echarts": "^6.1.0",
     "lucide-react": "catalog:",
-    "mcsrranked-sdk": "^0.1.1",
+    "mcsrranked-sdk": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
     "tailwind-merge": "catalog:",

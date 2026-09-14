@@ -1,3 +1,4 @@
+import { registerPlayer } from "./registrations";
 import { afterAll, beforeEach, expect, test } from "bun:test";
 import type { SendableChannels } from "discord.js";
 import { updateRegistrationMessages } from "../lib/registration-messages";
@@ -207,4 +208,66 @@ test("overlapping updates share message IDs and long registrations use tracked o
     getActiveCompetition(input.guildId, 5)!.registrationMessageIds
   ).toEqual([ids[0]!]);
   expect(messages.size).toBe(1);
+});
+
+test("registration saves the account snapshot and rejects duplicate users and accounts", () => {
+  startCompetition(input);
+  toggleRegistration(input.guildId, 5);
+  const active = getActiveCompetition(input.guildId, 5)!;
+  const player = {
+    competitionId: active.id,
+    discordUserId: "discord-1",
+    discordUsername: "player",
+    minecraftUuid: "minecraft-1",
+    ign: "MinecraftPlayer",
+    elo: null,
+    registeredAt: new Date(),
+  };
+  expect(registerPlayer(player)).toBe("registered");
+  expect(registerPlayer({ ...player, minecraftUuid: "another-account" })).toBe(
+    "already_registered"
+  );
+  expect(registerPlayer({ ...player, discordUserId: "another-user" })).toBe(
+    "account_registered"
+  );
+  const saved = database.select().from(registrations).all();
+  expect(saved).toHaveLength(1);
+  expect(saved[0]).toMatchObject({
+    minecraftUuid: "minecraft-1",
+    ign: "MinecraftPlayer",
+    elo: null,
+  });
+});
+
+test("registration rechecks closure and never switches to a replacement competition after an API lookup", () => {
+  startCompetition(input);
+  const active = getActiveCompetition(input.guildId, 5)!;
+  const player = {
+    competitionId: active.id,
+    discordUserId: "discord-1",
+    discordUsername: "player",
+    minecraftUuid: "minecraft-1",
+    ign: "MinecraftPlayer",
+    elo: 1500,
+    registeredAt: new Date(),
+  };
+  expect(registerPlayer(player)).toBe("closed");
+  toggleRegistration(input.guildId, 5);
+  // Simulate a host closing registration while the command awaits the Ranked API.
+  toggleRegistration(input.guildId, 5);
+  expect(registerPlayer(player)).toBe("closed");
+  deleteActiveCompetition(input.guildId, active.id);
+  startCompetition({ ...input, weekNumber: 2 });
+  toggleRegistration(input.guildId, 5);
+  expect(registerPlayer(player)).toBe("inactive");
+  expect(database.select().from(registrations).all()).toHaveLength(0);
+  const replacement = getActiveCompetition(input.guildId, 5)!;
+  database
+    .update(competitions)
+    .set({ status: "ended" })
+    .where(eq(competitions.id, replacement.id))
+    .run();
+  expect(registerPlayer({ ...player, competitionId: replacement.id })).toBe(
+    "inactive"
+  );
 });

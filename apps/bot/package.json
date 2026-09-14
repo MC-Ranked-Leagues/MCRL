@@ -18,6 +18,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "mcsrranked-sdk": "catalog:",
     "discord.js": "^14.27.0",
     "drizzle-orm": "^0.45.2"
   },

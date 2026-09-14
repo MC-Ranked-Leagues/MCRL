@@ -1,3 +1,4 @@
+import { regCommand } from "./reg";
 import { assignCommand } from "./assign";
 import { dmCommand } from "./dm";
 import { toggleRegistrationCommand } from "./toggle-registration";
@@ -8,6 +9,7 @@ import { pingCommand } from "./ping";
 export const commands = [
   pingCommand,
   nmCommand,
+  regCommand,
   assignCommand,
   toggleRegistrationCommand,
   dmCommand,

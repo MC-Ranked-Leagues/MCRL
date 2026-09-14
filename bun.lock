@@ -25,6 +25,7 @@
       "dependencies": {
         "discord.js": "^14.27.0",
         "drizzle-orm": "^0.45.2",
+        "mcsrranked-sdk": "catalog:",
       },
       "devDependencies": {
         "@types/bun": "^1.4.2",
@@ -48,7 +49,7 @@
         "convex": "catalog:",
         "echarts": "^6.1.0",
         "lucide-react": "catalog:",
-        "mcsrranked-sdk": "^0.1.1",
+        "mcsrranked-sdk": "catalog:",
         "react": "catalog:",
         "react-dom": "catalog:",
         "tailwind-merge": "catalog:",
@@ -94,6 +95,7 @@
     "clsx": "^2.1.1",
     "convex": "^1.35.1",
     "lucide-react": "^1.8.0",
+    "mcsrranked-sdk": "^0.1.1",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "shadcn": "^4.2.0",
