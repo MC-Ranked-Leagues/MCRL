@@ -25,9 +25,13 @@ competition time limit. Configure these IDs for your server.
   or chat channel. Each league can have only one active competition.
 - `/reg` registers your Discord-linked MCSR Ranked account in the current league
   and updates its registration list. Registration must be open, and you need the
-  league role or the command role.
+  league role or the command role. The list sorts by descending peak Elo, with
+  Minecraft name breaking ties. Peak Elo is captured from the Ranked profile's
+  current-season high at registration. Older registrations or profiles without
+  a peak use saved current Elo as a fallback; unrated players appear last.
 - `/assign user league` replaces the user's configured league roles with the
-  destination league role. It can run in any server channel.
+  destination league role. It can run in any server channel and assign any
+  configured league, regardless of automatic promotion or relegation rules.
 - `/toggle_registration` flips registration for the current channel's league.
 - `/dm` deletes that league's active competition and all its registrations,
   matches, and results after the requester confirms within 60 seconds.
@@ -52,6 +56,10 @@ bun run bot:migrate
 Migration `0002` enforces one active competition per guild and league. If an
 existing database contains multiple active weeks for a league, resolve those
 records before applying it. The migration fails rather than discarding data.
+
+Migration `0004` adds the nullable registration peak-Elo snapshot. Apply it before
+running the updated bot. Existing registrations retain their current Elo and
+use it for ordering until a new registration captures a peak.
 
 Run the bot's database tests with `bun run --filter @mcrl/bot test`. They apply
 migrations to an in-memory database.

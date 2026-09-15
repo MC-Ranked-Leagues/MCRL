@@ -78,6 +78,7 @@ export const regCommand = {
       minecraftUuid: profile.uuid,
       ign: profile.nickname,
       elo: profile.eloRate,
+      peakElo: profile.seasonResult.highest,
       registeredAt: new Date(),
     });
     if (result !== "registered") {

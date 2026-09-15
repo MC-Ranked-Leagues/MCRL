@@ -1,4 +1,4 @@
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, sql } from "drizzle-orm";
 
 import { getDatabase } from ".";
 import { competitions, registrations } from "./schema";
@@ -86,7 +86,12 @@ export function getCompetitionRegistration(competitionId: number) {
     .select()
     .from(registrations)
     .where(eq(registrations.competitionId, competitionId))
-    .orderBy(asc(registrations.registeredAt), asc(registrations.id))
+    // Older registrations have no peak snapshot; use their saved Elo until re-registration.
+    .orderBy(
+      desc(sql`coalesce(${registrations.peakElo}, ${registrations.elo})`),
+      asc(registrations.ign),
+      asc(registrations.id)
+    )
     .all();
   return { competition, players };
 }
