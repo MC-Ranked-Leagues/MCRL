@@ -1,3 +1,6 @@
+import { adminRegCommand } from "./admin-reg";
+import { adminUnregCommand } from "./admin-unreg";
+import { unregCommand } from "./unreg";
 import { regCommand } from "./reg";
 import { assignCommand } from "./assign";
 import { dmCommand } from "./dm";
@@ -10,6 +13,9 @@ export const commands = [
   pingCommand,
   nmCommand,
   regCommand,
+  adminRegCommand,
+  unregCommand,
+  adminUnregCommand,
   assignCommand,
   toggleRegistrationCommand,
   dmCommand,
