@@ -1,4 +1,4 @@
-import { registerPlayer } from "./registrations";
+import { registerPlayer, unregisterPlayer } from "./registrations";
 import { afterAll, beforeEach, expect, test } from "bun:test";
 import type { SendableChannels } from "discord.js";
 import { updateRegistrationMessages } from "../lib/registration-messages";
@@ -312,5 +312,121 @@ test("registration rechecks closure and never switches to a replacement competit
     .run();
   expect(registerPlayer({ ...player, competitionId: replacement.id })).toBe(
     "inactive"
+  );
+});
+
+test("admin registration bypasses closure but retains duplicate and active competition checks", () => {
+  startCompetition(input);
+  const active = getActiveCompetition(input.guildId, 5)!;
+  const player = {
+    competitionId: active.id,
+    discordUserId: "user",
+    discordUsername: "player",
+    minecraftUuid: "uuid",
+    ign: "Player",
+    registeredAt: new Date(),
+  };
+  expect(registerPlayer(player)).toBe("closed");
+  expect(registerPlayer(player, { bypassClosure: true })).toBe("registered");
+  expect(registerPlayer(player, { bypassClosure: true })).toBe(
+    "already_registered"
+  );
+  expect(
+    registerPlayer(
+      { ...player, discordUserId: "other" },
+      { bypassClosure: true }
+    )
+  ).toBe("account_registered");
+  database
+    .update(competitions)
+    .set({ status: "ended" })
+    .where(eq(competitions.id, active.id))
+    .run();
+  expect(registerPlayer(player, { bypassClosure: true })).toBe("inactive");
+  expect(unregisterPlayer(active.id, "user", { admin: true }).status).toBe(
+    "inactive"
+  );
+});
+
+test("self unregistration requires open registration and preserves registrations in other competitions", async () => {
+  startCompetition(input);
+  startCompetition({ ...input, leagueNumber: 6 });
+  const active = getActiveCompetition(input.guildId, 5)!;
+  const other = getActiveCompetition(input.guildId, 6)!;
+  for (const competitionId of [active.id, other.id]) {
+    registerPlayer(
+      {
+        competitionId,
+        discordUserId: "user",
+        discordUsername: "player",
+        minecraftUuid: "uuid",
+        ign: "Player",
+        registeredAt: new Date(),
+      },
+      { bypassClosure: true }
+    );
+  }
+  expect(unregisterPlayer(active.id, "unknown").status).toBe("not_registered");
+  expect(unregisterPlayer(active.id, "user").status).toBe("closed");
+  toggleRegistration(input.guildId, 5);
+  const { channel, messages } = registrationChannel();
+  await updateRegistrationMessages(channel, active.id);
+  expect(unregisterPlayer(active.id, "user")).toEqual({
+    status: "unregistered",
+    ign: "Player",
+  });
+  await updateRegistrationMessages(channel, active.id);
+  expect([...messages.values()].join("\n")).toContain(
+    "No registered players yet."
+  );
+  expect(getCompetitionRegistration(other.id)!.players).toHaveLength(1);
+  expect(unregisterPlayer(active.id, "user").status).toBe("not_registered");
+  expect(unregisterPlayer(other.id, "user", { admin: true }).status).toBe(
+    "unregistered"
+  );
+});
+
+test("imported results block self removal, while admin removal cascades only the target player's results", () => {
+  startCompetition(input);
+  toggleRegistration(input.guildId, 5);
+  const active = getActiveCompetition(input.guildId, 5)!;
+  for (const discordUserId of ["user", "other"]) {
+    registerPlayer({
+      competitionId: active.id,
+      discordUserId,
+      discordUsername: discordUserId,
+      minecraftUuid: discordUserId,
+      ign: discordUserId,
+      registeredAt: new Date(),
+    });
+  }
+  const players = getCompetitionRegistration(active.id)!.players;
+  const match = database
+    .insert(matches)
+    .values({
+      competitionId: active.id,
+      number: 1,
+      participantCount: 2,
+      timeLimitMs: 1000,
+      imported: true,
+      createdAt: new Date(),
+    })
+    .returning()
+    .get();
+  // A DNF still counts as an imported result and must not let a player erase it.
+  for (const player of players)
+    database
+      .insert(matchResults)
+      .values({ matchId: match.id, registrationId: player.id, status: "dnf" })
+      .run();
+  expect(unregisterPlayer(active.id, "user").status).toBe("has_results");
+  expect(database.select().from(matchResults).all()).toHaveLength(2);
+  expect(unregisterPlayer(active.id, "user", { admin: true }).status).toBe(
+    "unregistered"
+  );
+  expect(database.select().from(matchResults).all()).toHaveLength(1);
+  expect(database.select().from(matches).all()).toHaveLength(1);
+  expect(getCompetitionRegistration(active.id)!.players[0]!.discordUserId).toBe(
+    "other"
   );
 });

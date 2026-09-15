@@ -29,6 +29,14 @@ competition time limit. Configure these IDs for your server.
   Minecraft name breaking ties. Peak Elo is captured from the Ranked profile's
   current-season high at registration. Older registrations or profiles without
   a peak use saved current Elo as a fallback; unrated players appear last.
+- `/admin_reg user [mc_username]` registers a player even when registration is
+  closed, without requiring their league role. A supplied Minecraft username is
+  looked up directly on MCSR Ranked; otherwise the target's Discord link is used.
+- `/unreg` removes your registration while registration is open, provided you have
+  no results in an imported match.
+- `/admin_unreg user` removes a player's registration even when registration is
+  closed or they have imported results. Their match results are also removed.
+  Both removal commands refresh the current league's registration list.
 - `/assign user league` replaces the user's configured league roles with the
   destination league role. It can run in any server channel and assign any
   configured league, regardless of automatic promotion or relegation rules.
