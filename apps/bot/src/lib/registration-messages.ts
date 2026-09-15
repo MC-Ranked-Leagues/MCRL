@@ -21,10 +21,15 @@ export function formatRegistrationMessages({
     `Registration: **${competition.registrationOpen ? "ON" : "OFF"}**`,
     `Time limit: **${formatDuration(competition.maxTimeLimitMs)}**`,
     "",
-    ...players.map(
-      (player, index) =>
-        `${index + 1}. ${escapeMarkdown(player.ign)} (${escapeMarkdown(player.discordUsername)}) | ${player.elo ?? "unrated"}`
-    ),
+    ...players.map((player, index) => {
+      const rating =
+        player.peakElo !== null
+          ? `Peak Elo: ${player.peakElo}`
+          : player.elo !== null
+            ? `Elo: ${player.elo} (peak unavailable)`
+            : "unrated";
+      return `${index + 1}. ${escapeMarkdown(player.ign)} (${escapeMarkdown(player.discordUsername)}) | ${rating}`;
+    }),
   ];
   if (players.length === 0) lines.push("No registered players yet.");
 

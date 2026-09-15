@@ -63,6 +63,7 @@ export const registrations = sqliteTable(
     minecraftUuid: text("minecraft_uuid").notNull(),
     ign: text("ign").notNull(),
     elo: real("elo"),
+    peakElo: real("peak_elo"),
     registeredAt: integer("registered_at", {
       mode: "timestamp_ms",
     }).notNull(),

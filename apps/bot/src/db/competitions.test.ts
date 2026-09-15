@@ -9,6 +9,7 @@ import { getDatabase } from ".";
 import {
   deleteActiveCompetition,
   getActiveCompetition,
+  getCompetitionRegistration,
   startCompetition,
   toggleRegistration,
 } from "./competitions";
@@ -149,14 +150,14 @@ test("registration toggles edit tracked messages and cleanup preserves Discord h
   await updateRegistrationMessages(channel, active.id);
   const ids = getActiveCompetition(input.guildId, 5)!.registrationMessageIds;
   expect(ids).toHaveLength(1);
-  expect(messages.get(ids[0]!)).toContain("Registration: **off**");
+  expect(messages.get(ids[0]!)).toContain("Registration: **OFF**");
   toggleRegistration(input.guildId, 5);
   await updateRegistrationMessages(channel, active.id);
   expect(
     getActiveCompetition(input.guildId, 5)!.registrationMessageIds
   ).toEqual(ids);
   expect(messages.size).toBe(1);
-  expect(messages.get(ids[0]!)).toContain("Registration: **on**");
+  expect(messages.get(ids[0]!)).toContain("Registration: **ON**");
 
   // A replacement competition gets its own list; the old week's messages remain.
   deleteActiveCompetition(input.guildId, active.id);
@@ -221,6 +222,7 @@ test("registration saves the account snapshot and rejects duplicate users and ac
     minecraftUuid: "minecraft-1",
     ign: "MinecraftPlayer",
     elo: null,
+    peakElo: 1800,
     registeredAt: new Date(),
   };
   expect(registerPlayer(player)).toBe("registered");
@@ -236,7 +238,48 @@ test("registration saves the account snapshot and rejects duplicate users and ac
     minecraftUuid: "minecraft-1",
     ign: "MinecraftPlayer",
     elo: null,
+    peakElo: 1800,
   });
+});
+
+test("registration messages rank peak Elo above current Elo and keep unrated players last", async () => {
+  startCompetition(input);
+  toggleRegistration(input.guildId, 5);
+  const active = getActiveCompetition(input.guildId, 5)!;
+  // Insert in a different order, with current ratings that disagree with peak ratings.
+  const players = [
+    { ign: "Unrated", elo: null, peakElo: null },
+    { ign: "CurrentLeader", elo: 1700, peakElo: 1800 },
+    { ign: "PeakLeader", elo: 1200, peakElo: 2000 },
+    { ign: "Legacy", elo: 1600, peakElo: null },
+    { ign: "AnotherPeak", elo: 1500, peakElo: 2000 },
+  ];
+  for (const player of players) {
+    expect(
+      registerPlayer({
+        ...player,
+        competitionId: active.id,
+        discordUserId: player.ign,
+        discordUsername: player.ign,
+        minecraftUuid: player.ign,
+        registeredAt: new Date(),
+      })
+    ).toBe("registered");
+  }
+  expect(
+    getCompetitionRegistration(active.id)!.players.map((player) => player.ign)
+  ).toEqual([
+    "AnotherPeak",
+    "PeakLeader",
+    "CurrentLeader",
+    "Legacy",
+    "Unrated",
+  ]);
+  const { channel, messages } = registrationChannel();
+  await updateRegistrationMessages(channel, active.id);
+  const content = [...messages.values()].join("\n");
+  expect(content).toContain("2. PeakLeader (PeakLeader) | Peak Elo: 2000");
+  expect(content).toContain("5. Unrated (Unrated) | unrated");
 });
 
 test("registration rechecks closure and never switches to a replacement competition after an API lookup", () => {
