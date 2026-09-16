@@ -5,6 +5,7 @@ import { unregCommand } from "./unreg";
 import { regCommand } from "./reg";
 import { assignCommand } from "./assign";
 import { dmCommand } from "./dm";
+import { emCommand } from "./em";
 import { toggleRegistrationCommand } from "./toggle-registration";
 import type { BotCommand } from "./command";
 import { nmCommand } from "./nm";
@@ -20,6 +21,7 @@ export const commands = [
   assignCommand,
   toggleRegistrationCommand,
   dmCommand,
+  emCommand,
   importCommand,
   clearCommand,
   testFillCommand,

@@ -48,7 +48,7 @@ rows or only missed placeholders; omit the line when nobody missed the entire
 competition. Use Minecraft names and preserve registrations and results. Players
 with a played DNF remain in the ranked table.
 
-Retain only each player's latest three participating-week placements, tagged with
+During `/relegate`, retain only each player's latest three participating-week placements, tagged with
 week and league. Skipped weeks neither count as zero nor consume a slot. The
 rolling average uses those three placements regardless of age. `/past` will show
 them. Published history belongs in Convex; add no separate local results-history

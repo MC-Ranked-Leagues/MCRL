@@ -19,7 +19,9 @@ import { applyDatabaseMigrations } from "../../scripts/migrate-database";
 import { getDatabase } from ".";
 import {
   deleteActiveCompetition,
+  endCompetition,
   getActiveCompetition,
+  getLatestEndedCompetition,
   getCompetitionRegistration,
   startCompetition,
   toggleRegistration,
@@ -289,8 +291,8 @@ test("registration messages rank peak Elo above current Elo and keep unrated pla
   const { channel, messages } = registrationChannel();
   await updateRegistrationMessages(channel, active.id);
   const content = [...messages.values()].join("\n");
-  expect(content).toContain("2. PeakLeader (PeakLeader) | Peak Elo: 2000");
-  expect(content).toContain("5. Unrated (Unrated) | unrated");
+  expect(content).toContain("2. PeakLeader (PeakLeader) - Peak Elo: 2000");
+  expect(content).toContain("5. Unrated (Unrated) - unrated");
 });
 
 test("registration rechecks closure and never switches to a replacement competition after an API lookup", () => {
@@ -591,7 +593,7 @@ test("clear deletes only the selected match and results, defaults to latest, and
   ]);
   expect(messages.size).toBe(2);
   expect([...messages.values()].join("\n")).toContain(
-    "League 5 Week 1 Leaderboard\nStatus: active\nCurrent seed: 2"
+    "**League 5 Week 1 Leaderboard**\n**Status:** active\n**Current seed:** 2"
   );
   expect([...messages.values()].join("\n")).toContain(
     "player4(Player4) - 8 pts - 0:00.550"
@@ -752,4 +754,83 @@ test("test fill preserves registrations, handles UUID variants, and supports nor
     status: "inactive",
   });
   expect(database.select().from(registrations).all()).toHaveLength(0);
+});
+
+test("finalization preserves results, ranks played DNFs, and lists all nonparticipants", async () => {
+  const competition = setupMatchPlayers();
+  toggleRegistration(input.guildId, 5);
+  importMatch(competition.id, rankedMatch());
+  registerPlayer({
+    competitionId: competition.id,
+    discordUserId: "late",
+    discordUsername: "LateDiscord",
+    minecraftUuid: "late-uuid",
+    ign: "LateMinecraft",
+    registeredAt: new Date(),
+  });
+  const originalResults = database.select().from(matchResults).all();
+  const { channel, messages } = registrationChannel();
+  await updateLeaderboardMessages(channel, competition.id);
+  expect([...messages.values()].join("\n")).not.toContain("Missed:");
+
+  expect(endCompetition(input.guildId, competition.id).status).toBe("ended");
+  expect(getActiveCompetition(input.guildId, 5)).toBeUndefined();
+  const ended = getLatestEndedCompetition(input.guildId, 5)!;
+  expect(ended.registrationOpen).toBe(false);
+  expect(ended.endedAt).toBeInstanceOf(Date);
+  expect(database.select().from(matchResults).all()).toEqual(originalResults);
+  expect(getCompetitionRegistration(competition.id)!.players).toHaveLength(7);
+  await updateLeaderboardMessages(channel, competition.id);
+  await updateRegistrationMessages(channel, competition.id);
+  const content = [...messages.values()].join("\n");
+  expect(content).toContain("**Status:** ended");
+  expect(content).toContain("5. player4(Player4)");
+  expect(content).toContain("Missed: LateMinecraft, Player5");
+  expect(content).toContain("Registration: **OFF**");
+  expect(endCompetition(input.guildId, competition.id).status).toBe(
+    "already_ended"
+  );
+  expect(getLatestEndedCompetition(input.guildId, 5)!.endedAt).toEqual(
+    ended.endedAt
+  );
+  expect(importMatch(competition.id, rankedMatch(200)).status).toBe("inactive");
+  expect(clearMatch(competition.id).status).toBe("inactive");
+  expect(
+    unregisterPlayer(competition.id, "player0", { admin: true }).status
+  ).toBe("inactive");
+});
+
+test("finalization rejects unknown competitions, other guilds, and competitions without imported matches", () => {
+  const competition = setupMatchPlayers();
+  expect(endCompetition(input.guildId, -1).status).toBe("not_found");
+  expect(endCompetition("other-guild", competition.id).status).toBe(
+    "not_found"
+  );
+  expect(endCompetition(input.guildId, competition.id).status).toBe(
+    "no_matches"
+  );
+  expect(getActiveCompetition(input.guildId, 5)).toBeDefined();
+});
+
+test("final leaderboard omits Missed when everyone participated and retries after Discord failure", async () => {
+  const competition = setupMatchPlayers(2);
+  importMatch(competition.id, rankedMatch());
+  endCompetition(input.guildId, competition.id);
+  const failingChannel = {
+    async send() {
+      throw new Error("Discord unavailable");
+    },
+  } as unknown as SendableChannels;
+  const error: unknown = await updateLeaderboardMessages(
+    failingChannel,
+    competition.id
+  ).catch((failure: unknown) => failure);
+  expect(error).toBeInstanceOf(Error);
+  expect(error).toMatchObject({ message: "Discord unavailable" });
+  expect(endCompetition(input.guildId, competition.id).status).toBe(
+    "already_ended"
+  );
+  const { channel, messages } = registrationChannel();
+  await updateLeaderboardMessages(channel, competition.id);
+  expect([...messages.values()].join("\n")).not.toContain("Missed:");
 });

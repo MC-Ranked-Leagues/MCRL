@@ -1,7 +1,7 @@
 import { and, asc, desc, eq, sql } from "drizzle-orm";
 
 import { getDatabase } from ".";
-import { competitions, registrations } from "./schema";
+import { competitions, matches, registrations } from "./schema";
 
 interface StartCompetitionInput {
   guildId: string;
@@ -35,6 +35,59 @@ export function getActiveCompetition(guildId: string, leagueNumber: number) {
       )
     )
     .get();
+}
+
+export function getLatestEndedCompetition(
+  guildId: string,
+  leagueNumber: number
+) {
+  return getDatabase()
+    .select()
+    .from(competitions)
+    .where(
+      and(
+        eq(competitions.guildId, guildId),
+        eq(competitions.leagueNumber, leagueNumber),
+        eq(competitions.status, "ended")
+      )
+    )
+    .orderBy(desc(competitions.endedAt), desc(competitions.id))
+    .get();
+}
+
+export function endCompetition(guildId: string, competitionId: number) {
+  return getDatabase().transaction((tx) => {
+    const competition = tx
+      .select()
+      .from(competitions)
+      .where(
+        and(
+          eq(competitions.id, competitionId),
+          eq(competitions.guildId, guildId)
+        )
+      )
+      .get();
+    if (!competition) return { status: "not_found" } as const;
+    if (competition.status === "ended")
+      return { status: "already_ended" } as const;
+    const importedMatch = tx
+      .select({ id: matches.id })
+      .from(matches)
+      .where(
+        and(
+          eq(matches.competitionId, competitionId),
+          eq(matches.imported, true)
+        )
+      )
+      .get();
+    if (!importedMatch) return { status: "no_matches" } as const;
+
+    tx.update(competitions)
+      .set({ status: "ended", registrationOpen: false, endedAt: new Date() })
+      .where(eq(competitions.id, competitionId))
+      .run();
+    return { status: "ended" } as const;
+  });
 }
 
 export function toggleRegistration(guildId: string, leagueNumber: number) {
