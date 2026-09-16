@@ -5,7 +5,11 @@ import {
   type RankedMatchInput,
 } from "./matches";
 import { updateLeaderboardMessages } from "../lib/leaderboard-messages";
-import { registerPlayer, unregisterPlayer } from "./registrations";
+import {
+  fillTestRegistrations,
+  registerPlayer,
+  unregisterPlayer,
+} from "./registrations";
 import { afterAll, beforeEach, expect, test } from "bun:test";
 import type { SendableChannels } from "discord.js";
 import { updateRegistrationMessages } from "../lib/registration-messages";
@@ -586,6 +590,12 @@ test("clear deletes only the selected match and results, defaults to latest, and
     updateLeaderboardMessages(channel, competition.id),
   ]);
   expect(messages.size).toBe(2);
+  expect([...messages.values()].join("\n")).toContain(
+    "League 5 Week 1 Leaderboard\nStatus: active\nCurrent seed: 2"
+  );
+  expect([...messages.values()].join("\n")).toContain(
+    "player4(Player4) - 8 pts - 0:00.550"
+  );
   expect(clearMatch(competition.id, 1)).toEqual({
     status: "cleared",
     number: 1,
@@ -711,4 +721,35 @@ test("a player who misses a round remains registered and can play a later round"
       (player) => player.ign === "Player5"
     )
   ).toMatchObject({ played: 1, averageTimeMs: 550 });
+});
+
+test("test fill preserves registrations, handles UUID variants, and supports normal import", () => {
+  const competition = setupMatchPlayers();
+  const before = database.select().from(registrations).all();
+  const match = rankedMatch();
+  match.players[0]!.uuid = "UUID-0";
+  expect(fillTestRegistrations(competition.id, match.players)).toEqual({
+    status: "filled",
+    added: 1,
+    skipped: 5,
+  });
+  const after = database.select().from(registrations).all();
+  expect(after.slice(0, before.length)).toEqual(before);
+  expect(after.at(-1)?.discordUserId).toBe("test:uuid99");
+  expect(database.select().from(matches).all()).toHaveLength(0);
+  expect(fillTestRegistrations(competition.id, match.players)).toEqual({
+    status: "filled",
+    added: 0,
+    skipped: 6,
+  });
+  expect(importMatch(competition.id, match)).toMatchObject({
+    status: "imported",
+    matched: 6,
+  });
+  deleteActiveCompetition(input.guildId, competition.id);
+  startCompetition({ ...input, weekNumber: 2 });
+  expect(fillTestRegistrations(competition.id, match.players)).toEqual({
+    status: "inactive",
+  });
+  expect(database.select().from(registrations).all()).toHaveLength(0);
 });

@@ -179,6 +179,14 @@ export function getCompetitionStandings(competitionId: number) {
     .where(eq(competitions.id, competitionId))
     .get();
   if (!competition) return;
+  const latestMatch = db
+    .select({ number: matches.number })
+    .from(matches)
+    .where(
+      and(eq(matches.competitionId, competitionId), eq(matches.imported, true))
+    )
+    .orderBy(desc(matches.number))
+    .get();
   const rows = db
     .select({
       result: matchResults,
@@ -197,6 +205,8 @@ export function getCompetitionStandings(competitionId: number) {
     number,
     {
       ign: string;
+      discordUsername: string;
+      discordUserId: string;
       points: number;
       played: number;
       count: number;
@@ -206,6 +216,8 @@ export function getCompetitionStandings(competitionId: number) {
   for (const { result, player, timeLimitMs } of rows) {
     const entry = players.get(player.id) ?? {
       ign: player.ign,
+      discordUsername: player.discordUsername,
+      discordUserId: player.discordUserId,
       points: 0,
       played: 0,
       count: 0,
@@ -231,7 +243,7 @@ export function getCompetitionStandings(competitionId: number) {
         a.averageTimeMs - b.averageTimeMs ||
         a.ign.localeCompare(b.ign)
     );
-  return { competition, standings };
+  return { competition, standings, currentSeed: latestMatch?.number ?? 0 };
 }
 
 export function saveLeaderboardMessageIds(

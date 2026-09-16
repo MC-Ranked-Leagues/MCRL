@@ -1,9 +1,60 @@
 import { and, eq } from "drizzle-orm";
+import type { MatchDetail } from "mcsrranked-sdk";
 
 import { getDatabase } from ".";
 import { competitions, registrations, matches, matchResults } from "./schema";
 
 type RegistrationInput = Omit<typeof registrations.$inferInsert, "id">;
+
+export function fillTestRegistrations(
+  competitionId: number,
+  players: MatchDetail["players"]
+) {
+  return getDatabase().transaction((tx) => {
+    const competition = tx
+      .select()
+      .from(competitions)
+      .where(eq(competitions.id, competitionId))
+      .get();
+    if (!competition || competition.status !== "active")
+      return { status: "inactive" } as const;
+    const normalizeUuid = (uuid: string) =>
+      uuid.replaceAll("-", "").toLowerCase();
+    const existing = new Set(
+      tx
+        .select()
+        .from(registrations)
+        .where(eq(registrations.competitionId, competitionId))
+        .all()
+        .map((player) => normalizeUuid(player.minecraftUuid))
+    );
+    let added = 0;
+    for (const player of players) {
+      const uuid = normalizeUuid(player.uuid);
+      if (existing.has(uuid)) continue;
+      tx.insert(registrations)
+        .values({
+          competitionId,
+          // Non-snowflake IDs cannot be mistaken for real Discord accounts.
+          discordUserId: `test:${uuid}`,
+          discordUsername: "test player",
+          minecraftUuid: uuid,
+          ign: player.nickname,
+          elo: player.eloRate,
+          peakElo: null,
+          registeredAt: new Date(),
+        })
+        .run();
+      existing.add(uuid);
+      added++;
+    }
+    return {
+      status: "filled",
+      added,
+      skipped: players.length - added,
+    } as const;
+  });
+}
 
 export function registerPlayer(
   input: RegistrationInput,

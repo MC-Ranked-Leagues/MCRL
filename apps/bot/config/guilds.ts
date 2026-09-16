@@ -6,6 +6,7 @@ export interface LeagueConfiguration {
 }
 
 export interface GuildConfiguration {
+  dev: boolean;
   logChannelId: string;
   commandRoleId: string;
   leagues: Readonly<Record<number, LeagueConfiguration>>;
@@ -14,6 +15,7 @@ export interface GuildConfiguration {
 export const guildConfiguration: Readonly<Record<string, GuildConfiguration>> =
   {
     "1511365088718880788": {
+      dev: true,
       logChannelId: "1548812861269082283",
       commandRoleId: "1548811856133496903",
       leagues: {

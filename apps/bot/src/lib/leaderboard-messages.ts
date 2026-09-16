@@ -37,11 +37,17 @@ export async function updateLeaderboardMessages(
         saveLeaderboardMessageIds(competitionId, ids);
       }
       const lines = [
-        `**League ${data.competition.leagueNumber}, Week ${data.competition.weekNumber} Leaderboard**`,
-        ...data.standings.map(
-          (player, index) =>
-            `${index + 1}. ${escapeMarkdown(player.ign)} | ${player.points} pts | Average: ${formatDuration(player.averageTimeMs)} | Played: ${player.played}`
-        ),
+        `**League ${data.competition.leagueNumber} Week ${data.competition.weekNumber} Leaderboard**`,
+        `**Status:** ${data.competition.status}`,
+        `**Current seed:** ${data.currentSeed}`,
+        ...data.standings.map((player, index) => {
+          const name =
+            player.discordUserId.startsWith("test:") ||
+            player.discordUsername === player.ign
+              ? player.ign
+              : `${player.discordUsername}(${player.ign})`;
+          return `${index + 1}. ${escapeMarkdown(name)} - ${player.points} pts - ${formatDuration(player.averageTimeMs, true)}`;
+        }),
       ];
       if (!data.standings.length) lines.push("No submitted results yet.");
       const chunks = chunkMessage(lines.join("\n"));
