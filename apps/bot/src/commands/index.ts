@@ -1,7 +1,6 @@
 import { importCommand } from "./import";
 import { clearCommand } from "./clear";
 import { adminRegCommand } from "./admin-reg";
-import { adminUnregCommand } from "./admin-unreg";
 import { unregCommand } from "./unreg";
 import { regCommand } from "./reg";
 import { assignCommand } from "./assign";
@@ -17,7 +16,6 @@ export const commands = [
   regCommand,
   adminRegCommand,
   unregCommand,
-  adminUnregCommand,
   assignCommand,
   toggleRegistrationCommand,
   dmCommand,
