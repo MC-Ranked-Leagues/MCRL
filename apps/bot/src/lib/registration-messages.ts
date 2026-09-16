@@ -29,7 +29,7 @@ export function formatRegistrationMessages({
           : player.elo !== null
             ? `Elo: ${player.elo} (peak unavailable)`
             : "unrated";
-      return `${index + 1}. ${escapeMarkdown(player.ign)} (${escapeMarkdown(player.discordUsername)}) | ${rating}`;
+      return `${index + 1}. ${escapeMarkdown(player.ign)} (${escapeMarkdown(player.discordUsername)}) - ${rating}`;
     }),
   ];
   if (players.length === 0) lines.push("No registered players yet.");

@@ -9,6 +9,7 @@ import { toggleRegistrationCommand } from "./toggle-registration";
 import type { BotCommand } from "./command";
 import { nmCommand } from "./nm";
 import { pingCommand } from "./ping";
+import { testFillCommand } from "./test-fill";
 
 export const commands = [
   pingCommand,
@@ -21,4 +22,5 @@ export const commands = [
   dmCommand,
   importCommand,
   clearCommand,
+  testFillCommand,
 ] satisfies readonly BotCommand[];

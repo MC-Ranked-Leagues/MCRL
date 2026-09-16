@@ -16,6 +16,12 @@ or chat channel. Host commands require the configured command role.
 | `/clear [match_number]`           | Delete a match and its results, defaulting to the latest match. Registrations and other match numbers remain unchanged.                                                                            |
 | `/dm`                             | Delete the active competition and all registrations, matches, and results after confirmation within 60 seconds.                                                                                    |
 
+`/test_fill match_id` is a host command available only when the guild has
+`dev: true`. After confirmation within 60 seconds, it adds the match's players
+as test registrations, skipping already registered Minecraft accounts. It works
+with registration closed and does not import results. Run `/import` separately.
+Cancel or let the confirmation expire to leave registrations unchanged.
+
 Registration commands refresh the registration list; `/import` and `/clear`
 refresh the separate leaderboard. Saved changes remain if a Discord refresh
 fails; the bot reports the failure to the host.
