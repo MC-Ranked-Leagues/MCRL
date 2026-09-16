@@ -17,19 +17,21 @@ makes a requested change harder or impossible.
 This repository is primarily maintained by humans. Keep code simple and easy to
 follow; choose direct implementations over extra layers or speculative flexibility.
 Avoid abstractions and React components used only once. Keep one React component per file unless closely related helpers are
-clearer beside it. Put reusable helpers in the relevant application's `lib`
-directory, reuse existing UI patterns, and keep implementation details behind
+clearer beside it. Put reusable helpers in its own file, and group them by their functionality. Avoid one file per helper.
+Reuse existing UI patterns, and keep implementation details behind
 deliberate module interfaces.
 
-Add concise comments where important or complex logic is hard to follow, including
-in tests. Explain intent, ordering constraints, or non-obvious setup and scenarios;
-leave straightforward code uncommented.
+Use concise comments to explain non-obvious intent or constraints, including in tests.
+
+## Documentation
+
+Document what code cannot tell you, plus the small amount of duplication that
+saves humans time. Keep architecture focused on rationale and constraints.
+Record agreed decisions in the relevant `decisions.md`; keep ideas and open
+questions in plans. Plans do not need individual status labels.
+Update the document that owns a changed rule rather than repeating it elsewhere.
 
 ## Architecture and imports
-
-Keep architecture notes focused on rationale, constraints, and decisions that
-are not immediately apparent from the code. Omit descriptions that merely
-restate implementation details.
 
 `apps/web` is the public Astro and React application. `backend` is the shared
 Convex workspace for the public website and future admin and bot applications.
@@ -70,10 +72,11 @@ Seed history through `PUBLIC_SEED_API_URL`.
 
 ## Bot
 
-Before changing `apps/bot`, read the
-[Discord bot architecture](docs/bot-architecture.md). It explains the runtime,
-command layout, deployment boundary, required permissions, and planned
-persistence choices. Update it when one of those decisions changes.
+Before changing `apps/bot`, read [bot architecture](docs/bot/architecture.md).
+For tournament behavior changes or future features, read the relevant sections
+of [decisions](docs/bot/decisions.md) and any related [plan](docs/bot/plans/README.md).
+The [bot README](apps/bot/README.md) covers setup and maintenance; the
+[command reference](docs/bot/commands.md) is for human readers.
 
 Never leave a bot instance or other long-running process active after agent
 work. Agents may start one for bounded verification, but must stop it and clean

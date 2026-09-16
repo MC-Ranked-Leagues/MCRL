@@ -1,6 +1,4 @@
-# Player accounts
-
-THIS WILL NOT BE IMPLEMENTED FOR NOW. REFER TO THE OLD IMPLEMENTATION.
+# Player accounts proposal
 
 A Ranked Leagues player pairs one Discord account with one active Minecraft
 account, identified by UUID. Playing a separate challenge account requires a
@@ -13,10 +11,9 @@ Persist the Discord ID and active Minecraft UUID together. Minecraft username
 changes do not change identity. Retain the latest three participating-week
 placements for that pairing to calculate its rolling average.
 
-`/reg` resolves the player's Ranked profile with
-`ranked.users.get("discord." + discordId)`. If its UUID differs from the saved
-account, direct the player to `/migrate_account` instead of silently switching
-accounts. `/admin_reg` must not pair with whatever minecraft account anymore.
+`/reg` looks up the Discord-linked Ranked account. If its UUID differs from the
+saved account, direct the player to `/migrate_account` instead of silently switching
+accounts. `/admin_reg` must not pair with an arbitrary Minecraft account under this proposal.
 
 Competition registrations retain the Minecraft UUID used at registration.
 Historical results, including website statistics, remain attached to that UUID.
