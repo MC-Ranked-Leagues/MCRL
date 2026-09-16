@@ -26,6 +26,10 @@ export const competitions = sqliteTable(
       .$type<string[]>()
       .notNull()
       .default(sql`'[]'`),
+    leaderboardMessageIds: text("leaderboard_message_ids", { mode: "json" })
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'`),
     maxTimeLimitMs: integer("max_time_limit_ms").notNull(),
     startedAt: integer("started_at", { mode: "timestamp_ms" }).notNull(),
     endedAt: integer("ended_at", { mode: "timestamp_ms" }),
