@@ -14,6 +14,7 @@ or chat channel. Host commands require the configured command role.
 | `/toggle_registration`            | Open or close registration for the current league.                                                                                                                                                 |
 | `/import match_id [match_number]` | Import an MCSR Ranked match. Omit the number to create the next match; supply a number to create or replace that match and all its results. Unregistered Ranked players are reported and excluded. |
 | `/clear [match_number]`           | Delete a match and its results, defaulting to the latest match. Registrations and other match numbers remain unchanged.                                                                            |
+| `/em`                             | End the active competition, close registration, and post final standings. Requires at least one imported match.                                                                                    |
 | `/dm`                             | Delete the active competition and all registrations, matches, and results after confirmation within 60 seconds.                                                                                    |
 
 `/test_fill match_id` is a host command available only when the guild has
@@ -25,6 +26,13 @@ Cancel or let the confirmation expire to leave registrations unchanged.
 Registration commands refresh the registration list; `/import` and `/clear`
 refresh the separate leaderboard. Saved changes remain if a Discord refresh
 fails; the bot reports the failure to the host.
+
+`/em` preserves registrations and results. The final leaderboard includes played
+DNFs and lists Minecraft names of players who missed the entire competition below
+the table.
+If a message update fails, run `/em` again before starting another competition.
+With no active competition, it refreshes the most recently ended competition's
+messages.
 
 Every completed or failed slash command is logged with the actor, invocation
 channel, command text, and interaction timestamp in the configured log channel.

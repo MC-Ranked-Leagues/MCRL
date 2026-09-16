@@ -243,7 +243,20 @@ export function getCompetitionStandings(competitionId: number) {
         a.averageTimeMs - b.averageTimeMs ||
         a.ign.localeCompare(b.ign)
     );
-  return { competition, standings, currentSeed: latestMatch?.number ?? 0 };
+  const missed = db
+    .select()
+    .from(registrations)
+    .where(eq(registrations.competitionId, competitionId))
+    .orderBy(asc(registrations.ign), asc(registrations.id))
+    .all()
+    .filter((player) => !players.get(player.id)?.played)
+    .map((player) => player.ign);
+  return {
+    competition,
+    standings,
+    missed,
+    currentSeed: latestMatch?.number ?? 0,
+  };
 }
 
 export function saveLeaderboardMessageIds(

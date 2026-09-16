@@ -50,6 +50,10 @@ export async function updateLeaderboardMessages(
         }),
       ];
       if (!data.standings.length) lines.push("No submitted results yet.");
+      if (data.competition.status === "ended" && data.missed.length)
+        lines.push(
+          `Missed: ${data.missed.map((name) => escapeMarkdown(name)).join(", ")}`
+        );
       const chunks = chunkMessage(lines.join("\n"));
       for (const content of chunks) {
         const message = await channel.send({
