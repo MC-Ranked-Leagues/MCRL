@@ -36,6 +36,13 @@
       "when": 1789468499331,
       "tag": "0004_lively_forge",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1789474898340,
+      "tag": "0005_colorful_santa_claus",
+      "breakpoints": true
     }
   ]
 }

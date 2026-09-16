@@ -1,3 +1,5 @@
+import { importCommand } from "./import";
+import { clearCommand } from "./clear";
 import { adminRegCommand } from "./admin-reg";
 import { adminUnregCommand } from "./admin-unreg";
 import { unregCommand } from "./unreg";
@@ -19,4 +21,6 @@ export const commands = [
   assignCommand,
   toggleRegistrationCommand,
   dmCommand,
+  importCommand,
+  clearCommand,
 ] satisfies readonly BotCommand[];

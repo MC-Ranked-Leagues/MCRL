@@ -1,0 +1,1 @@
+ALTER TABLE `competitions` ADD `leaderboard_message_ids` text DEFAULT '[]' NOT NULL;

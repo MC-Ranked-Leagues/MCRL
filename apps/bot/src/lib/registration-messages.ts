@@ -9,6 +9,7 @@ import {
   saveRegistrationMessageIds,
 } from "../db/competitions";
 import { formatDuration } from "./time";
+import { chunkMessage } from "./chunk-message";
 
 type Registration = NonNullable<ReturnType<typeof getCompetitionRegistration>>;
 
@@ -33,18 +34,7 @@ export function formatRegistrationMessages({
   ];
   if (players.length === 0) lines.push("No registered players yet.");
 
-  // Keep player rows together when splitting the list across Discord messages.
-  const chunks: string[] = [];
-  let current = "";
-  for (const line of lines) {
-    if (current.length + line.length + 1 > 2000) {
-      chunks.push(current);
-      current = "";
-    }
-    current += `${current ? "\n" : ""}${line}`;
-  }
-  if (current) chunks.push(current);
-  return chunks;
+  return chunkMessage(lines.join("\n"));
 }
 
 const pendingUpdates = new Map<number, Promise<void>>();

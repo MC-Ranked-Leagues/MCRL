@@ -46,8 +46,42 @@ is migration evidence, not the new schema.
 
 Registration messages stay separate from leaderboards so hosts control public
 announcements. Registration changes edit the tracked registration messages in place.
-When implemented, `/import` replaces only the previous leaderboard messages.
+`/import` and `/clear` replace only the previous leaderboard messages.
 Weekly cleanup preserves old registration and leaderboard messages in Discord.
+
+## Match import and deletion
+
+`/import match_id [match_number]` reads a supplied MCSR Ranked match ID using
+the Ranked SDK and stores results only in SQLite. It creates the requested
+match number or replaces that match's results in one transaction. Without a
+number, it creates one above the largest existing match number, starting at one.
+There is no `/ns` step or host match-ID lookup.
+
+Match imports use the competition's registered Minecraft UUIDs, ignoring UUID
+case and hyphens. Names do not override the registered account snapshot.
+Unregistered Ranked players are reported and excluded from scoring. Imports
+with no matching players leave existing results unchanged. A Ranked match ID
+cannot occupy two match numbers in the same competition; hosts must replace
+its existing match or clear it first.
+
+The participant count used for points is the registration count at import.
+Finishers at the time limit count as completions; slower times count as DNFs.
+Equal times share placement and points. Missing players receive `missed`
+results, distinct from played DNFs. Both use the match time limit for averages,
+but only finished and DNF results count as participation. Players with no
+participation stay out of standings. Standings sort by points, then average
+time, then Minecraft name. New matches copy the competition time limit;
+replacement imports retain the match's saved limit.
+
+`/clear [match_number]` deletes the selected match and its results, defaulting
+to the largest existing match number. It preserves registrations and does not
+renumber other matches. Clearing the latest match makes its number available
+for the next automatic import.
+
+Both commands require the configured command role and the invoking channel's
+active competition. They refresh the tracked leaderboard in its information
+channel without touching registration messages. Discord failures leave saved
+changes intact and are reported to the host. Neither command writes to Convex.
 
 ## Planned player and weekly lifecycle
 
@@ -72,10 +106,17 @@ deletes the competition registration and its dependent match results, so hosts
 can correct registrations without deleting the competition. Both commands use
 the invoking channel's league and refresh its registration messages.
 
-Players who register but play no matches stay out of standings. Ending a
-competition unregisters those players. A played match that ends in DNF counts
-as participation; an automatically created DNF placeholder does not. Removing
-a competition registration preserves the persistent player record.
+Players who register but play no matches stay out of ranked standings, but
+retain their registrations throughout the competition so they can join later
+rounds. Neither imports nor the future `/em` may automatically unregister them.
+When `/em` is implemented, classify registrations with no played matches as
+missed and append `Missed: {list player names here}` below the final table,
+using their Minecraft names. Include players with no result rows as well as
+players with only missed placeholders; omit the line when nobody missed the
+entire competition. Preserve their registrations and results. A played match
+that ends in DNF counts as participation, so those players remain in the ranked
+table. Explicit unregistration remains separate and preserves the persistent
+player record.
 
 Keep only the latest three placements on each player, tagged with week and league.
 The rolling average uses their last three placements regardless of age, rather

@@ -41,6 +41,14 @@ competition time limit. Configure these IDs for your server.
   destination league role. It can run in any server channel and assign any
   configured league, regardless of automatic promotion or relegation rules.
 - `/toggle_registration` flips registration for the current channel's league.
+- `/import match_id [match_number]` imports a supplied MCSR Ranked match ID.
+  Omitting `match_number` creates the next match. Supplying it creates that exact
+  match or replaces all its existing results. Only registered Minecraft UUIDs
+  count; unmatched Ranked players are reported. A Ranked ID already used by
+  another match in the competition is rejected. Results stay in SQLite.
+- `/clear [match_number]` deletes a match and all its results. Omitting the number
+  deletes the latest match. Other match numbers and registrations stay intact.
+  Both commands refresh the public leaderboard separately from registration.
 - `/dm` deletes that league's active competition and all its registrations,
   matches, and results after the requester confirms within 60 seconds.
 
@@ -68,6 +76,9 @@ records before applying it. The migration fails rather than discarding data.
 Migration `0004` adds the nullable registration peak-Elo snapshot. Apply it before
 running the updated bot. Existing registrations retain their current Elo and
 use it for ordering until a new registration captures a peak.
+
+Migration `0005` adds tracked leaderboard message IDs. Apply it before running
+`/import` or `/clear`, and deploy the updated command definitions separately.
 
 Run the bot's database tests with `bun run --filter @mcrl/bot test`. They apply
 migrations to an in-memory database.
