@@ -23,6 +23,18 @@ as test registrations, skipping already registered Minecraft accounts. It works
 with registration closed and does not import results. Run `/import` separately.
 Cancel or let the confirmation expire to leave registrations unchanged.
 
+`/test-clear` is also a host command restricted to `dev: true` servers. After
+confirmation within 60 seconds, it removes only `/test_fill` registrations from
+the current league's active competition, even when registration is closed.
+Their result rows are deleted by the registration foreign key. The competition,
+matches, regular registrations, and other players' saved results remain.
+Remaining players' points and placements are not recalculated. Re-import a match
+to recalculate them if needed.
+It refreshes the registration list and any existing leaderboard. If a refresh
+fails, the deletion remains saved; run `/test-clear` again to retry.
+Persistent player records are not implemented yet; test-player cleanup is left
+as a TODO for that work.
+
 Registration commands refresh the registration list; `/import` and `/clear`
 refresh the separate leaderboard. Saved changes remain if a Discord refresh
 fails; the bot reports the failure to the host.

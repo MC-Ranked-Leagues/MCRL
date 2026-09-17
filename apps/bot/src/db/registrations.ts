@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, like } from "drizzle-orm";
 import type { MatchDetail } from "mcsrranked-sdk";
 
 import { getDatabase } from ".";
@@ -139,5 +139,36 @@ export function unregisterPlayer(
       .where(eq(registrations.id, player.id))
       .run();
     return { status: "unregistered", ign: player.ign } as const;
+  });
+}
+
+export function clearTestRegistrations(guildId: string, competitionId: number) {
+  return getDatabase().transaction((tx) => {
+    const competition = tx
+      .select()
+      .from(competitions)
+      .where(
+        and(
+          eq(competitions.id, competitionId),
+          eq(competitions.guildId, guildId)
+        )
+      )
+      .get();
+    if (!competition || competition.status !== "active")
+      return { status: "inactive" } as const;
+    // TODO: Clear test-only records from the future persistent players table.
+    // Real Discord IDs are snowflakes; only test_fill creates this prefix.
+    // Dependent result rows cascade, matching admin unregistration behavior.
+    const deleted = tx
+      .delete(registrations)
+      .where(
+        and(
+          eq(registrations.competitionId, competitionId),
+          like(registrations.discordUserId, "test:%")
+        )
+      )
+      .returning({ id: registrations.id })
+      .all();
+    return { status: "cleared", removed: deleted.length } as const;
   });
 }
