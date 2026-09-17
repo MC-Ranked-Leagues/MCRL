@@ -1,4 +1,16 @@
 import {
+  assignPlayerLeague,
+  createSignup,
+  decideSignup,
+  getPlayer,
+} from "./players";
+import {
+  createMigration,
+  decideMigration,
+  getMigrationHistory,
+  getMigration,
+} from "./account-migrations";
+import {
   clearMatch,
   getCompetitionStandings,
   importMatch,
@@ -27,7 +39,14 @@ import {
   startCompetition,
   toggleRegistration,
 } from "./competitions";
-import { competitions, registrations, matches, matchResults } from "./schema";
+import {
+  competitions,
+  registrations,
+  matches,
+  matchResults,
+  players,
+  accountMigrations,
+} from "./schema";
 
 // Open the lazy database connection in memory, using the real migrations and constraints.
 const previousDatabase = process.env.DB_FILE_NAME;
@@ -44,6 +63,8 @@ const input = {
 
 beforeEach(() => {
   database.delete(competitions).run();
+  database.delete(players).run();
+  database.delete(accountMigrations).run();
 });
 
 afterAll(() => {
@@ -241,15 +262,15 @@ test("registration saves the account snapshot and rejects duplicate users and ac
   };
   expect(registerPlayer(player)).toBe("registered");
   expect(registerPlayer({ ...player, minecraftUuid: "another-account" })).toBe(
-    "already_registered"
+    "account_mismatch"
   );
   expect(registerPlayer({ ...player, discordUserId: "another-user" })).toBe(
-    "account_registered"
+    "account_owned"
   );
   const saved = database.select().from(registrations).all();
   expect(saved).toHaveLength(1);
   expect(saved[0]).toMatchObject({
-    minecraftUuid: "minecraft-1",
+    minecraftUuid: "minecraft1",
     ign: "MinecraftPlayer",
     elo: null,
     peakElo: 1800,
@@ -341,22 +362,17 @@ test("admin registration bypasses closure but retains duplicate and active compe
     registeredAt: new Date(),
   };
   expect(registerPlayer(player)).toBe("closed");
-  expect(registerPlayer(player, { bypassClosure: true })).toBe("registered");
-  expect(registerPlayer(player, { bypassClosure: true })).toBe(
-    "already_registered"
-  );
+  expect(registerPlayer(player, { mode: "admin" })).toBe("registered");
+  expect(registerPlayer(player, { mode: "admin" })).toBe("already_registered");
   expect(
-    registerPlayer(
-      { ...player, discordUserId: "other" },
-      { bypassClosure: true }
-    )
-  ).toBe("account_registered");
+    registerPlayer({ ...player, discordUserId: "other" }, { mode: "admin" })
+  ).toBe("account_owned");
   database
     .update(competitions)
     .set({ status: "ended" })
     .where(eq(competitions.id, active.id))
     .run();
-  expect(registerPlayer(player, { bypassClosure: true })).toBe("inactive");
+  expect(registerPlayer(player, { mode: "admin" })).toBe("inactive");
   expect(unregisterPlayer(active.id, "user", { admin: true }).status).toBe(
     "inactive"
   );
@@ -377,7 +393,7 @@ test("self unregistration requires open registration and preserves registrations
         ign: "Player",
         registeredAt: new Date(),
       },
-      { bypassClosure: true }
+      { mode: "forced" }
     );
   }
   expect(unregisterPlayer(active.id, "unknown").status).toBe("not_registered");
@@ -458,7 +474,7 @@ function setupMatchPlayers(count = 6) {
         ign: `Player${index}`,
         registeredAt: new Date(),
       },
-      { bypassClosure: true }
+      { mode: "admin" }
     );
   }
   return competition;
@@ -636,7 +652,7 @@ test("one player still earns a point and missed matches count toward average but
       ign: "Late",
       registeredAt: new Date(),
     },
-    { bypassClosure: true }
+    { mode: "admin" }
   );
   const later = rankedMatch(101);
   later.players = [{ ...later.players[0]!, uuid: "late", nickname: "Late" }];
@@ -910,4 +926,324 @@ test("test clear respects guild, competition and active-state boundaries", () =>
     "inactive"
   );
   expect(getCompetitionRegistration(replacement.id)!.players).toHaveLength(6);
+});
+
+// These scenarios share the migrated in-memory database with competition tests
+// because they verify membership across registration, cleanup, and review.
+
+function registerMember() {
+  startCompetition(input);
+  toggleRegistration(input.guildId, input.leagueNumber);
+  const competition = getActiveCompetition(input.guildId, input.leagueNumber)!;
+  const registration = {
+    competitionId: competition.id,
+    discordUserId: "member",
+    discordUsername: "member",
+    minecraftUuid: "AB-CD",
+    ign: "OldName",
+    registeredAt: new Date(),
+  };
+  expect(registerPlayer(registration)).toBe("registered");
+  return { competition, registration };
+}
+
+const migrationInput = {
+  guildId: input.guildId,
+  discordUserId: "member",
+  discordUsername: "member",
+  minecraftUuid: "new-uuid",
+  ign: "NewName",
+  reviewerId: "host",
+};
+
+test("membership survives competition deletion and normal registration follows the role-authorized league", () => {
+  const { competition, registration } = registerMember();
+  const first = getPlayer(input.guildId, "member")!;
+  expect(first).toMatchObject({ minecraftUuid: "abcd", leagueNumber: 5 });
+  expect(deleteActiveCompetition(input.guildId, competition.id)).toBe(true);
+  expect(getPlayer(input.guildId, "member")?.id).toBe(first.id);
+  startCompetition({ ...input, leagueNumber: 6 });
+  const next = getActiveCompetition(input.guildId, 6)!;
+  toggleRegistration(input.guildId, 6);
+  expect(
+    registerPlayer({
+      ...registration,
+      competitionId: next.id,
+      minecraftUuid: "different",
+    })
+  ).toBe("account_mismatch");
+  expect(getPlayer(input.guildId, "member")?.leagueNumber).toBe(5);
+  expect(registerPlayer({ ...registration, competitionId: next.id })).toBe(
+    "registered"
+  );
+  expect(getPlayer(input.guildId, "member")?.leagueNumber).toBe(6);
+});
+
+test("admin force preserves membership and cannot bypass account ownership or identity", () => {
+  const { registration } = registerMember();
+  startCompetition({ ...input, leagueNumber: 6 });
+  const next = getActiveCompetition(input.guildId, 6)!;
+  const target = { ...registration, competitionId: next.id };
+  expect(registerPlayer(target, { mode: "admin" })).toBe("league_mismatch");
+  expect(
+    registerPlayer({ ...target, minecraftUuid: "other" }, { mode: "forced" })
+  ).toBe("account_mismatch");
+  expect(
+    registerPlayer({ ...target, discordUserId: "other" }, { mode: "forced" })
+  ).toBe("account_owned");
+  expect(
+    registerPlayer(target, {
+      mode: "forced",
+    })
+  ).toBe("registered");
+  expect(getPlayer(input.guildId, "member")?.leagueNumber).toBe(5);
+});
+
+test("forced first registration preserves the role league or leaves membership unassigned", () => {
+  startCompetition(input);
+  const competition = getActiveCompetition(input.guildId, 5)!;
+  const registration = {
+    competitionId: competition.id,
+    discordUserId: "new",
+    discordUsername: "new",
+    minecraftUuid: "new",
+    ign: "new",
+    registeredAt: new Date(),
+  };
+  expect(
+    registerPlayer(registration, {
+      mode: "forced",
+      initialLeague: 6,
+    })
+  ).toBe("registered");
+  expect(getPlayer(input.guildId, "new")?.leagueNumber).toBe(6);
+  expect(
+    registerPlayer(
+      {
+        ...registration,
+        discordUserId: "unassigned",
+        minecraftUuid: "unassigned",
+      },
+      { mode: "forced" }
+    )
+  ).toBe("registered");
+  expect(getPlayer(input.guildId, "unassigned")?.leagueNumber).toBeNull();
+});
+
+test("migration approval resets placements, preserves league and snapshots, and retains history", () => {
+  const { competition } = registerMember();
+  expect(createMigration(migrationInput).status).toBe("active_registration");
+  database
+    .update(competitions)
+    .set({ status: "ended" })
+    .where(eq(competitions.id, competition.id))
+    .run();
+  const member = getPlayer(input.guildId, "member")!;
+  database
+    .update(players)
+    .set({ placements: [{ week: 1, league: 5, placement: 2 }] })
+    .where(eq(players.id, member.id))
+    .run();
+  const result = createMigration(migrationInput);
+  expect(result.status).toBe("created");
+  if (result.status !== "created") throw new Error("Expected request");
+  expect(createMigration(migrationInput).status).toBe("pending");
+  expect(decideMigration(result.request.id, "intruder", true, "newuuid")).toBe(
+    "forbidden"
+  );
+  expect(decideMigration(result.request.id, "host", true, "another")).toBe(
+    "link_changed"
+  );
+  assignPlayerLeague(input.guildId, "member", 4);
+  expect(decideMigration(result.request.id, "host", true, "NEW-UUID")).toBe(
+    "approved"
+  );
+  expect(getPlayer(input.guildId, "member")).toMatchObject({
+    id: member.id,
+    minecraftUuid: "newuuid",
+    ign: "NewName",
+    leagueNumber: 4,
+    placements: [],
+    accountVersion: 2,
+  });
+  expect(database.select().from(registrations).get()).toMatchObject({
+    minecraftUuid: "abcd",
+    ign: "OldName",
+    accountVersion: 1,
+  });
+  expect(getMigrationHistory(input.guildId, "member")[0]).toMatchObject({
+    previousUuid: "abcd",
+    previousIgn: "OldName",
+    status: "approved",
+    reviewerId: "host",
+  });
+  expect(
+    getMigrationHistory(input.guildId, "member")[0]?.decidedAt
+  ).toBeInstanceOf(Date);
+  expect(decideMigration(result.request.id, "host", true, "newuuid")).toBe(
+    "resolved"
+  );
+});
+
+test("approval rechecks active registrations and destination ownership", () => {
+  const { competition, registration } = registerMember();
+  unregisterPlayer(competition.id, "member");
+  const result = createMigration(migrationInput);
+  if (result.status !== "created") throw new Error("Expected request");
+  registerPlayer(registration);
+  expect(decideMigration(result.request.id, "host", true, "newuuid")).toBe(
+    "active_registration"
+  );
+  unregisterPlayer(competition.id, "member");
+  registerPlayer({
+    ...registration,
+    discordUserId: "other",
+    minecraftUuid: "newuuid",
+  });
+  expect(decideMigration(result.request.id, "host", true, "newuuid")).toBe(
+    "account_owned"
+  );
+  expect(getMigration(result.request.id)?.status).toBe("pending");
+  expect(getPlayer(input.guildId, "member")?.minecraftUuid).toBe("abcd");
+});
+
+test("denied requests remain in history and allow another request without altering membership", () => {
+  const { competition } = registerMember();
+  unregisterPlayer(competition.id, "member");
+  const result = createMigration(migrationInput);
+  if (result.status !== "created") throw new Error("Expected request");
+  expect(decideMigration(result.request.id, "host", false)).toBe("denied");
+  expect(getPlayer(input.guildId, "member")?.minecraftUuid).toBe("abcd");
+  expect(createMigration(migrationInput).status).toBe("created");
+  expect(
+    getMigrationHistory(input.guildId, "member").map((row) => row.status)
+  ).toEqual(["pending", "denied"]);
+});
+
+test("signup lives on the player row and cannot overwrite later assignment", () => {
+  const signup = {
+    guildId: input.guildId,
+    discordUserId: "member",
+    discordUsername: "member",
+    minecraftUuid: "newuuid",
+    ign: "NewName",
+  };
+  const player = createSignup(signup)!;
+  expect(player.status).toBe("pending");
+  expect(createSignup(signup)?.id).toBe(player.id);
+  expect(createSignup({ ...signup, discordUserId: "other" })).toBeUndefined();
+  expect(decideSignup(player.id, 7, "different")).toBe("link_changed");
+  expect(decideSignup(player.id, 7, "newuuid")).toBe("approved");
+  assignPlayerLeague(input.guildId, "member", 6);
+  expect(decideSignup(player.id, 7, "newuuid")).toBe("resolved");
+  expect(getPlayer(input.guildId, "member")).toMatchObject({
+    status: "active",
+    leagueNumber: 6,
+  });
+  expect(createSignup({ ...signup, guildId: "other-guild" })?.status).toBe(
+    "pending"
+  );
+});
+
+test("role-authorized registration activates pending signup on the same player row", () => {
+  const player = createSignup({
+    guildId: input.guildId,
+    discordUserId: "member",
+    discordUsername: "member",
+    minecraftUuid: "AB-CD",
+    ign: "OldName",
+  })!;
+  registerMember();
+  expect(getPlayer(input.guildId, "member")).toMatchObject({
+    id: player.id,
+    status: "active",
+    leagueNumber: 5,
+  });
+  expect(decideSignup(player.id, 7, "abcd")).toBe("resolved");
+});
+
+test("rejected signup retains its player row and a host can assign it", () => {
+  const signup = {
+    guildId: input.guildId,
+    discordUserId: "member",
+    discordUsername: "member",
+    minecraftUuid: "abcd",
+    ign: "OldName",
+  };
+  const player = createSignup(signup)!;
+  expect(decideSignup(player.id)).toBe("rejected");
+  expect(createSignup(signup)).toMatchObject({
+    id: player.id,
+    status: "rejected",
+  });
+  expect(createMigration(migrationInput).status).toBe("not_player");
+  assignPlayerLeague(input.guildId, "member", 7);
+  expect(getPlayer(input.guildId, "member")).toMatchObject({
+    id: player.id,
+    status: "active",
+    leagueNumber: 7,
+  });
+});
+
+test("test membership and placements survive weekly competition cleanup and clear together", () => {
+  startCompetition(input);
+  let competition = getActiveCompetition(input.guildId, 5)!;
+  const matchPlayers = [
+    {
+      uuid: "testuuid",
+      nickname: "Fake",
+      eloRate: 1000,
+      roleType: 0,
+      eloRank: 1,
+      country: null,
+    },
+  ];
+  // Use the same match fixture shape as the existing test-fill coverage.
+  fillTestRegistrations(competition.id, matchPlayers);
+  const member = getPlayer(input.guildId, "test:testuuid")!;
+  expect(member.isTest).toBe(true);
+  database
+    .update(players)
+    .set({ placements: [{ week: 1, league: 5, placement: 1 }] })
+    .where(eq(players.id, member.id))
+    .run();
+  deleteActiveCompetition(input.guildId, competition.id);
+  startCompetition({ ...input, weekNumber: 2 });
+  competition = getActiveCompetition(input.guildId, 5)!;
+  fillTestRegistrations(competition.id, matchPlayers);
+  expect(getPlayer(input.guildId, "test:testuuid")).toMatchObject({
+    id: member.id,
+    placements: [{ week: 1, league: 5, placement: 1 }],
+  });
+  clearTestRegistrations(input.guildId, competition.id);
+  expect(getPlayer(input.guildId, "test:testuuid")).toBeUndefined();
+});
+
+test("migration back to an earlier UUID still starts a distinct account version", () => {
+  const { competition } = registerMember();
+  database
+    .update(competitions)
+    .set({ status: "ended" })
+    .where(eq(competitions.id, competition.id))
+    .run();
+  const first = createMigration(migrationInput);
+  if (first.status !== "created") throw new Error("Expected request");
+  expect(decideMigration(first.request.id, "host", true, "newuuid")).toBe(
+    "approved"
+  );
+  const second = createMigration({
+    ...migrationInput,
+    minecraftUuid: "AB-CD",
+    ign: "RenamedOriginal",
+  });
+  if (second.status !== "created") throw new Error("Expected request");
+  expect(decideMigration(second.request.id, "host", true, "abcd")).toBe(
+    "approved"
+  );
+  expect(getPlayer(input.guildId, "member")).toMatchObject({
+    minecraftUuid: "abcd",
+    accountVersion: 3,
+  });
+  expect(database.select().from(registrations).get()?.accountVersion).toBe(1);
+  expect(getMigrationHistory(input.guildId, "member")).toHaveLength(2);
 });

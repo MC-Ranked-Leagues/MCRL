@@ -1,3 +1,5 @@
+import { signupCommand } from "./signup";
+import { migrateAccountCommand } from "./migrate-account";
 import { importCommand } from "./import";
 import { clearCommand } from "./clear";
 import { adminRegCommand } from "./admin-reg";
@@ -14,6 +16,8 @@ import { testClearCommand } from "./test-clear";
 import { testFillCommand } from "./test-fill";
 
 export const commands = [
+  signupCommand,
+  migrateAccountCommand,
   pingCommand,
   nmCommand,
   regCommand,

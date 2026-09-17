@@ -4,6 +4,8 @@ import {
   SlashCommandBuilder,
 } from "discord.js";
 
+import { assignPlayerLeague } from "../db/players";
+import { syncLeagueRole } from "../lib/league-roles";
 import { requireCommandGuild } from "../lib/command-context";
 import type { BotCommand } from "./command";
 
@@ -35,37 +37,20 @@ export const assignCommand = {
       );
       return;
     }
-    const roleIds = Object.values(guild.leagues).map(
-      (entry) => entry.leagueRoleId
-    );
     const user = interaction.options.getUser("user", true);
-    const member = await interaction.guild.members.fetch({
-      user: user.id,
-      force: true,
-    });
-    const targetRole = await interaction.guild.roles.fetch(league.leagueRoleId);
-    const previousRoles = member.roles.cache.filter(
-      (role) => role.id !== league.leagueRoleId && roleIds.includes(role.id)
-    );
-    if (!targetRole?.editable || previousRoles.some((role) => !role.editable)) {
-      await interaction.editReply(
-        "I need Manage Roles and a bot role above the league roles being changed."
-      );
-      return;
-    }
-    // Add first so a failed assignment leaves the user's existing league role intact.
-    await member.roles.add(targetRole, `Assigned by ${interaction.user.id}`);
+    assignPlayerLeague(interaction.guildId, user.id, leagueNumber);
     try {
-      if (previousRoles.size > 0) {
-        await member.roles.remove(
-          [...previousRoles.keys()],
-          `Assigned by ${interaction.user.id}`
-        );
-      }
+      await syncLeagueRole(
+        interaction.guild,
+        guild,
+        user.id,
+        leagueNumber,
+        `Assigned by ${interaction.user.id}`
+      );
     } catch (error) {
-      console.error("Failed to remove previous league roles.", error);
+      console.error("Could not update league roles.", error);
       await interaction.editReply(
-        `Added League ${leagueNumber} for <@${user.id}>, but could not remove their previous league roles. Run /assign again to finish.`
+        "The stored assignment was updated if the player exists, but Discord roles could not be updated. Check Manage Roles and role ordering, then run /assign again."
       );
       return;
     }

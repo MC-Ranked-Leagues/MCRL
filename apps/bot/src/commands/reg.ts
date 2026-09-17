@@ -28,20 +28,6 @@ export const regCommand = {
     const context = await requireChannelLeague(interaction, guild);
     if (!context) return;
     const { league, leagueNumber } = context;
-    const member = await interaction.guild.members.fetch({
-      user: interaction.user.id,
-      force: true,
-    });
-    // Hosts can register in any league, matching the old bot's administrator override.
-    if (
-      !member.roles.cache.has(league.leagueRoleId) &&
-      !member.roles.cache.has(guild.commandRoleId)
-    ) {
-      await interaction.editReply(
-        `You need the League ${leagueNumber} role to register here.`
-      );
-      return;
-    }
     const competition = getActiveCompetition(interaction.guildId, leagueNumber);
     if (!competition) {
       await interaction.editReply(

@@ -140,7 +140,7 @@ export const testFillCommand = {
       );
       return;
     }
-    const content = `Added ${result.added} test registrations; skipped ${result.skipped} already registered players. Run /import match_id:${matchId} to import the results.`;
+    const content = `Added ${result.added} test registrations; skipped ${result.skipped} already registered or unavailable accounts. Run /import match_id:${matchId} to import the results.`;
     try {
       const channel = await interaction.guild.channels.fetch(
         context.league.infoChannelId

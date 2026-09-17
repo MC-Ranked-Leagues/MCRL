@@ -1,8 +1,17 @@
-import { and, eq, like } from "drizzle-orm";
+import { and, eq, like, or } from "drizzle-orm";
 import type { MatchDetail } from "mcsrranked-sdk";
 
 import { getDatabase } from ".";
-import { competitions, registrations, matches, matchResults } from "./schema";
+import {
+  competitions,
+  registrations,
+  matches,
+  matchResults,
+  players as persistentPlayers,
+} from "./schema";
+
+import { getPlayer, getAccountOwner } from "./players";
+import { normalizeUuid } from "../lib/ranked";
 
 type RegistrationInput = Omit<typeof registrations.$inferInsert, "id">;
 
@@ -18,8 +27,6 @@ export function fillTestRegistrations(
       .get();
     if (!competition || competition.status !== "active")
       return { status: "inactive" } as const;
-    const normalizeUuid = (uuid: string) =>
-      uuid.replaceAll("-", "").toLowerCase();
     const existing = new Set(
       tx
         .select()
@@ -32,10 +39,9 @@ export function fillTestRegistrations(
     for (const player of players) {
       const uuid = normalizeUuid(player.uuid);
       if (existing.has(uuid)) continue;
-      tx.insert(registrations)
-        .values({
+      const result = registerPlayer(
+        {
           competitionId,
-          // Non-snowflake IDs cannot be mistaken for real Discord accounts.
           discordUserId: `test:${uuid}`,
           discordUsername: "test player",
           minecraftUuid: uuid,
@@ -43,8 +49,13 @@ export function fillTestRegistrations(
           elo: player.eloRate,
           peakElo: null,
           registeredAt: new Date(),
-        })
-        .run();
+        },
+        {
+          mode: "test",
+          initialLeague: competition.leagueNumber,
+        }
+      );
+      if (result !== "registered") continue;
       existing.add(uuid);
       added++;
     }
@@ -58,7 +69,13 @@ export function fillTestRegistrations(
 
 export function registerPlayer(
   input: RegistrationInput,
-  { bypassClosure = false } = {}
+  {
+    mode = "self",
+    initialLeague,
+  }: {
+    mode?: "self" | "admin" | "forced" | "test";
+    initialLeague?: number;
+  } = {}
 ) {
   // The API lookup happens before this transaction. Recheck the exact competition
   // so a closure, deletion, or replacement during that lookup cannot admit a player.
@@ -70,27 +87,77 @@ export function registerPlayer(
       .get();
     if (!competition || competition.status !== "active")
       return "inactive" as const;
-    if (!competition.registrationOpen && !bypassClosure)
+    if (!competition.registrationOpen && mode === "self")
       return "closed" as const;
+    const uuid = normalizeUuid(input.minecraftUuid);
+    const player = getPlayer(competition.guildId, input.discordUserId);
+    if (player && player.minecraftUuid !== uuid)
+      return "account_mismatch" as const;
+    if (
+      mode === "admin" &&
+      player &&
+      player.leagueNumber !== competition.leagueNumber
+    )
+      return "league_mismatch" as const;
+    const owner = getAccountOwner(competition.guildId, uuid);
+    if (owner && owner.discordUserId !== input.discordUserId)
+      return "account_owned" as const;
     const existing = transaction
-      .select({ id: registrations.id })
+      .select()
       .from(registrations)
       .where(
         and(
           eq(registrations.competitionId, input.competitionId),
-          eq(registrations.discordUserId, input.discordUserId)
+          or(
+            eq(registrations.discordUserId, input.discordUserId),
+            eq(registrations.minecraftUuid, uuid)
+          )
         )
       )
       .get();
-    if (existing) return "already_registered" as const;
-
-    const created = transaction
+    if (existing)
+      return existing.discordUserId === input.discordUserId
+        ? ("already_registered" as const)
+        : ("account_registered" as const);
+    const preserveLeague = mode === "forced" || mode === "test";
+    const membership = player
+      ? transaction
+          .update(persistentPlayers)
+          .set({
+            discordUsername: input.discordUsername,
+            ign: input.ign,
+            status: "active",
+            ...(preserveLeague
+              ? {}
+              : { leagueNumber: competition.leagueNumber }),
+          })
+          .where(eq(persistentPlayers.id, player.id))
+          .returning()
+          .get()
+      : transaction
+          .insert(persistentPlayers)
+          .values({
+            guildId: competition.guildId,
+            discordUserId: input.discordUserId,
+            discordUsername: input.discordUsername,
+            minecraftUuid: uuid,
+            ign: input.ign,
+            leagueNumber: preserveLeague
+              ? initialLeague
+              : competition.leagueNumber,
+            isTest: mode === "test",
+          })
+          .returning()
+          .get();
+    transaction
       .insert(registrations)
-      .values(input)
-      .onConflictDoNothing()
-      .returning({ id: registrations.id })
-      .get();
-    return created ? ("registered" as const) : ("account_registered" as const);
+      .values({
+        ...input,
+        minecraftUuid: uuid,
+        accountVersion: membership.accountVersion,
+      })
+      .run();
+    return "registered" as const;
   });
 }
 
@@ -156,7 +223,36 @@ export function clearTestRegistrations(guildId: string, competitionId: number) {
       .get();
     if (!competition || competition.status !== "active")
       return { status: "inactive" } as const;
-    // TODO: Clear test-only records from the future persistent players table.
+    // Clear players assigned to this league even after a previous week's cleanup.
+    // Registration snapshots belong to competitions and remain independent.
+    const testPlayers = tx
+      .select()
+      .from(persistentPlayers)
+      .where(
+        and(
+          eq(persistentPlayers.guildId, guildId),
+          eq(persistentPlayers.isTest, true)
+        )
+      )
+      .all();
+    const currentTestIds = new Set(
+      tx
+        .select({ discordUserId: registrations.discordUserId })
+        .from(registrations)
+        .where(eq(registrations.competitionId, competitionId))
+        .all()
+        .map((row) => row.discordUserId)
+    );
+    for (const player of testPlayers) {
+      if (
+        player.leagueNumber === competition.leagueNumber ||
+        currentTestIds.has(player.discordUserId)
+      ) {
+        tx.delete(persistentPlayers)
+          .where(eq(persistentPlayers.id, player.id))
+          .run();
+      }
+    }
     // Real Discord IDs are snowflakes; only test_fill creates this prefix.
     // Dependent result rows cascade, matching admin unregistration behavior.
     const deleted = tx

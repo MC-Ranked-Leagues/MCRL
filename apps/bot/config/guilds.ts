@@ -7,6 +7,8 @@ export interface LeagueConfiguration {
 
 export interface GuildConfiguration {
   dev: boolean;
+  // Configure both IDs to enable signup and account migration review.
+  signup?: { channelId: string; reviewerId: string };
   logChannelId: string;
   commandRoleId: string;
   leagues: Readonly<Record<number, LeagueConfiguration>>;
@@ -16,6 +18,10 @@ export const guildConfiguration: Readonly<Record<string, GuildConfiguration>> =
   {
     "1511365088718880788": {
       dev: true,
+      signup: {
+        channelId: "1548812812820676749",
+        reviewerId: "843901903213428816",
+      },
       logChannelId: "1548812861269082283",
       commandRoleId: "1548811856133496903",
       leagues: {

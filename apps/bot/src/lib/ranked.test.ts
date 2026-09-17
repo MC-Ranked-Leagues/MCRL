@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { RankedClient } from "mcsrranked-sdk";
 
-import { registrationLookupErrorMessage } from "../lib/registration";
+import { rankedLookupErrorMessage } from "./ranked";
 
 // Replay the server's error through the real SDK, including misleading HTTP statuses.
 test.each([200, 400, 404, 500])(
@@ -21,13 +21,10 @@ test.each([200, 400, 404, 500])(
     const error: unknown = await client.users
       .get("discord.test")
       .catch((failure: unknown) => failure);
-    expect(
-      registrationLookupErrorMessage(error, true, "MinecraftPlayer")
-    ).toContain("No MCSR Ranked profile was found");
-    expect(registrationLookupErrorMessage(error, true)).toContain(
-      "Supply mc_username"
+    expect(rankedLookupErrorMessage(error, true)).toContain(
+      "Ask the player to link Discord"
     );
-    expect(registrationLookupErrorMessage(error)).toContain(
+    expect(rankedLookupErrorMessage(error)).toContain(
       "No Minecraft account is linked"
     );
   }
@@ -48,7 +45,7 @@ test("an unrelated 404 does not tell the player to link their account", async ()
   const error: unknown = await client.users
     .get("discord.test")
     .catch((failure: unknown) => failure);
-  expect(registrationLookupErrorMessage(error)).toContain(
+  expect(rankedLookupErrorMessage(error)).toContain(
     "An unexpected error occurred."
   );
 });

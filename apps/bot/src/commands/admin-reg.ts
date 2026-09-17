@@ -21,14 +21,10 @@ export const adminRegCommand = {
         .setDescription("Player to register.")
         .setRequired(true)
     )
-    .addStringOption((option) =>
+    .addBooleanOption((option) =>
       option
-        .setName("mc_username")
-        .setDescription(
-          "Minecraft username, overriding the player's Discord-linked account."
-        )
-        .setMinLength(1)
-        .setMaxLength(16)
+        .setName("force")
+        .setDescription("Override league checks for this competition only.")
     )
     .setIntegrationTypes(ApplicationIntegrationType.GuildInstall)
     .setContexts(InteractionContextType.Guild),
@@ -47,21 +43,16 @@ export const adminRegCommand = {
       );
       return;
     }
-    const username = interaction.options.getString("mc_username")?.trim();
-    if (username !== undefined && !/^[A-Za-z0-9_]{1,16}$/.test(username)) {
-      await interaction.editReply(
-        "Enter a Minecraft username using letters, numbers, or underscores."
-      );
-      return;
-    }
+    const user = interaction.options.getUser("user", true);
+    const force = interaction.options.getBoolean("force") ?? false;
     await registerCompetitionPlayer(
       interaction,
       context.league,
       context.leagueNumber,
       competition,
-      interaction.options.getUser("user", true),
+      user,
       true,
-      username
+      force
     );
   },
 } satisfies BotCommand;
