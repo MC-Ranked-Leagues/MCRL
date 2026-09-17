@@ -6,6 +6,7 @@ import {
 import { unregisterCompetitionPlayer } from "../lib/unregistration";
 import type { BotCommand } from "./command";
 
+// Intentionally excluded from the command registry; do not wire this command up.
 export const adminUnregCommand = {
   data: new SlashCommandBuilder()
     .setName("admin_unreg")
