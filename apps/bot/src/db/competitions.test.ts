@@ -6,6 +6,7 @@ import {
 } from "./matches";
 import { updateLeaderboardMessages } from "../lib/leaderboard-messages";
 import {
+  clearTestRegistrations,
   fillTestRegistrations,
   registerPlayer,
   unregisterPlayer,
@@ -833,4 +834,80 @@ test("final leaderboard omits Missed when everyone participated and retries afte
   const { channel, messages } = registrationChannel();
   await updateLeaderboardMessages(channel, competition.id);
   expect([...messages.values()].join("\n")).not.toContain("Missed:");
+});
+
+test("test clear removes only test registrations and their results, preserving matches and real players", async () => {
+  const competition = setupMatchPlayers();
+  const match = rankedMatch();
+  fillTestRegistrations(competition.id, match.players);
+  importMatch(competition.id, match);
+  const realPlayers = database
+    .select()
+    .from(registrations)
+    .all()
+    .filter((player) => !player.discordUserId.startsWith("test:"));
+  const realPlayerIds = new Set(realPlayers.map((player) => player.id));
+  const realResults = database
+    .select()
+    .from(matchResults)
+    .all()
+    .filter((result) => realPlayerIds.has(result.registrationId));
+  const savedMatches = database.select().from(matches).all();
+  const { channel, messages } = registrationChannel();
+  await updateRegistrationMessages(channel, competition.id);
+  await updateLeaderboardMessages(channel, competition.id);
+  expect([...messages.values()].join("\n")).toContain("Player99");
+  const savedCompetition = getActiveCompetition(input.guildId, 5);
+
+  expect(clearTestRegistrations(input.guildId, competition.id)).toEqual({
+    status: "cleared",
+    removed: 1,
+  });
+  expect(getActiveCompetition(input.guildId, 5)).toEqual(savedCompetition);
+  expect(database.select().from(registrations).all()).toEqual(realPlayers);
+  expect(database.select().from(matchResults).all()).toEqual(realResults);
+  expect(database.select().from(matches).all()).toEqual(savedMatches);
+  await updateRegistrationMessages(channel, competition.id);
+  await updateLeaderboardMessages(channel, competition.id);
+  expect([...messages.values()].join("\n")).not.toContain("Player99");
+  expect(messages.size).toBe(2);
+  expect(clearTestRegistrations(input.guildId, competition.id)).toEqual({
+    status: "cleared",
+    removed: 0,
+  });
+});
+
+test("test clear respects guild, competition and active-state boundaries", () => {
+  startCompetition(input);
+  startCompetition({ ...input, leagueNumber: 6 });
+  const competition = getActiveCompetition(input.guildId, 5)!;
+  const other = getActiveCompetition(input.guildId, 6)!;
+  for (const id of [competition.id, other.id])
+    fillTestRegistrations(id, rankedMatch().players);
+  const before = database.select().from(registrations).all();
+  expect(clearTestRegistrations("other-guild", competition.id).status).toBe(
+    "inactive"
+  );
+  expect(database.select().from(registrations).all()).toEqual(before);
+  expect(clearTestRegistrations(input.guildId, competition.id).status).toBe(
+    "cleared"
+  );
+  expect(getCompetitionRegistration(other.id)!.players).toHaveLength(6);
+  database
+    .update(competitions)
+    .set({ status: "ended" })
+    .where(eq(competitions.id, other.id))
+    .run();
+  expect(clearTestRegistrations(input.guildId, other.id).status).toBe(
+    "inactive"
+  );
+  expect(getCompetitionRegistration(other.id)!.players).toHaveLength(6);
+  deleteActiveCompetition(input.guildId, competition.id);
+  startCompetition(input);
+  const replacement = getActiveCompetition(input.guildId, 5)!;
+  fillTestRegistrations(replacement.id, rankedMatch().players);
+  expect(clearTestRegistrations(input.guildId, competition.id).status).toBe(
+    "inactive"
+  );
+  expect(getCompetitionRegistration(replacement.id)!.players).toHaveLength(6);
 });
