@@ -139,7 +139,7 @@ export function getCompetitionRegistration(competitionId: number) {
     .select()
     .from(registrations)
     .where(eq(registrations.competitionId, competitionId))
-    // Older registrations have no peak snapshot; use their saved Elo until re-registration.
+    // Ranked may omit peak Elo; use the current Elo captured at registration.
     .orderBy(
       desc(sql`coalesce(${registrations.peakElo}, ${registrations.elo})`),
       asc(registrations.ign),

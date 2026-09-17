@@ -9,6 +9,78 @@ import {
   uniqueIndex,
 } from "drizzle-orm/sqlite-core";
 
+export interface RetainedPlacement {
+  week: number;
+  league: number;
+  placement: number;
+}
+
+export const players = sqliteTable(
+  "players",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    guildId: text("guild_id").notNull(),
+    discordUserId: text("discord_user_id").notNull(),
+    discordUsername: text("discord_username").notNull(),
+    minecraftUuid: text("minecraft_uuid").notNull(),
+    ign: text("ign").notNull(),
+    status: text("status", { enum: ["pending", "active", "rejected"] })
+      .notNull()
+      .default("active"),
+    signupMessageId: text("signup_message_id"),
+    signupDetails: text("signup_details"),
+    // A forced registration can precede any permanent league assignment.
+    leagueNumber: integer("league_number"),
+    isTest: integer("is_test", { mode: "boolean" }).notNull().default(false),
+    accountVersion: integer("account_version").notNull().default(1),
+    placements: text("placements", { mode: "json" })
+      .$type<RetainedPlacement[]>()
+      .notNull()
+      .default(sql`'[]'`),
+  },
+  (table) => [
+    uniqueIndex("players_guild_discord_unique").on(
+      table.guildId,
+      table.discordUserId
+    ),
+    uniqueIndex("players_guild_uuid_unique").on(
+      table.guildId,
+      table.minecraftUuid
+    ),
+    check(
+      "players_placements_limit",
+      sql`json_array_length(${table.placements}) <= 3`
+    ),
+  ]
+);
+
+export const accountMigrations = sqliteTable(
+  "account_migrations",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    playerId: integer("player_id")
+      .notNull()
+      .references(() => players.id, { onDelete: "cascade" }),
+    previousUuid: text("previous_uuid").notNull(),
+    previousIgn: text("previous_ign").notNull(),
+    minecraftUuid: text("minecraft_uuid").notNull(),
+    ign: text("ign").notNull(),
+    accountVersion: integer("account_version").notNull(),
+    status: text("status", { enum: ["pending", "approved", "denied"] })
+      .notNull()
+      .default("pending"),
+    reviewerId: text("reviewer_id").notNull(),
+    reviewMessageId: text("review_message_id"),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+    decidedAt: integer("decided_at", { mode: "timestamp_ms" }),
+  },
+  (table) => [
+    uniqueIndex("account_migrations_pending_unique")
+      .on(table.playerId)
+      .where(sql`${table.status} = 'pending'`),
+  ]
+);
+
 export const competitions = sqliteTable(
   "competitions",
   {
@@ -62,6 +134,7 @@ export const registrations = sqliteTable(
     competitionId: integer("competition_id")
       .notNull()
       .references(() => competitions.id, { onDelete: "cascade" }),
+    accountVersion: integer("account_version").notNull().default(1),
     discordUserId: text("discord_user_id").notNull(),
     discordUsername: text("discord_username").notNull(),
     minecraftUuid: text("minecraft_uuid").notNull(),

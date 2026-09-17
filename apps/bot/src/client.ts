@@ -6,10 +6,19 @@ import {
   type Interaction,
 } from "discord.js";
 
+import { handleSignupReview, moderateSignupChannel } from "./commands/signup";
+import { handleMigrationReview } from "./commands/migrate-account";
 import { commands } from "./commands";
 import { sendCommandLog } from "./lib/command-logging";
 
 async function handleInteraction(interaction: Interaction): Promise<void> {
+  if (interaction.isButton()) {
+    if (interaction.customId.startsWith("signup:"))
+      await handleSignupReview(interaction);
+    if (interaction.customId.startsWith("migration:"))
+      await handleMigrationReview(interaction);
+    return;
+  }
   if (!interaction.isChatInputCommand()) {
     return;
   }
@@ -50,7 +59,7 @@ async function handleInteraction(interaction: Interaction): Promise<void> {
 }
 
 export const client = new Client({
-  intents: [GatewayIntentBits.Guilds],
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages],
 });
 
 client.once(Events.ClientReady, (readyClient) => {
@@ -58,11 +67,24 @@ client.once(Events.ClientReady, (readyClient) => {
 });
 
 client.on(Events.InteractionCreate, (interaction) => {
-  void handleInteraction(interaction).catch((error: unknown) => {
+  void handleInteraction(interaction).catch(async (error: unknown) => {
     console.error("Failed to handle a Discord interaction.", error);
+    if (interaction.isButton() && interaction.deferred) {
+      await interaction
+        .editReply(
+          "Could not finish the review. Retry the button to check its saved status."
+        )
+        .catch(() => {});
+    }
   });
 });
 
 client.on(Events.Error, (error) => {
   console.error("Discord client error.", error);
+});
+
+client.on(Events.MessageCreate, (message) => {
+  void moderateSignupChannel(message).catch((error: unknown) =>
+    console.error("Signup channel moderation failed.", error)
+  );
 });

@@ -3,13 +3,16 @@ import {
   type ChatInputCommandInteraction,
   type User,
 } from "discord.js";
-import { RankedClient, RankedError } from "mcsrranked-sdk";
-import type { GuildConfiguration } from "../../config/guilds";
+import { ranked, rankedLookupErrorMessage } from "./ranked";
+import { getMemberLeagues } from "./league-roles";
+import {
+  guildConfiguration,
+  type GuildConfiguration,
+} from "../../config/guilds";
 import type { getActiveCompetition } from "../db/competitions";
 import { registerPlayer } from "../db/registrations";
+import { getPlayer } from "../db/players";
 import { updateRegistrationMessages } from "./registration-messages";
-
-const ranked = new RankedClient({ validation: "error" });
 
 export async function registerCompetitionPlayer(
   interaction: ChatInputCommandInteraction<"cached">,
@@ -18,19 +21,32 @@ export async function registerCompetitionPlayer(
   competition: NonNullable<ReturnType<typeof getActiveCompetition>>,
   user: User,
   admin = false,
-  minecraftUsername?: string
+  force = false
 ) {
   let profile;
   try {
-    profile = await ranked.users.get(minecraftUsername ?? `discord.${user.id}`);
+    profile = await ranked.users.get(`discord.${user.id}`);
   } catch (error) {
     console.error("Could not look up the player's MCSR Ranked account.", error);
-    await interaction.editReply(
-      registrationLookupErrorMessage(error, admin, minecraftUsername)
-    );
+    await interaction.editReply(rankedLookupErrorMessage(error, admin));
     return;
   }
 
+  const config = guildConfiguration[interaction.guildId]!;
+  const roleLeagues = await getMemberLeagues(
+    interaction.guild,
+    config,
+    user.id
+  );
+  if (!force && (roleLeagues.length !== 1 || roleLeagues[0] !== leagueNumber)) {
+    await interaction.editReply(
+      admin
+        ? `The player's league roles are ${roleLeagues.join(", ") || "unassigned"}. Use force: true to register in League ${leagueNumber} for this competition only.`
+        : `You need exactly one league role, matching League ${leagueNumber}, to register here. Ask a host to resolve missing or conflicting roles.`
+    );
+    return;
+  }
+  const initialLeague = roleLeagues.length === 1 ? roleLeagues[0] : undefined;
   const result = registerPlayer(
     {
       competitionId: competition.id,
@@ -42,10 +58,15 @@ export async function registerCompetitionPlayer(
       peakElo: profile.seasonResult.highest,
       registeredAt: new Date(),
     },
-    { bypassClosure: admin }
+    { mode: admin ? (force ? "forced" : "admin") : "self", initialLeague }
   );
   if (result !== "registered") {
+    const savedPlayer = getPlayer(interaction.guildId, user.id);
     const messages = {
+      account_mismatch: `Your saved account is **${escapeMarkdown(savedPlayer?.ign ?? "unknown")}**, but Discord is linked to **${escapeMarkdown(profile.nickname)}**. The player must use /migrate_account to request a change, or connect the discord to the previous Ranked account.`,
+      account_owned:
+        "This Minecraft account belongs to another player in this server.",
+      league_mismatch: `The stored league is ${savedPlayer?.leagueNumber ?? "unassigned"}. Use force: true to register in League ${leagueNumber} for this competition only.`,
       inactive:
         "No competition is active for the current league. Wait until its announcement is made.",
       closed: "Registration closed.",
@@ -77,21 +98,4 @@ export async function registerCompetitionPlayer(
     return;
   }
   await interaction.editReply(content);
-}
-
-export function registrationLookupErrorMessage(
-  error: unknown,
-  admin = false,
-  minecraftUsername?: string
-): string {
-  const details = (error instanceof RankedError ? error.details : undefined) as
-    { error?: unknown; data?: { error?: unknown } } | undefined;
-  const message = details?.data?.error ?? details?.error;
-  return typeof message === "string" && message.includes("not exists")
-    ? minecraftUsername
-      ? "No MCSR Ranked profile was found for that Minecraft username."
-      : admin
-        ? "No Minecraft account is linked to this Discord user on MCSR Ranked. Supply mc_username to register a Minecraft account directly."
-        : "No Minecraft account is linked to your Discord on MCSR Ranked. Link Discord in your MCSR Ranked profile settings, then try /reg again."
-    : "An unexpected error occurred.";
 }

@@ -43,6 +43,13 @@
       "when": 1789474898340,
       "tag": "0005_colorful_santa_claus",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1789642981708,
+      "tag": "0006_player_storage",
+      "breakpoints": true
     }
   ]
 }
