@@ -36,18 +36,35 @@ export function getAccountOwner(guildId: string, uuid: string) {
 export function assignPlayerLeague(
   guildId: string,
   discordUserId: string,
-  leagueNumber: number
+  leagueNumber: number,
+  account?: Pick<
+    typeof players.$inferInsert,
+    "discordUsername" | "minecraftUuid" | "ign"
+  >
 ) {
-  getDatabase()
-    .update(players)
-    .set({ leagueNumber, status: "active" })
-    .where(
-      and(
-        eq(players.guildId, guildId),
-        eq(players.discordUserId, discordUserId)
-      )
-    )
-    .run();
+  return getDatabase().transaction((tx) => {
+    const existing = getPlayer(guildId, discordUserId);
+    if (existing) {
+      tx.update(players)
+        .set({ leagueNumber, status: "active" })
+        .where(eq(players.id, existing.id))
+        .run();
+      return "assigned";
+    }
+    if (!account) return "missing_account";
+    if (getAccountOwner(guildId, account.minecraftUuid)) return "account_owned";
+    tx.insert(players)
+      .values({
+        ...account,
+        guildId,
+        discordUserId,
+        minecraftUuid: normalizeUuid(account.minecraftUuid),
+        leagueNumber,
+        status: "active",
+      })
+      .run();
+    return "assigned";
+  });
 }
 
 export function createSignup(

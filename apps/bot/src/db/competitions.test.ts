@@ -1260,3 +1260,53 @@ test("migration back to an earlier UUID still starts a distinct account version"
   expect(database.select().from(registrations).get()?.accountVersion).toBe(1);
   expect(getMigrationHistory(input.guildId, "member")).toHaveLength(2);
 });
+
+test("assignment creates a missing player from the linked account", () => {
+  assignPlayerLeague(input.guildId, "new-member", 7, {
+    discordUsername: "NewMember",
+    minecraftUuid: "NEW-UUID",
+    ign: "NewName",
+  });
+  expect(getPlayer(input.guildId, "new-member")).toMatchObject({
+    discordUsername: "NewMember",
+    minecraftUuid: "newuuid",
+    ign: "NewName",
+    leagueNumber: 7,
+    status: "active",
+  });
+});
+
+test("assignment rejects owned accounts and preserves an existing player's history", () => {
+  const { competition } = registerMember();
+  const member = getPlayer(input.guildId, "member")!;
+  const placements = [{ week: 1, league: 5, placement: 2 }];
+  database
+    .update(players)
+    .set({ placements })
+    .where(eq(players.id, member.id))
+    .run();
+  expect(
+    assignPlayerLeague(input.guildId, "other", 7, {
+      discordUsername: "Other",
+      minecraftUuid: member.minecraftUuid,
+      ign: member.ign,
+    })
+  ).toBe("account_owned");
+  expect(getPlayer(input.guildId, "other")).toBeUndefined();
+  // A player may be created while the command is awaiting its Ranked lookup.
+  expect(
+    assignPlayerLeague(input.guildId, "member", 6, {
+      discordUsername: "Changed",
+      minecraftUuid: "different-uuid",
+      ign: "Different",
+    })
+  ).toBe("assigned");
+  expect(getPlayer(input.guildId, "member")).toMatchObject({
+    id: member.id,
+    minecraftUuid: member.minecraftUuid,
+    accountVersion: member.accountVersion,
+    leagueNumber: 6,
+    placements,
+  });
+  expect(getCompetitionRegistration(competition.id)!.players).toHaveLength(1);
+});
