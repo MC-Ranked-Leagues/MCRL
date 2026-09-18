@@ -15,8 +15,12 @@ import { pingCommand } from "./ping";
 import { testClearCommand } from "./test-clear";
 import { testFillCommand } from "./test-fill";
 import { testMigrateCommand } from "./test-migrate";
+import { meCommand } from "./me";
+import { rankedCommand } from "./ranked";
 
 export const commands = [
+  meCommand,
+  rankedCommand,
   signupCommand,
   migrateAccountCommand,
   pingCommand,

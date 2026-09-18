@@ -3,6 +3,12 @@
 Player commands operate on the league associated with the current information
 or chat channel. Host commands require the configured command role.
 
+`/me` and `/ranked` work in any server channel and reply privately. `/me` shows
+your saved Ranked Leagues account, league, membership status, and retained
+placements for this server. `/ranked` looks up your currently Discord-linked
+MCSR Ranked account and shows current-season Elo, peak Elo, completions, average
+completion time, PB, and a profile link. It does not require a saved league account.
+
 | Command                           | Use                                                                                                                                                                                                |
 | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `/signup`                         | Request reviewed league placement in the signup channel, or restore a saved league role.                                                                                                           |
