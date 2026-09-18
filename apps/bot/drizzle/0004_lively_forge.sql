@@ -1,1 +1,0 @@
-ALTER TABLE `registrations` ADD `peak_elo` real;
