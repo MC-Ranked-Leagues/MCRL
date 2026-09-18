@@ -4,9 +4,10 @@ import {
   SlashCommandBuilder,
 } from "discord.js";
 
-import { assignPlayerLeague } from "../db/players";
+import { assignPlayerLeague, getPlayer } from "../db/players";
 import { syncLeagueRole } from "../lib/league-roles";
 import { requireCommandGuild } from "../lib/command-context";
+import { ranked, rankedLookupErrorMessage } from "../lib/ranked";
 import type { BotCommand } from "./command";
 
 export const assignCommand = {
@@ -38,7 +39,34 @@ export const assignCommand = {
       return;
     }
     const user = interaction.options.getUser("user", true);
-    assignPlayerLeague(interaction.guildId, user.id, leagueNumber);
+    let account;
+    if (!getPlayer(interaction.guildId, user.id)) {
+      try {
+        const profile = await ranked.users.get(`discord.${user.id}`);
+        account = {
+          discordUsername: user.username,
+          minecraftUuid: profile.uuid,
+          ign: profile.nickname,
+        };
+      } catch (error) {
+        await interaction.editReply(rankedLookupErrorMessage(error, true));
+        return;
+      }
+    }
+    const result = assignPlayerLeague(
+      interaction.guildId,
+      user.id,
+      leagueNumber,
+      account
+    );
+    if (result !== "assigned") {
+      await interaction.editReply(
+        result === "account_owned"
+          ? "This Minecraft account already belongs to another player."
+          : "The player no longer exists. Run /assign again to look up their account."
+      );
+      return;
+    }
     try {
       await syncLeagueRole(
         interaction.guild,
@@ -50,7 +78,7 @@ export const assignCommand = {
     } catch (error) {
       console.error("Could not update league roles.", error);
       await interaction.editReply(
-        "The stored assignment was updated if the player exists, but Discord roles could not be updated. Check Manage Roles and role ordering, then run /assign again."
+        "The assignment was saved, but Discord roles could not be updated. Check Manage Roles and role ordering, then run /assign again."
       );
       return;
     }
