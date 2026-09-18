@@ -8,6 +8,46 @@ import {
 } from "./schema";
 import { getAccountOwner, getPlayer, getPlayerById } from "./players";
 import { normalizeUuid } from "../lib/ranked";
+import { guildConfiguration } from "../../config/guilds";
+
+export function setTestMigrationAccount(input: {
+  guildId: string;
+  discordUserId: string;
+  minecraftUuid: string;
+  ign: string;
+}) {
+  if (guildConfiguration[input.guildId]?.dev !== true) return "not_dev";
+  return getDatabase().transaction((tx) => {
+    const player = getPlayer(input.guildId, input.discordUserId);
+    if (!player || player.status !== "active") return "not_player";
+    if (hasActiveRegistration(input.guildId, input.discordUserId))
+      return "active_registration";
+    const pending = tx
+      .select({ id: accountMigrations.id })
+      .from(accountMigrations)
+      .where(
+        and(
+          eq(accountMigrations.playerId, player.id),
+          eq(accountMigrations.status, "pending")
+        )
+      )
+      .get();
+    if (pending) return "pending";
+    const uuid = normalizeUuid(input.minecraftUuid);
+    if (player.minecraftUuid === uuid) return "same_account";
+    if (getAccountOwner(input.guildId, uuid)) return "account_owned";
+    // Separate old result snapshots while retaining placements to test their reset.
+    tx.update(players)
+      .set({
+        minecraftUuid: uuid,
+        ign: input.ign,
+        accountVersion: player.accountVersion + 1,
+      })
+      .where(eq(players.id, player.id))
+      .run();
+    return "updated";
+  });
+}
 
 export function getMigration(id: number) {
   return getDatabase()
