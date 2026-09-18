@@ -14,6 +14,7 @@ import { nmCommand } from "./nm";
 import { pingCommand } from "./ping";
 import { testClearCommand } from "./test-clear";
 import { testFillCommand } from "./test-fill";
+import { testMigrateCommand } from "./test-migrate";
 
 export const commands = [
   signupCommand,
@@ -31,4 +32,5 @@ export const commands = [
   clearCommand,
   testFillCommand,
   testClearCommand,
+  testMigrateCommand,
 ] satisfies readonly BotCommand[];

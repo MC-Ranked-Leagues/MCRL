@@ -9,7 +9,9 @@ import {
   decideMigration,
   getMigrationHistory,
   getMigration,
+  setTestMigrationAccount,
 } from "./account-migrations";
+import { guildConfiguration } from "../../config/guilds";
 import {
   clearMatch,
   getCompetitionStandings,
@@ -955,6 +957,115 @@ const migrationInput = {
   ign: "NewName",
   reviewerId: "host",
 };
+
+test("test migration isolates the dev guild and supports migration back to the real account", () => {
+  const { registration } = registerMember();
+  const mainPlayer = getPlayer(input.guildId, "member")!;
+  const guildId = Object.keys(guildConfiguration).find(
+    (id) => guildConfiguration[id]?.dev === true
+  )!;
+  assignPlayerLeague(guildId, "member", 5, registration);
+  const devPlayer = getPlayer(guildId, "member")!;
+  const placements = [{ week: 1, league: 5, placement: 2 }];
+  database
+    .update(players)
+    .set({ placements })
+    .where(eq(players.id, devPlayer.id))
+    .run();
+  const account = {
+    guildId,
+    discordUserId: "member",
+    minecraftUuid: "FA-KE",
+    ign: "Fake",
+  };
+  expect(setTestMigrationAccount({ ...account, guildId: input.guildId })).toBe(
+    "not_dev"
+  );
+  expect(setTestMigrationAccount(account)).toBe("updated");
+  expect(getPlayer(input.guildId, "member")).toEqual(mainPlayer);
+  expect(getPlayer(guildId, "member")).toMatchObject({
+    minecraftUuid: "fake",
+    ign: "Fake",
+    placements,
+    leagueNumber: 5,
+    accountVersion: devPlayer.accountVersion + 1,
+  });
+  startCompetition({ ...input, guildId });
+  toggleRegistration(guildId, 5);
+  const competition = getActiveCompetition(guildId, 5)!;
+  const devRegistration = { ...registration, competitionId: competition.id };
+  expect(registerPlayer(devRegistration)).toBe("account_mismatch");
+  const migration = createMigration({
+    ...migrationInput,
+    guildId,
+    minecraftUuid: registration.minecraftUuid,
+    ign: registration.ign,
+  });
+  expect(migration.status).toBe("created");
+  if (migration.status !== "created")
+    throw new Error("Expected migration request");
+  expect(
+    decideMigration(
+      migration.request.id,
+      "host",
+      true,
+      registration.minecraftUuid
+    )
+  ).toBe("approved");
+  expect(getPlayer(guildId, "member")?.placements).toEqual([]);
+  expect(registerPlayer(devRegistration)).toBe("registered");
+  expect(getPlayer(input.guildId, "member")).toEqual(mainPlayer);
+});
+
+test("test migration rejects missing players, owned accounts, active registrations, and pending reviews", () => {
+  const guildId = Object.keys(guildConfiguration).find(
+    (id) => guildConfiguration[id]?.dev === true
+  )!;
+  const account = {
+    guildId,
+    discordUserId: "member",
+    minecraftUuid: "fake",
+    ign: "Fake",
+  };
+  expect(setTestMigrationAccount(account)).toBe("not_player");
+  assignPlayerLeague(guildId, "member", 5, {
+    discordUsername: "member",
+    minecraftUuid: "real",
+    ign: "Real",
+  });
+  assignPlayerLeague(guildId, "other", 5, {
+    discordUsername: "other",
+    minecraftUuid: "owned",
+    ign: "Owned",
+  });
+  const original = getPlayer(guildId, "member");
+  expect(setTestMigrationAccount({ ...account, minecraftUuid: "real" })).toBe(
+    "same_account"
+  );
+  expect(setTestMigrationAccount({ ...account, minecraftUuid: "owned" })).toBe(
+    "account_owned"
+  );
+  startCompetition({ ...input, guildId });
+  toggleRegistration(guildId, 5);
+  const competition = getActiveCompetition(guildId, 5)!;
+  expect(
+    registerPlayer({
+      competitionId: competition.id,
+      discordUserId: "member",
+      discordUsername: "member",
+      minecraftUuid: "real",
+      ign: "Real",
+      registeredAt: new Date(),
+    })
+  ).toBe("registered");
+  expect(setTestMigrationAccount(account)).toBe("active_registration");
+  expect(deleteActiveCompetition(guildId, competition.id)).toBe(true);
+  expect(createMigration({ ...account, reviewerId: "host" }).status).toBe(
+    "created"
+  );
+  expect(setTestMigrationAccount(account)).toBe("pending");
+  expect(getPlayer(guildId, "member")).toEqual(original);
+});
 
 test("membership survives competition deletion and normal registration follows the role-authorized league", () => {
   const { competition, registration } = registerMember();

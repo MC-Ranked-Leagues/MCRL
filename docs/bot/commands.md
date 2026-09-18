@@ -25,6 +25,16 @@ closed.
 `/test_fill` adds the match's players as test registrations, skipping registered
 accounts and accounts owned by real players. Run `/import` separately for results.
 
+`/test_migrate ign` requires the host role and a `dev: true` server. It immediately
+changes only your saved Minecraft UUID and IGN in that server, using the supplied
+Ranked account. Your actual Ranked Discord link, league, and retained placements
+stay unchanged. It rejects active competition registrations, pending migrations,
+and accounts owned by another player in the same server. No separate database is
+needed; your membership in other servers is unaffected.
+Run `/reg` with registration open and the matching league role to check the account
+mismatch, then `/migrate_account` and complete host approval to return to your real
+account. Approval clears retained placements as usual.
+
 `/test-clear` removes the current competition's test registrations and results,
 and clears test membership and placements for its league. Regular players and
 other competitions' registrations remain. Re-import matches to recalculate the
