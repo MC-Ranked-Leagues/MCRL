@@ -20,8 +20,7 @@ and `DISCORD_GUILD_ID`, then run `bun run bot:deploy`. This replaces that server
 complete command set. Omitting `DISCORD_GUILD_ID` targets global commands.
 
 The intended Discord permissions are View Channels, Send Messages, Read Message
-History, Attach Files, Manage Roles, and Pin Messages. Signup moderation will
-also require Manage Messages in its channel.
+History, Attach Files, Manage Roles, and Pin Messages. Signup moderation requires Manage Messages in its channel.
 
 ## Documentation
 
