@@ -1,1 +1,0 @@
-ALTER TABLE `competitions` ADD `registration_message_ids` text DEFAULT '[]' NOT NULL;

@@ -1,1 +1,0 @@
-CREATE UNIQUE INDEX `competitions_guild_league_active_unique` ON `competitions` (`guild_id`,`league_number`) WHERE "competitions"."status" = 'active';
