@@ -31,14 +31,70 @@ separate host or player action and preserves the future persistent player record
 
 ## Player persistence and signup
 
-Use SQLite for persistent players and pending signup requests, replacing the old
-JSON files. Retain upstream's signup review and channel moderation workflow.
+Use SQLite for persistent players. Signup creates a player with pending status;
+approval activates that same player and rejection retains it with rejected status.
+Store signup review details on the player, with no separate signup-request table. Retain upstream's signup review and channel moderation workflow.
 Resolve the signup channel, reviewer, and roles through guild configuration,
 including Manage Messages permission for deleting member messages in that channel.
+A rejected signup can be reconsidered through host assignment. Registration with
+a valid league role can activate a pending player; stale review buttons must not
+overwrite that membership. This implementation targets fresh databases; no legacy
+player-data adoption or backfill is required.
 
-The [account migration proposal](plans/player-accounts.md) still needs agreement.
-Preserve current account and registration behavior until it is approved, including
-admin registration with a supplied Minecraft username.
+### Player identity and registration
+
+Player identity is the guild and Discord ID together. Within a guild, both
+Discord IDs and active Minecraft UUIDs are unique across players. A separate
+challenge account requires a separate Discord account. Minecraft name changes
+never change identity.
+
+Normal `/reg` requires exactly one configured league role matching the channel.
+It creates a missing player from the Discord-linked Ranked account, or updates
+an existing player's stored league to match that role. A different linked UUID
+must stop registration before changing membership and direct the player to
+`/migrate_account`, naming both the saved and currently linked accounts. Existing
+members join storage lazily through registration; no role-scraping import is
+required.
+
+`/admin_reg` only uses the Discord-linked account; remove `mc_username`. Without
+`force`, both the player's role and existing stored league must match the target
+competition. `force` bypasses league checks for that competition only and never
+bypasses account checks or changes existing league membership or roles. For a
+new player, preserve their single league role as membership; without an
+unambiguous role, leave membership unassigned until `/assign`.
+
+`/assign` changes roles and updates membership when a player entry exists.
+`/admin_unreg` is intentionally excluded from the command registry.
+
+Test registrations create explicitly marked persistent players with stable
+synthetic Discord IDs so they can participate in multi-week testing. Test cleanup
+removes their membership and retained placements as well as the selected
+competition's test registrations and results; regular players are preserved.
+
+### Account migration
+
+`/migrate_account` resolves the newly Discord-linked Ranked account and asks the
+player to confirm the old and new accounts before requesting host approval.
+Reject destinations already owned by another player in the guild. Block migration
+while the player is registered in any active competition. Recheck these conditions
+and the Ranked link when approving a saved request.
+
+Approval replaces the active Minecraft link on the existing player, preserves
+league membership, and clears retained placements. The new pairing starts with
+no performance history, not zero placements. Migration does not register the new
+account. Competition registration snapshots and published results keep their old
+UUID and are never transferred. Account versions distinguish registrations made
+before and after a migration, even if a player later returns to an earlier UUID.
+Future weekly finalization must only retain placements for the current version.
+
+Retain migration requests with old and new UUIDs and names, request and decision
+times, reviewer, and outcome. Show previous request and approved-migration counts
+to the reviewing host, together with old and new account names, current league,
+and last approved migration date. Keep detailed history in storage; do not send
+a file attachment or raw database identifiers in the review. Rejected requests are not completed
+account changes. This history survives subsequent migrations and placement resets.
+Host review makes repeated switches visible instead of allowing self-service
+placement resets. A separate `/admin_migrate` is deferred until needed.
 
 ## Weekly finalization
 

@@ -6,10 +6,10 @@ import {
   type Interaction,
 } from "discord.js";
 
-import { handleSignupReview, moderateSignupChannel } from "./commands/signup";
-import { handleMigrationReview } from "./commands/migrate-account";
 import { commands } from "./commands";
+import { handleMigrationReview } from "./lib/account-migration-review";
 import { sendCommandLog } from "./lib/command-logging";
+import { handleSignupReview, moderateSignupChannel } from "./lib/signup-review";
 
 async function handleInteraction(interaction: Interaction): Promise<void> {
   if (interaction.isButton()) {

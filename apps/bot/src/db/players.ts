@@ -94,15 +94,16 @@ export function decideSignup(
   return getDatabase().transaction((tx) => {
     const player = getPlayerById(id);
     if (!player || player.status !== "pending") return "resolved";
-    if (
-      leagueNumber !== undefined &&
-      (!linkedUuid || normalizeUuid(linkedUuid) !== player.minecraftUuid)
-    )
-      return "link_changed";
+    if (leagueNumber !== undefined) {
+      if (!linkedUuid || normalizeUuid(linkedUuid) !== player.minecraftUuid)
+        return "link_changed";
+    }
     tx.update(players)
       .set({
         status: leagueNumber === undefined ? "rejected" : "active",
         leagueNumber,
+        signupMessageId: null,
+        signupDetails: null,
       })
       .where(eq(players.id, id))
       .run();
