@@ -1176,6 +1176,19 @@ test("rejected signup retains its player row and a host can assign it", () => {
     id: player.id,
     status: "rejected",
   });
+  startCompetition(input);
+  toggleRegistration(input.guildId, input.leagueNumber);
+  const competition = getActiveCompetition(input.guildId, input.leagueNumber)!;
+  expect(
+    registerPlayer({
+      competitionId: competition.id,
+      discordUserId: signup.discordUserId,
+      discordUsername: signup.discordUsername,
+      minecraftUuid: signup.minecraftUuid,
+      ign: signup.ign,
+      registeredAt: new Date(),
+    })
+  ).toBe("signup_rejected");
   expect(createMigration(migrationInput).status).toBe("not_player");
   assignPlayerLeague(input.guildId, "member", 7);
   expect(getPlayer(input.guildId, "member")).toMatchObject({

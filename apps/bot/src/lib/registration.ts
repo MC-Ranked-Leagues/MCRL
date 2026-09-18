@@ -63,6 +63,8 @@ export async function registerCompetitionPlayer(
   if (result !== "registered") {
     const savedPlayer = getPlayer(interaction.guildId, user.id);
     const messages = {
+      signup_rejected:
+        "This player's signup was declined. A host must reconsider their membership with /assign before registration.",
       account_mismatch: `Your saved account is **${escapeMarkdown(savedPlayer?.ign ?? "unknown")}**, but Discord is linked to **${escapeMarkdown(profile.nickname)}**. The player must use /migrate_account to request a change, or connect the discord to the previous Ranked account.`,
       account_owned:
         "This Minecraft account belongs to another player in this server.",

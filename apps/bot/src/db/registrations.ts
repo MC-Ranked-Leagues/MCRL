@@ -91,6 +91,7 @@ export function registerPlayer(
       return "closed" as const;
     const uuid = normalizeUuid(input.minecraftUuid);
     const player = getPlayer(competition.guildId, input.discordUserId);
+    if (player?.status === "rejected") return "signup_rejected" as const;
     if (player && player.minecraftUuid !== uuid)
       return "account_mismatch" as const;
     if (
