@@ -169,7 +169,7 @@ export function registerPlayer(
 
     // recalculate points for the imported matches
     if (importedMatches.length) {
-      const participantCount = transaction
+      const registeredCount = transaction
         .select({ value: count() })
         .from(registrations)
         .where(eq(registrations.competitionId, competition.id))
@@ -184,11 +184,6 @@ export function registerPlayer(
             status: "missed",
           })
           .run();
-        transaction
-          .update(matches)
-          .set({ participantCount })
-          .where(eq(matches.id, match.id))
-          .run();
         const results = transaction
           .select()
           .from(matchResults)
@@ -200,7 +195,7 @@ export function registerPlayer(
             .set({
               points:
                 result.status === "finished" && result.placement !== null
-                  ? calculateMatchPoints(participantCount, result.placement)
+                  ? calculateMatchPoints(registeredCount, result.placement)
                   : 0,
             })
             .where(
