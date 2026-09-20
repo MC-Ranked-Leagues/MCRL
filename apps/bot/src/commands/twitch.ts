@@ -6,6 +6,7 @@ import {
 } from "discord.js";
 
 import { setPlayerTwitchUsername } from "../db/players";
+import { normalizeTwitchUsername } from "../lib/twitch";
 import type { BotCommand } from "./command";
 
 export const twitchCommand = {
@@ -15,16 +16,20 @@ export const twitchCommand = {
     .addStringOption((option) =>
       option
         .setName("username")
-        .setDescription("Your Twitch username.")
+        .setDescription("Your Twitch username or profile URL.")
         .setRequired(true)
     )
     .setIntegrationTypes(ApplicationIntegrationType.GuildInstall)
     .setContexts(InteractionContextType.Guild),
 
   async execute(interaction) {
-    const username = interaction.options.getString("username", true).trim();
+    const username = normalizeTwitchUsername(
+      interaction.options.getString("username", true)
+    );
     if (!username) {
-      await interaction.editReply("Enter a Twitch username.");
+      await interaction.editReply(
+        "Enter a Twitch username or profile URL, such as https://twitch.tv/your_name. Usernames can contain only letters, numbers, and underscores, up to 25 characters."
+      );
       return;
     }
     const saved = setPlayerTwitchUsername(
