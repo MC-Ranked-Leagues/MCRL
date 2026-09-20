@@ -14,7 +14,7 @@ import { drizzle } from "drizzle-orm/bun-sqlite";
 import { migrate } from "drizzle-orm/bun-sqlite/migrator";
 import journal from "../../drizzle/meta/_journal.json";
 
-test("removing participant count preserves existing matches, results, and foreign keys", () => {
+test("schema migrations preserve existing competition data and add profile fields", () => {
   const sqlite = new Database(":memory:");
   const db = drizzle(sqlite);
   const baselineFolder = mkdtempSync(join(tmpdir(), "mcrl-migration-"));
@@ -37,6 +37,8 @@ test("removing participant count preserves existing matches, results, and foreig
     sqlite.exec("PRAGMA foreign_keys = ON");
     migrate(db, { migrationsFolder: baselineFolder });
     sqlite.exec(`
+      INSERT INTO players (id, guild_id, discord_user_id, discord_username, minecraft_uuid, ign)
+      VALUES (1, 'test', 'player', 'Player', 'uuid', 'Player');
       INSERT INTO competitions (id, guild_id, league_number, week_number, max_time_limit_ms, started_at)
       VALUES (1, 'test', 5, 1, 1000, 1);
       INSERT INTO registrations (id, competition_id, discord_user_id, discord_username, minecraft_uuid, ign, registered_at)
@@ -59,6 +61,12 @@ test("removing participant count preserves existing matches, results, and foreig
     expect(() =>
       sqlite.query("SELECT participant_count FROM matches").all()
     ).toThrow();
+    expect(
+      sqlite.query("SELECT twitch FROM players WHERE id = 1").get()
+    ).toEqual({ twitch: null });
+    expect(
+      sqlite.query("SELECT streaming FROM registrations WHERE id = 1").get()
+    ).toEqual({ streaming: 0 });
     // Re-running migrations is harmless, and cascade deletion still works afterward.
     migrate(db, { migrationsFolder });
     expect(sqlite.query("SELECT * FROM match_results").all()).toEqual(results);

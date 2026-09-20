@@ -3,26 +3,29 @@
 Player commands operate on the league associated with the current information
 or chat channel. Host commands require the configured command role.
 
-`/me` and `/ranked` work in any server channel and reply privately. `/me` shows
-your saved Ranked Leagues account, league, membership status, and retained
-placements for this server. `/ranked` looks up your currently Discord-linked
-MCSR Ranked account and shows current-season Elo, peak Elo, completions, average
-completion time, PB, and a profile link. It does not require a saved league account.
+`/me`, `/ranked`, and `/twitch` work in any server channel and reply privately.
+`/me` shows your saved Ranked Leagues account, league, membership status, and
+retained placements for this server. `/ranked` looks up your currently
+Discord-linked MCSR Ranked account and shows current-season Elo, peak Elo,
+completions, average completion time, PB, and a profile link. It does not require
+a saved league account.
 
-| Command                           | Use                                                                                                                                                                                                |
-| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/signup`                         | Request reviewed league placement in the signup channel, or restore a saved league role.                                                                                                           |
-| `/migrate_account`                | Confirm a new Discord-linked Minecraft account and request host approval.                                                                                                                          |
-| `/nm week`                        | Start a competition and post its registration list in the league's information channel. Only one competition can be active per league.                                                             |
-| `/reg`                            | Register your Discord-linked MCSR Ranked account. Registration must be open and your single league role must match. Account changes require migration.                                             |
-| `/admin_reg user [force]`         | Register the Discord-linked account even when registration is closed. Role and stored league must match unless force is true. Force applies only to this competition.                              |
-| `/unreg`                          | Remove your registration while registration is open, provided you have no results in an imported match.                                                                                            |
-| `/assign user league`             | Assign league membership and replace the user's league roles. Works in any server channel and can assign League 7.                                                                                 |
-| `/toggle_registration`            | Open or close registration for the current league. Cannot reopen while imported matches remain.                                                                                                    |
-| `/import match_id [match_number]` | Import an MCSR Ranked match. Omit the number to create the next match; supply a number to create or replace that match and all its results. Unregistered Ranked players are reported and excluded. |
-| `/clear [match_number]`           | Delete a match and its results, defaulting to the latest match. Registrations and other match numbers remain unchanged.                                                                            |
-| `/em`                             | End the active competition, close registration, and post final standings. Requires at least one imported match.                                                                                    |
-| `/dm`                             | Delete the active competition and all registrations, matches, and results after confirmation within 60 seconds.                                                                                    |
+| Command                           | Use                                                                                                                                                                                                     |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/signup`                         | Request reviewed league placement in the signup channel, or restore a saved league role.                                                                                                                |
+| `/migrate_account`                | Confirm a new Discord-linked Minecraft account and request host approval.                                                                                                                               |
+| `/nm week`                        | Start a competition and post its registration list in the league's information channel. Only one competition can be active per league.                                                                  |
+| `/twitch username`                | Save the Twitch username used by registration exports.                                                                                                                                                  |
+| `/reg [streaming]`                | Register your Discord-linked MCSR Ranked account. Streaming uses the saved `/twitch` username or the Twitch account linked on Ranked. Registration must be open and your single league role must match. |
+| `/list`                           | Export the current registration list as a `.ranked` file. Streaming registrations include the player's saved Twitch username.                                                                           |
+| `/admin_reg user [force]`         | Register the Discord-linked account even when registration is closed. Role and stored league must match unless force is true. Force applies only to this competition.                                   |
+| `/unreg`                          | Remove your registration while registration is open, provided you have no results in an imported match.                                                                                                 |
+| `/assign user league`             | Assign league membership and replace the user's league roles. Works in any server channel and can assign League 7.                                                                                      |
+| `/toggle_registration`            | Open or close registration for the current league. Cannot reopen while imported matches remain.                                                                                                         |
+| `/import match_id [match_number]` | Import an MCSR Ranked match. Omit the number to create the next match; supply a number to create or replace that match and all its results. Unregistered Ranked players are reported and excluded.      |
+| `/clear [match_number]`           | Delete a match and its results, defaulting to the latest match. Registrations and other match numbers remain unchanged.                                                                                 |
+| `/em`                             | End the active competition, close registration, and post final standings. Requires at least one imported match.                                                                                         |
+| `/dm`                             | Delete the active competition and all registrations, matches, and results after confirmation within 60 seconds.                                                                                         |
 
 `/test_fill match_id` and `/test-clear` require the host role and a `dev: true`
 server. Both require confirmation within 60 seconds and work with registration
@@ -55,6 +58,11 @@ result. Before any imports, registration only refreshes the registration list.
 `/clear` refreshes the leaderboard; clearing every import permits manual reopening
 with `/toggle_registration`. Saved changes remain if a Discord refresh
 fails; the bot reports the failure to the host.
+
+`/reg streaming:true` saves the Twitch username already set through `/twitch`,
+or imports the Twitch connection from the linked MCSR Ranked profile. If neither
+exists, registration stops and asks the player to run `/twitch` first. `/list`
+then exports the saved username for streaming registrations.
 
 `/em` preserves registrations and results. The final leaderboard includes played
 DNFs and lists Minecraft names of players who missed the entire competition below

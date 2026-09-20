@@ -16,6 +16,11 @@ export const regCommand = {
     .setDescription(
       "Register your linked Minecraft account for this league's competition."
     )
+    .addBooleanOption((option) =>
+      option
+        .setName("streaming")
+        .setDescription("Include your saved Twitch username in the export.")
+    )
     .setIntegrationTypes(ApplicationIntegrationType.GuildInstall)
     .setContexts(InteractionContextType.Guild),
 
@@ -45,7 +50,8 @@ export const regCommand = {
       league,
       leagueNumber,
       competition,
-      interaction.user
+      interaction.user,
+      { streaming: interaction.options.getBoolean("streaming") ?? false }
     );
   },
 } satisfies BotCommand;

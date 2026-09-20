@@ -1,7 +1,12 @@
 import { and, asc, desc, eq, sql } from "drizzle-orm";
 
 import { getDatabase } from ".";
-import { competitions, matches, registrations } from "./schema";
+import {
+  competitions,
+  matches,
+  players as persistentPlayers,
+  registrations,
+} from "./schema";
 
 import { getImportedMatches } from "./matches";
 
@@ -144,6 +149,38 @@ export function getCompetitionRegistration(competitionId: number) {
     .from(registrations)
     .where(eq(registrations.competitionId, competitionId))
     // Ranked may omit peak Elo; use the current Elo captured at registration.
+    .orderBy(
+      desc(sql`coalesce(${registrations.peakElo}, ${registrations.elo})`),
+      asc(registrations.ign),
+      asc(registrations.id)
+    )
+    .all();
+  return { competition, players };
+}
+
+export function getCompetitionExport(competitionId: number) {
+  const database = getDatabase();
+  const competition = database
+    .select()
+    .from(competitions)
+    .where(eq(competitions.id, competitionId))
+    .get();
+  if (!competition) return;
+  const players = database
+    .select({
+      ign: registrations.ign,
+      streaming: registrations.streaming,
+      twitch: persistentPlayers.twitch,
+    })
+    .from(registrations)
+    .leftJoin(
+      persistentPlayers,
+      and(
+        eq(persistentPlayers.guildId, competition.guildId),
+        eq(persistentPlayers.discordUserId, registrations.discordUserId)
+      )
+    )
+    .where(eq(registrations.competitionId, competitionId))
     .orderBy(
       desc(sql`coalesce(${registrations.peakElo}, ${registrations.elo})`),
       asc(registrations.ign),
