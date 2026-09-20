@@ -24,6 +24,7 @@ export const players = sqliteTable(
     discordUsername: text("discord_username").notNull(),
     minecraftUuid: text("minecraft_uuid").notNull(),
     ign: text("ign").notNull(),
+    twitch: text("twitch"),
     status: text("status", { enum: ["pending", "active", "rejected"] })
       .notNull()
       .default("active"),
@@ -141,6 +142,9 @@ export const registrations = sqliteTable(
     ign: text("ign").notNull(),
     elo: real("elo"),
     peakElo: real("peak_elo"),
+    streaming: integer("streaming", { mode: "boolean" })
+      .notNull()
+      .default(false),
     registeredAt: integer("registered_at", {
       mode: "timestamp_ms",
     }).notNull(),

@@ -3,6 +3,7 @@ import {
   createSignup,
   decideSignup,
   getPlayer,
+  setPlayerTwitchUsername,
 } from "./players";
 import {
   createMigration,
@@ -37,6 +38,7 @@ import {
   deleteActiveCompetition,
   endCompetition,
   getActiveCompetition,
+  getCompetitionExport,
   getLatestEndedCompetition,
   getCompetitionRegistration,
   startCompetition,
@@ -285,6 +287,124 @@ test("registration saves the account snapshot and rejects duplicate users and ac
     elo: null,
     peakElo: 1800,
   });
+});
+
+test("competition exports read the current Twitch username for streaming registrations", () => {
+  startCompetition(input);
+  toggleRegistration(input.guildId, 5);
+  const active = getActiveCompetition(input.guildId, 5)!;
+  for (const registration of [
+    {
+      discordUserId: "streamer",
+      ign: "Streamer",
+      streaming: true,
+    },
+    {
+      discordUserId: "private",
+      ign: "PrivatePlayer",
+      streaming: false,
+    },
+  ]) {
+    expect(
+      registerPlayer(
+        {
+          ...registration,
+          competitionId: active.id,
+          discordUsername: registration.discordUserId,
+          minecraftUuid: registration.discordUserId,
+          registeredAt: new Date(),
+        },
+        registration.streaming
+          ? { twitch: `${registration.discordUserId}_linked` }
+          : undefined
+      )
+    ).toBe("registered");
+    expect(
+      setPlayerTwitchUsername(
+        input.guildId,
+        registration.discordUserId,
+        `${registration.discordUserId}_live`
+      )
+    ).toBe(true);
+  }
+
+  expect(
+    getCompetitionExport(active.id)!.players.map((player) => ({
+      ign: player.ign,
+      streaming: player.streaming,
+      twitch: player.twitch,
+    }))
+  ).toEqual([
+    {
+      ign: "PrivatePlayer",
+      streaming: false,
+      twitch: "private_live",
+    },
+    {
+      ign: "Streamer",
+      streaming: true,
+      twitch: "streamer_live",
+    },
+  ]);
+  expect(
+    setPlayerTwitchUsername(input.guildId, "streamer", "new_channel")
+  ).toBe(true);
+  expect(
+    getCompetitionExport(active.id)!.players.find(
+      (player) => player.ign === "Streamer"
+    )?.twitch
+  ).toBe("new_channel");
+  expect(setPlayerTwitchUsername(input.guildId, "missing", "no_account")).toBe(
+    false
+  );
+});
+
+test("streaming registration requires and saves a resolved Twitch username", () => {
+  startCompetition(input);
+  toggleRegistration(input.guildId, 5);
+  const active = getActiveCompetition(input.guildId, 5)!;
+  const registration = {
+    competitionId: active.id,
+    discordUserId: "streamer",
+    discordUsername: "streamer",
+    minecraftUuid: "streamer",
+    ign: "Streamer",
+    streaming: true,
+    registeredAt: new Date(),
+  };
+
+  expect(registerPlayer(registration)).toBe("twitch_required");
+  expect(getPlayer(input.guildId, "streamer")).toBeUndefined();
+  expect(registerPlayer(registration, { twitch: "linked_channel" })).toBe(
+    "registered"
+  );
+  expect(getPlayer(input.guildId, "streamer")?.twitch).toBe("linked_channel");
+
+  expect(
+    assignPlayerLeague(input.guildId, "saved-streamer", 5, {
+      discordUsername: "saved-streamer",
+      minecraftUuid: "saved-streamer",
+      ign: "SavedStreamer",
+    })
+  ).toBe("assigned");
+  expect(
+    setPlayerTwitchUsername(input.guildId, "saved-streamer", "saved_channel")
+  ).toBe(true);
+  expect(
+    registerPlayer(
+      {
+        ...registration,
+        discordUserId: "saved-streamer",
+        discordUsername: "saved-streamer",
+        minecraftUuid: "saved-streamer",
+        ign: "SavedStreamer",
+      },
+      { twitch: "linked_channel" }
+    )
+  ).toBe("registered");
+  expect(getPlayer(input.guildId, "saved-streamer")?.twitch).toBe(
+    "saved_channel"
+  );
 });
 
 test("registration messages rank peak Elo above current Elo and keep unrated players last", async () => {

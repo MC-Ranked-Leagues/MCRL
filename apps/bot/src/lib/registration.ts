@@ -20,8 +20,11 @@ export async function registerCompetitionPlayer(
   leagueNumber: number,
   competition: NonNullable<ReturnType<typeof getActiveCompetition>>,
   user: User,
-  admin = false,
-  force = false
+  {
+    admin = false,
+    force = false,
+    streaming = false,
+  }: { admin?: boolean; force?: boolean; streaming?: boolean } = {}
 ) {
   let profile;
   try {
@@ -47,6 +50,9 @@ export async function registerCompetitionPlayer(
     return;
   }
   const initialLeague = roleLeagues.length === 1 ? roleLeagues[0] : undefined;
+  const twitch = streaming
+    ? profile.connections.twitch?.name.trim() || null
+    : null;
   const result = registerPlayer(
     {
       competitionId: competition.id,
@@ -56,9 +62,14 @@ export async function registerCompetitionPlayer(
       ign: profile.nickname,
       elo: profile.eloRate,
       peakElo: profile.seasonResult.highest,
+      streaming,
       registeredAt: new Date(),
     },
-    { mode: admin ? (force ? "forced" : "admin") : "self", initialLeague }
+    {
+      mode: admin ? (force ? "forced" : "admin") : "self",
+      initialLeague,
+      twitch,
+    }
   );
   if (result !== "registered") {
     const savedPlayer = getPlayer(interaction.guildId, user.id);
@@ -75,6 +86,8 @@ export async function registerCompetitionPlayer(
       already_registered: "This player is already registered.",
       account_registered:
         "This Minecraft account is already registered by another Discord user.",
+      twitch_required:
+        "No Twitch username is saved or linked on MCSR Ranked. Use /twitch first, then register again.",
     };
     await interaction.editReply(messages[result]);
     return;

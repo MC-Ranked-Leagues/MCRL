@@ -45,6 +45,12 @@ Existing members enter storage through registration or assignment; no role impor
 or legacy player-data backfill is required. The database baseline targets fresh
 databases.
 
+Players save their current Twitch username with `/twitch`. Each competition
+registration separately records whether the player is streaming. Registration
+uses that saved username, falling back to the Twitch connection on the player's
+MCSR Ranked profile. Streaming registration requires one of those usernames.
+Exports include it only for registrations that opted in.
+
 Normal registration adopts the player's single matching league role. Forced
 registration bypasses league checks for that competition only; it must never
 bypass account checks or change existing membership or roles. New players without

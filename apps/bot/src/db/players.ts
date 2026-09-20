@@ -33,6 +33,26 @@ export function getAccountOwner(guildId: string, uuid: string) {
     .get();
 }
 
+export function setPlayerTwitchUsername(
+  guildId: string,
+  discordUserId: string,
+  twitchUsername: string
+): boolean {
+  return (
+    getDatabase()
+      .update(players)
+      .set({ twitch: twitchUsername })
+      .where(
+        and(
+          eq(players.guildId, guildId),
+          eq(players.discordUserId, discordUserId)
+        )
+      )
+      .returning({ id: players.id })
+      .get() !== undefined
+  );
+}
+
 export function assignPlayerLeague(
   guildId: string,
   discordUserId: string,

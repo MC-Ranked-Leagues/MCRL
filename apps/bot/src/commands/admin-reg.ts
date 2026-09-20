@@ -51,8 +51,7 @@ export const adminRegCommand = {
       context.leagueNumber,
       competition,
       user,
-      true,
-      force
+      { admin: true, force }
     );
   },
 } satisfies BotCommand;

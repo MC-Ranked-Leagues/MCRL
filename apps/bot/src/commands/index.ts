@@ -17,15 +17,19 @@ import { testFillCommand } from "./test-fill";
 import { testMigrateCommand } from "./test-migrate";
 import { meCommand } from "./me";
 import { rankedCommand } from "./ranked";
+import { twitchCommand } from "./twitch";
+import { listCommand } from "./list";
 
 export const commands = [
   meCommand,
   rankedCommand,
+  twitchCommand,
   signupCommand,
   migrateAccountCommand,
   pingCommand,
   nmCommand,
   regCommand,
+  listCommand,
   adminRegCommand,
   unregCommand,
   assignCommand,

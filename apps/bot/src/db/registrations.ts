@@ -75,9 +75,11 @@ export function registerPlayer(
   {
     mode = "self",
     initialLeague,
+    twitch,
   }: {
     mode?: "self" | "admin" | "forced" | "test";
     initialLeague?: number;
+    twitch?: string | null;
   } = {}
 ) {
   // The API lookup happens before this transaction. Recheck the exact competition
@@ -127,6 +129,8 @@ export function registerPlayer(
       return existing.discordUserId === input.discordUserId
         ? ("already_registered" as const)
         : ("account_registered" as const);
+    const resolvedTwitch = player?.twitch?.trim() || twitch?.trim() || null;
+    if (input.streaming && !resolvedTwitch) return "twitch_required" as const;
     const preserveLeague = mode === "forced" || mode === "test";
     const membership = player
       ? transaction
@@ -138,6 +142,7 @@ export function registerPlayer(
             ...(preserveLeague
               ? {}
               : { leagueNumber: competition.leagueNumber }),
+            ...(resolvedTwitch ? { twitch: resolvedTwitch } : {}),
           })
           .where(eq(persistentPlayers.id, player.id))
           .returning()
@@ -154,6 +159,7 @@ export function registerPlayer(
               ? initialLeague
               : competition.leagueNumber,
             isTest: mode === "test",
+            twitch: resolvedTwitch,
           })
           .returning()
           .get();
