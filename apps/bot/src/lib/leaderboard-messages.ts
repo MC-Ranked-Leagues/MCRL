@@ -36,6 +36,7 @@ export async function updateLeaderboardMessages(
         ids.shift();
         saveLeaderboardMessageIds(competitionId, ids);
       }
+      if (data.currentSeed === 0) return;
       const lines = [
         `**League ${data.competition.leagueNumber} Week ${data.competition.weekNumber} Leaderboard**`,
         `**Status:** ${data.competition.status}`,

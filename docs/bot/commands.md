@@ -55,7 +55,8 @@ registration list and leaderboard. `/admin_reg` adds missed results for previous
 imports, recalculates points using the current registration count, and refreshes
 both messages. Re-import a match explicitly to recover a late player's actual
 result. Before any imports, registration only refreshes the registration list.
-`/clear` refreshes the leaderboard; clearing every import permits manual reopening
+`/clear` refreshes the leaderboard and deletes it when no imported matches remain.
+Clearing every import permits manual reopening
 with `/toggle_registration`. Saved changes remain if a Discord refresh
 fails; the bot reports the failure to the host.
 
