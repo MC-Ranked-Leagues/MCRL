@@ -65,6 +65,11 @@ or imports the Twitch connection from the linked MCSR Ranked profile. If neither
 exists, registration stops and asks the player to run `/twitch` first. `/list`
 then exports the saved username for streaming registrations.
 
+`/twitch username` accepts a username, an `@handle`, or a Twitch profile URL
+with or without `https://`. It trims surrounding whitespace and saves the
+username in lowercase. Invalid characters and URLs are rejected. Usernames may
+contain letters, numbers, and underscores, up to 25 characters.
+
 `/em` preserves registrations and results. The final leaderboard includes played
 DNFs and lists Minecraft names of players who missed the entire competition below
 the table.
