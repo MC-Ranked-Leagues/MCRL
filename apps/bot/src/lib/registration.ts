@@ -12,7 +12,7 @@ import {
 import type { getActiveCompetition } from "../db/competitions";
 import { registerPlayer } from "../db/registrations";
 import { getPlayer } from "../db/players";
-import { updateRegistrationMessages } from "./registration-messages";
+import { replyWithCompetitionUpdate } from "./competition-messages";
 
 export async function registerCompetitionPlayer(
   interaction: ChatInputCommandInteraction<"cached">,
@@ -81,23 +81,10 @@ export async function registerCompetitionPlayer(
   }
 
   const content = `Registered **${escapeMarkdown(profile.nickname)}** for League ${leagueNumber}, Week ${competition.weekNumber}.`;
-  try {
-    const channel = await interaction.guild.channels.fetch(
-      league.infoChannelId
-    );
-    if (!channel?.isSendable())
-      throw new Error("Information channel cannot receive messages.");
-    await updateRegistrationMessages(channel, competition.id);
-  } catch (error) {
-    // Registration remains valid even if Discord cannot refresh the public list.
-    console.error(
-      "Player registered, but the registration list could not be updated.",
-      error
-    );
-    await interaction.editReply(
-      `${content} I could not update the registration list in the info channel; however the registration is saved.`
-    );
-    return;
-  }
-  await interaction.editReply(content);
+  await replyWithCompetitionUpdate(
+    interaction,
+    competition.id,
+    league.infoChannelId,
+    content
+  );
 }

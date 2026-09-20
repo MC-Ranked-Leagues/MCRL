@@ -18,6 +18,7 @@ import {
   importMatch,
   type RankedMatchInput,
 } from "./matches";
+import { replyWithCompetitionUpdate } from "../lib/competition-messages";
 import { updateLeaderboardMessages } from "../lib/leaderboard-messages";
 import {
   clearTestRegistrations,
@@ -25,8 +26,8 @@ import {
   registerPlayer,
   unregisterPlayer,
 } from "./registrations";
-import { afterAll, beforeEach, expect, test } from "bun:test";
-import type { SendableChannels } from "discord.js";
+import { afterAll, beforeEach, expect, spyOn, test } from "bun:test";
+import type { ChatInputCommandInteraction, SendableChannels } from "discord.js";
 import { updateRegistrationMessages } from "../lib/registration-messages";
 import { eq } from "drizzle-orm";
 
@@ -94,9 +95,13 @@ test("registration toggles only the active competition in the requested guild an
   expect(toggleRegistration(input.guildId, 5)).toBeUndefined();
   startCompetition(input);
   startCompetition({ ...input, guildId: "other-guild" });
-  expect(toggleRegistration(input.guildId, 5)?.registrationOpen).toBe(true);
+  expect(toggleRegistration(input.guildId, 5)).toMatchObject({
+    registrationOpen: true,
+  });
   expect(getActiveCompetition("other-guild", 5)?.registrationOpen).toBe(false);
-  expect(toggleRegistration(input.guildId, 5)?.registrationOpen).toBe(false);
+  expect(toggleRegistration(input.guildId, 5)).toMatchObject({
+    registrationOpen: false,
+  });
 });
 
 test("deletion cascades and an old confirmation cannot delete a replacement competition", () => {
@@ -176,7 +181,11 @@ function registrationChannel() {
       },
     },
   };
-  return { channel: channel as unknown as SendableChannels, messages };
+  return {
+    channel: channel as unknown as SendableChannels,
+    messages,
+    rawChannel: channel,
+  };
 }
 
 test("registration toggles edit tracked messages and cleanup preserves Discord history", async () => {
@@ -644,7 +653,7 @@ test("one player still earns a point and missed matches count toward average but
   const competition = setupMatchPlayers(1);
   importMatch(competition.id, rankedMatch());
   expect(database.select().from(matchResults).get()!.points).toBe(1);
-  // A later registration must not acquire results in an already imported match.
+  // A late registration receives missed results for earlier matches.
   registerPlayer(
     {
       competitionId: competition.id,
@@ -779,14 +788,17 @@ test("finalization preserves results, ranks played DNFs, and lists all nonpartic
   const competition = setupMatchPlayers();
   toggleRegistration(input.guildId, 5);
   importMatch(competition.id, rankedMatch());
-  registerPlayer({
-    competitionId: competition.id,
-    discordUserId: "late",
-    discordUsername: "LateDiscord",
-    minecraftUuid: "late-uuid",
-    ign: "LateMinecraft",
-    registeredAt: new Date(),
-  });
+  registerPlayer(
+    {
+      competitionId: competition.id,
+      discordUserId: "late",
+      discordUsername: "LateDiscord",
+      minecraftUuid: "late-uuid",
+      ign: "LateMinecraft",
+      registeredAt: new Date(),
+    },
+    { mode: "admin" }
+  );
   const originalResults = database.select().from(matchResults).all();
   const { channel, messages } = registrationChannel();
   await updateLeaderboardMessages(channel, competition.id);
@@ -1420,4 +1432,216 @@ test("assignment rejects owned accounts and preserves an existing player's histo
     placements,
   });
   expect(getCompetitionRegistration(competition.id)!.players).toHaveLength(1);
+});
+
+test("successful imports close registration and prevent reopening until imports are cleared", () => {
+  const competition = setupMatchPlayers();
+  toggleRegistration(input.guildId, 5);
+  expect(
+    importMatch(competition.id, { id: 200, players: [], completions: [] })
+      .status
+  ).toBe("empty_match");
+  expect(getActiveCompetition(input.guildId, 5)!.registrationOpen).toBe(true);
+  importMatch(competition.id, rankedMatch());
+  expect(getActiveCompetition(input.guildId, 5)!.registrationOpen).toBe(false);
+  expect(toggleRegistration(input.guildId, 5)).toBe("has_results");
+  expect(unregisterPlayer(competition.id, "player5").status).toBe("closed");
+  const late = {
+    competitionId: competition.id,
+    discordUserId: "late",
+    discordUsername: "late",
+    minecraftUuid: "late",
+    ign: "Late",
+    registeredAt: new Date(),
+  };
+  expect(registerPlayer(late)).toBe("closed");
+  // Even an old database with registration still open cannot admit self registrations.
+  database
+    .update(competitions)
+    .set({ registrationOpen: true })
+    .where(eq(competitions.id, competition.id))
+    .run();
+  expect(registerPlayer(late)).toBe("closed");
+  toggleRegistration(input.guildId, 5);
+  clearMatch(competition.id);
+  expect(getActiveCompetition(input.guildId, 5)!.registrationOpen).toBe(false);
+  expect(toggleRegistration(input.guildId, 5)).toMatchObject({
+    registrationOpen: true,
+  });
+});
+
+test("late registration backfills every imported match, rescales points, and permits explicit re-import", () => {
+  const competition = setupMatchPlayers(5);
+  importMatch(competition.id, rankedMatch());
+  importMatch(competition.id, rankedMatch(101));
+  const before = database.select().from(matchResults).all();
+  const late = {
+    competitionId: competition.id,
+    discordUserId: "late",
+    discordUsername: "late",
+    minecraftUuid: "uuid99",
+    ign: "Late",
+    registeredAt: new Date(),
+  };
+  expect(registerPlayer(late, { mode: "forced" })).toBe("registered");
+  const registration = database
+    .select()
+    .from(registrations)
+    .where(eq(registrations.discordUserId, "late"))
+    .get()!;
+  expect(
+    database
+      .select()
+      .from(matches)
+      .all()
+      .map((match) => match.participantCount)
+  ).toEqual([6, 6]);
+  const missed = database
+    .select()
+    .from(matchResults)
+    .where(eq(matchResults.registrationId, registration.id))
+    .all();
+  expect(missed).toHaveLength(2);
+  for (const result of missed)
+    expect(result).toMatchObject({
+      status: "missed",
+      points: 0,
+      placement: null,
+      timeMs: null,
+      submittedAt: null,
+    });
+  const after = database
+    .select()
+    .from(matchResults)
+    .all()
+    .filter((row) => row.registrationId !== registration.id);
+  expect(after.map(({ points: _points, ...result }) => result)).toEqual(
+    before.map(({ points: _points, ...result }) => result)
+  );
+  expect(after.map((row) => row.points)).toEqual([
+    8, 8, 2, 0, 0, 8, 8, 2, 0, 0,
+  ]);
+  expect(
+    getCompetitionStandings(competition.id)!.standings.some(
+      (row) => row.ign === "Late"
+    )
+  ).toBe(false);
+  expect(registerPlayer(late, { mode: "forced" })).toBe("already_registered");
+  expect(database.select().from(matchResults).all()).toHaveLength(12);
+
+  const later = rankedMatch(102);
+  importMatch(competition.id, later);
+  expect(
+    getCompetitionStandings(competition.id)!.standings.find(
+      (row) => row.ign === "Late"
+    )
+  ).toMatchObject({ played: 1, averageTimeMs: 700 });
+  importMatch(competition.id, rankedMatch(), 1);
+  expect(
+    getCompetitionStandings(competition.id)!.standings.find(
+      (row) => row.ign === "Late"
+    )
+  ).toMatchObject({ played: 2, averageTimeMs: 400 });
+});
+
+test("failed late result insertion rolls back registration, membership, and scoring", () => {
+  const competition = setupMatchPlayers(5);
+  importMatch(competition.id, rankedMatch());
+  const savedResults = database.select().from(matchResults).all();
+  const savedMatches = database.select().from(matches).all();
+  database.$client
+    .exec(`CREATE TRIGGER reject_late BEFORE INSERT ON match_results
+    BEGIN SELECT RAISE(ABORT, 'simulated write failure'); END`);
+  try {
+    expect(() =>
+      registerPlayer(
+        {
+          competitionId: competition.id,
+          discordUserId: "late",
+          discordUsername: "late",
+          minecraftUuid: "late",
+          ign: "Late",
+          registeredAt: new Date(),
+        },
+        { mode: "admin" }
+      )
+    ).toThrow();
+  } finally {
+    database.$client.exec("DROP TRIGGER reject_late");
+  }
+  expect(getPlayer(input.guildId, "late")).toBeUndefined();
+  expect(database.select().from(registrations).all()).toHaveLength(5);
+  expect(database.select().from(matches).all()).toEqual(savedMatches);
+  expect(database.select().from(matchResults).all()).toEqual(savedResults);
+});
+
+test("competition refresh updates registration and rescored standings even if registration refresh fails", async () => {
+  const competition = setupMatchPlayers(5);
+  const { channel, messages, rawChannel } = registrationChannel();
+  const replies: string[] = [];
+  const interaction = {
+    guild: {
+      channels: {
+        fetch: async () => ({
+          ...channel,
+          isSendable: () => true,
+        }),
+      },
+    },
+    editReply: async ({ content }: { content: string }) => {
+      replies.push(content);
+    },
+  } as unknown as ChatInputCommandInteraction<"cached">;
+  await replyWithCompetitionUpdate(
+    interaction,
+    competition.id,
+    "info",
+    "Registered."
+  );
+  expect(messages.size).toBe(1);
+  importMatch(competition.id, rankedMatch());
+  await replyWithCompetitionUpdate(
+    interaction,
+    competition.id,
+    "info",
+    "Imported."
+  );
+  expect([...messages.values()].join("\n")).toContain("Registration: **OFF**");
+  expect([...messages.values()].join("\n")).toContain("7 pts");
+  registerPlayer(
+    {
+      competitionId: competition.id,
+      discordUserId: "late",
+      discordUsername: "late",
+      minecraftUuid: "late",
+      ign: "Late",
+      registeredAt: new Date(),
+    },
+    { mode: "admin" }
+  );
+  const registrationId = getActiveCompetition(input.guildId, 5)!
+    .registrationMessageIds[0]!;
+  const fetchMessage = rawChannel.messages.fetch.bind(rawChannel.messages);
+  const fetchSpy = spyOn(rawChannel.messages, "fetch").mockImplementation(
+    (id: string) => {
+      if (id === registrationId)
+        return Promise.reject(new Error("Simulated Discord failure"));
+      return fetchMessage(id);
+    }
+  );
+  const logSpy = spyOn(console, "error").mockImplementation(() => {});
+  try {
+    await replyWithCompetitionUpdate(
+      interaction,
+      competition.id,
+      "info",
+      "Registered Late."
+    );
+  } finally {
+    fetchSpy.mockRestore();
+    logSpy.mockRestore();
+  }
+  expect([...messages.values()].join("\n")).toContain("8 pts");
+  expect(replies.at(-1)).toContain("The changes are saved");
+  expect(database.select().from(registrations).all()).toHaveLength(6);
 });

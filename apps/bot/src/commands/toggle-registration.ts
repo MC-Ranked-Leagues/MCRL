@@ -30,6 +30,12 @@ export const toggleRegistrationCommand = {
       interaction.guildId,
       context.leagueNumber
     );
+    if (competition === "has_results") {
+      await interaction.editReply(
+        "Registration cannot reopen while imported matches exist. Use /admin_reg for late additions."
+      );
+      return;
+    }
     if (!competition) {
       await interaction.editReply(
         `League ${context.leagueNumber} has no active competition. Start one with /nm first.`

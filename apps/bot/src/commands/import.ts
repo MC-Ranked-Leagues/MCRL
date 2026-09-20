@@ -11,7 +11,7 @@ import {
   requireChannelLeague,
   requireCommandGuild,
 } from "../lib/command-context";
-import { replyWithLeaderboardUpdate } from "../lib/leaderboard-messages";
+import { replyWithCompetitionUpdate } from "../lib/competition-messages";
 import type { BotCommand } from "./command";
 
 const ranked = new RankedClient({ validation: "error" });
@@ -78,14 +78,14 @@ export const importCommand = {
       await interaction.editReply(messages[result.status]);
       return;
     }
-    let content = `Imported Ranked match ${data.id} into Match ${result.number}. Matched ${result.matched}/${result.total} registered players.`;
+    let content = `Imported Ranked match ${data.id} into Match ${result.number}. Matched ${result.matched}/${result.total} registered players. Registration is closed.`;
     if (result.unmatched.length) {
       const names = result.unmatched
         .map((name) => escapeMarkdown(name))
         .join(", ");
       content += `\nUnregistered Ranked players: ${names.length > 1200 ? `${names.slice(0, 1200)}…` : names}`;
     }
-    await replyWithLeaderboardUpdate(
+    await replyWithCompetitionUpdate(
       interaction,
       competition.id,
       context.league.infoChannelId,

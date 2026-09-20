@@ -3,6 +3,8 @@ import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { getDatabase } from ".";
 import { competitions, matches, registrations } from "./schema";
 
+import { getImportedMatches } from "./matches";
+
 interface StartCompetitionInput {
   guildId: string;
   leagueNumber: number;
@@ -91,19 +93,21 @@ export function endCompetition(guildId: string, competitionId: number) {
 }
 
 export function toggleRegistration(guildId: string, leagueNumber: number) {
-  // Flip in SQL so concurrent commands cannot overwrite a toggle with a stale value.
-  return getDatabase()
-    .update(competitions)
-    .set({ registrationOpen: sql`not ${competitions.registrationOpen}` })
-    .where(
-      and(
-        eq(competitions.guildId, guildId),
-        eq(competitions.leagueNumber, leagueNumber),
-        eq(competitions.status, "active")
-      )
+  return getDatabase().transaction((tx) => {
+    const competition = getActiveCompetition(guildId, leagueNumber);
+    if (!competition) return;
+    if (
+      !competition.registrationOpen &&
+      getImportedMatches(competition.id).length
     )
-    .returning()
-    .get();
+      return "has_results" as const;
+    return tx
+      .update(competitions)
+      .set({ registrationOpen: !competition.registrationOpen })
+      .where(eq(competitions.id, competition.id))
+      .returning()
+      .get();
+  });
 }
 
 export function deleteActiveCompetition(

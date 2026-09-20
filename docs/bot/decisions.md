@@ -24,6 +24,17 @@ not played remain registered so they can join later rounds. Imports and
 finalization must not unregister them. Explicit unregistration preserves the
 persistent player.
 
+The first successful import closes self-service registration. Hosts cannot reopen
+registration while imported matches remain; late additions use `/admin_reg`.
+Clearing all imported matches allows a host to reopen registration manually.
+
+Late registration adds a missed result for every earlier imported match and
+recalculates each match's points using the full current registration count.
+Existing placements remain unchanged. Earlier missed matches count at their time
+limits toward the late player's average; only players who participate appear in
+the standings. Recover an actual earlier performance by explicitly re-importing
+that match. Registration and scoring changes are saved together.
+
 ## Player identity and registration
 
 Identity is the guild and Discord ID together. Each Minecraft UUID belongs to
