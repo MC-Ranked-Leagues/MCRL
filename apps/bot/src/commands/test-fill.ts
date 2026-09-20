@@ -16,7 +16,7 @@ import {
   requireChannelLeague,
   requireCommandGuild,
 } from "../lib/command-context";
-import { updateRegistrationMessages } from "../lib/registration-messages";
+import { replyWithCompetitionUpdate } from "../lib/competition-messages";
 import type { BotCommand } from "./command";
 
 const ranked = new RankedClient({ validation: "error" });
@@ -141,23 +141,11 @@ export const testFillCommand = {
       return;
     }
     const content = `Added ${result.added} test registrations; skipped ${result.skipped} already registered or unavailable accounts. Run /import match_id:${matchId} to import the results.`;
-    try {
-      const channel = await interaction.guild.channels.fetch(
-        context.league.infoChannelId
-      );
-      if (!channel?.isSendable())
-        throw new Error("Information channel cannot receive messages.");
-      await updateRegistrationMessages(channel, competition.id);
-    } catch (error) {
-      console.error(
-        "Test registrations saved, but the registration list could not be updated.",
-        error
-      );
-      await interaction.editReply(
-        `${content} I could not update the registration list, but the registrations are saved.`
-      );
-      return;
-    }
-    await interaction.editReply(content);
+    await replyWithCompetitionUpdate(
+      interaction,
+      competition.id,
+      context.league.infoChannelId,
+      content
+    );
   },
 } satisfies BotCommand;

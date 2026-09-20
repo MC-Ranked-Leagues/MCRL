@@ -1,4 +1,4 @@
-import { and, eq, like, or } from "drizzle-orm";
+import { and, count, eq, like, or } from "drizzle-orm";
 import type { MatchDetail } from "mcsrranked-sdk";
 
 import { getDatabase } from ".";
@@ -12,6 +12,9 @@ import {
 
 import { getPlayer, getAccountOwner } from "./players";
 import { normalizeUuid } from "../lib/ranked";
+
+import { getImportedMatches } from "./matches";
+import { calculateMatchPoints } from "../lib/match-points";
 
 type RegistrationInput = Omit<typeof registrations.$inferInsert, "id">;
 
@@ -87,7 +90,11 @@ export function registerPlayer(
       .get();
     if (!competition || competition.status !== "active")
       return "inactive" as const;
-    if (!competition.registrationOpen && mode === "self")
+    const importedMatches = getImportedMatches(competition.id);
+    if (
+      mode === "self" &&
+      (!competition.registrationOpen || importedMatches.length > 0)
+    )
       return "closed" as const;
     const uuid = normalizeUuid(input.minecraftUuid);
     const player = getPlayer(competition.guildId, input.discordUserId);
@@ -150,14 +157,62 @@ export function registerPlayer(
           })
           .returning()
           .get();
-    transaction
+    const registration = transaction
       .insert(registrations)
       .values({
         ...input,
         minecraftUuid: uuid,
         accountVersion: membership.accountVersion,
       })
-      .run();
+      .returning()
+      .get();
+
+    // recalculate points for the imported matches
+    if (importedMatches.length) {
+      const participantCount = transaction
+        .select({ value: count() })
+        .from(registrations)
+        .where(eq(registrations.competitionId, competition.id))
+        .get()!.value;
+      // Late additions missed earlier matches unless a host explicitly re-imports them.
+      for (const match of importedMatches) {
+        transaction
+          .insert(matchResults)
+          .values({
+            matchId: match.id,
+            registrationId: registration.id,
+            status: "missed",
+          })
+          .run();
+        transaction
+          .update(matches)
+          .set({ participantCount })
+          .where(eq(matches.id, match.id))
+          .run();
+        const results = transaction
+          .select()
+          .from(matchResults)
+          .where(eq(matchResults.matchId, match.id))
+          .all();
+        for (const result of results) {
+          transaction
+            .update(matchResults)
+            .set({
+              points:
+                result.status === "finished" && result.placement !== null
+                  ? calculateMatchPoints(participantCount, result.placement)
+                  : 0,
+            })
+            .where(
+              and(
+                eq(matchResults.matchId, match.id),
+                eq(matchResults.registrationId, result.registrationId)
+              )
+            )
+            .run();
+        }
+      }
+    }
     return "registered" as const;
   });
 }

@@ -39,9 +39,9 @@ export async function unregisterCompetitionPlayer(
         ? "This player is not registered for this competition."
         : "You are not registered for this competition.",
       closed:
-        "Registration is closed. Ask a host to remove you with /admin_unreg.",
+        "Registration is closed. Don't worry! If you don't play any matches, you won't appear in the standings.",
       has_results:
-        "You cannot unregister after match results have been imported for you. Ask a host to remove you with /admin_unreg.",
+        "You cannot unregister after results have been imported. If you don't play any matches, you won't appear in the standings.",
     };
     await interaction.editReply(messages[result.status]);
     return;

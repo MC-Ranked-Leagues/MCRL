@@ -18,7 +18,7 @@ completion time, PB, and a profile link. It does not require a saved league acco
 | `/admin_reg user [force]`         | Register the Discord-linked account even when registration is closed. Role and stored league must match unless force is true. Force applies only to this competition.                              |
 | `/unreg`                          | Remove your registration while registration is open, provided you have no results in an imported match.                                                                                            |
 | `/assign user league`             | Assign league membership and replace the user's league roles. Works in any server channel and can assign League 7.                                                                                 |
-| `/toggle_registration`            | Open or close registration for the current league.                                                                                                                                                 |
+| `/toggle_registration`            | Open or close registration for the current league. Cannot reopen while imported matches remain.                                                                                                    |
 | `/import match_id [match_number]` | Import an MCSR Ranked match. Omit the number to create the next match; supply a number to create or replace that match and all its results. Unregistered Ranked players are reported and excluded. |
 | `/clear [match_number]`           | Delete a match and its results, defaulting to the latest match. Registrations and other match numbers remain unchanged.                                                                            |
 | `/em`                             | End the active competition, close registration, and post final standings. Requires at least one imported match.                                                                                    |
@@ -47,8 +47,13 @@ other competitions' registrations remain. Re-import matches to recalculate the
 remaining players' points and placements if needed. If the Discord refresh fails,
 run `/test-clear` again.
 
-Registration commands refresh the registration list; `/import` and `/clear`
-refresh the separate leaderboard. Saved changes remain if a Discord refresh
+The first successful `/import` closes registration and refreshes both the
+registration list and leaderboard. `/admin_reg` adds missed results for previous
+imports, recalculates points using the current registration count, and refreshes
+both messages. Re-import a match explicitly to recover a late player's actual
+result. Before any imports, registration only refreshes the registration list.
+`/clear` refreshes the leaderboard; clearing every import permits manual reopening
+with `/toggle_registration`. Saved changes remain if a Discord refresh
 fails; the bot reports the failure to the host.
 
 `/em` preserves registrations and results. The final leaderboard includes played

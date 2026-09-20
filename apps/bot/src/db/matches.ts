@@ -12,6 +12,16 @@ export type RankedMatchInput = Pick<
 
 const normalizeUuid = (uuid: string) => uuid.replaceAll("-", "").toLowerCase();
 
+export function getImportedMatches(competitionId: number) {
+  return getDatabase()
+    .select()
+    .from(matches)
+    .where(
+      and(eq(matches.competitionId, competitionId), eq(matches.imported, true))
+    )
+    .all();
+}
+
 export function importMatch(
   competitionId: number,
   data: RankedMatchInput,
@@ -134,6 +144,11 @@ export function importMatch(
       tx.insert(matchResults)
         .values({ ...row, matchId: match.id })
         .run();
+    // Turn off registration on match import
+    tx.update(competitions)
+      .set({ registrationOpen: false })
+      .where(eq(competitions.id, competitionId))
+      .run();
     return {
       status: "imported",
       number: matchNumber,
