@@ -799,7 +799,9 @@ test("finalization preserves results, ranks played DNFs, and lists all nonpartic
   const originalResults = database.select().from(matchResults).all();
   const { channel, messages } = registrationChannel();
   await updateLeaderboardMessages(channel, competition.id);
-  expect([...messages.values()].join("\n")).not.toContain("Missed:");
+  expect([...messages.values()].join("\n")).toContain(
+    "-----\nLateMinecraft - missed\nPlayer5 - missed"
+  );
 
   expect(endCompetition(input.guildId, competition.id).status).toBe("ended");
   expect(getActiveCompetition(input.guildId, 5)).toBeUndefined();
@@ -813,7 +815,9 @@ test("finalization preserves results, ranks played DNFs, and lists all nonpartic
   const content = [...messages.values()].join("\n");
   expect(content).toContain("**Status:** ended");
   expect(content).toContain("5. player4(Player4)");
-  expect(content).toContain("Missed: LateMinecraft, Player5");
+  expect(content).toContain(
+    "-----\nLateMinecraft - missed\nPlayer5 - missed"
+  );
   expect(content).toContain("Registration: **OFF**");
   expect(endCompetition(input.guildId, competition.id).status).toBe(
     "already_ended"
@@ -840,7 +844,7 @@ test("finalization rejects unknown competitions, other guilds, and competitions 
   expect(getActiveCompetition(input.guildId, 5)).toBeDefined();
 });
 
-test("final leaderboard omits Missed when everyone participated and retries after Discord failure", async () => {
+test("final leaderboard omits the missed section when everyone participated and retries after Discord failure", async () => {
   const competition = setupMatchPlayers(2);
   importMatch(competition.id, rankedMatch());
   endCompetition(input.guildId, competition.id);
@@ -860,7 +864,8 @@ test("final leaderboard omits Missed when everyone participated and retries afte
   );
   const { channel, messages } = registrationChannel();
   await updateLeaderboardMessages(channel, competition.id);
-  expect([...messages.values()].join("\n")).not.toContain("Missed:");
+  expect([...messages.values()].join("\n")).not.toContain("-----");
+  expect([...messages.values()].join("\n")).not.toContain(" - missed");
 });
 
 test("test clear removes only test registrations and their results, preserving matches and real players", async () => {
