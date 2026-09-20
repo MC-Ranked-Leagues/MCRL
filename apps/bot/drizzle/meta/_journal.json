@@ -8,6 +8,13 @@
       "when": 1789726081186,
       "tag": "0000_production_baseline",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1789916829887,
+      "tag": "0001_remove_participant_count",
+      "breakpoints": true
     }
   ]
 }

@@ -122,7 +122,6 @@ export function importMatch(
       .values({
         competitionId,
         number: matchNumber,
-        participantCount: players.length,
         timeLimitMs,
         imported: true,
         rankedMatchId: String(data.id),
@@ -131,7 +130,6 @@ export function importMatch(
       .onConflictDoUpdate({
         target: [matches.competitionId, matches.number],
         set: {
-          participantCount: players.length,
           imported: true,
           rankedMatchId: String(data.id),
         },

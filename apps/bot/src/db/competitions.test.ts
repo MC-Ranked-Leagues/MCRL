@@ -125,7 +125,6 @@ test("deletion cascades and an old confirmation cannot delete a replacement comp
     .values({
       competitionId: active.id,
       number: 1,
-      participantCount: 1,
       timeLimitMs: 1000,
       createdAt: new Date(),
     })
@@ -447,7 +446,6 @@ test("imported results block self removal, while admin removal cascades only the
     .values({
       competitionId: active.id,
       number: 1,
-      participantCount: 2,
       timeLimitMs: 1000,
       imported: true,
       createdAt: new Date(),
@@ -704,7 +702,6 @@ test("clearing a match preserves other competitions and rejects ended competitio
     .values({
       competitionId: other.id,
       number: 1,
-      participantCount: 0,
       timeLimitMs: 1000,
       createdAt: new Date(),
     })
@@ -1489,13 +1486,6 @@ test("late registration backfills every imported match, rescales points, and per
     .from(registrations)
     .where(eq(registrations.discordUserId, "late"))
     .get()!;
-  expect(
-    database
-      .select()
-      .from(matches)
-      .all()
-      .map((match) => match.participantCount)
-  ).toEqual([6, 6]);
   const missed = database
     .select()
     .from(matchResults)

@@ -165,7 +165,6 @@ export const matches = sqliteTable(
       .notNull()
       .references(() => competitions.id, { onDelete: "cascade" }),
     number: integer("number").notNull(),
-    participantCount: integer("participant_count").notNull(),
     timeLimitMs: integer("time_limit_ms").notNull(),
     imported: integer("imported", { mode: "boolean" }).notNull().default(false),
     rankedMatchId: text("ranked_match_id"),
@@ -181,10 +180,6 @@ export const matches = sqliteTable(
       table.rankedMatchId
     ),
     check("matches_number_positive", sql`${table.number} > 0`),
-    check(
-      "matches_participant_count_nonnegative",
-      sql`${table.participantCount} >= 0`
-    ),
     check("matches_time_limit_ms_positive", sql`${table.timeLimitMs} > 0`),
   ]
 );
