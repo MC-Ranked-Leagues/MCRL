@@ -27,8 +27,8 @@ Use concise comments to explain non-obvious intent or constraints, including in 
 
 Document what code cannot tell you, plus the small amount of duplication that
 saves humans time. Keep architecture focused on rationale and constraints.
-Record agreed decisions in the relevant `decisions.md`; keep ideas and open
-questions in plans. Plans do not need individual status labels.
+Record agreed decisions for the bot in the relevant `decisions.md`; keep ideas
+and open questions in plans. Plans do not need individual status labels.
 Update the document that owns a changed rule rather than repeating it elsewhere.
 
 ## Architecture and imports
