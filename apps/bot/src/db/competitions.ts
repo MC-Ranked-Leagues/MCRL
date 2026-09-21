@@ -97,6 +97,43 @@ export function endCompetition(guildId: string, competitionId: number) {
   });
 }
 
+export function unendCompetition(guildId: string, competitionId: number) {
+  return getDatabase().transaction((tx) => {
+    const competition = tx
+      .select()
+      .from(competitions)
+      .where(
+        and(
+          eq(competitions.id, competitionId),
+          eq(competitions.guildId, guildId)
+        )
+      )
+      .get();
+    if (!competition) return { status: "not_found" } as const;
+    if (competition.status === "active")
+      return { status: "already_active" } as const;
+
+    const activeCompetition = tx
+      .select({ id: competitions.id })
+      .from(competitions)
+      .where(
+        and(
+          eq(competitions.guildId, guildId),
+          eq(competitions.leagueNumber, competition.leagueNumber),
+          eq(competitions.status, "active")
+        )
+      )
+      .get();
+    if (activeCompetition) return { status: "has_active" } as const;
+
+    tx.update(competitions)
+      .set({ status: "active", registrationOpen: false, endedAt: null })
+      .where(eq(competitions.id, competitionId))
+      .run();
+    return { status: "active" } as const;
+  });
+}
+
 export function toggleRegistration(guildId: string, leagueNumber: number) {
   return getDatabase().transaction((tx) => {
     const competition = getActiveCompetition(guildId, leagueNumber);

@@ -8,6 +8,7 @@ import { regCommand } from "./reg";
 import { assignCommand } from "./assign";
 import { dmCommand } from "./dm";
 import { emCommand } from "./em";
+import { unendCommand } from "./unend";
 import { toggleRegistrationCommand } from "./toggle-registration";
 import type { BotCommand } from "./command";
 import { nmCommand } from "./nm";
@@ -36,6 +37,7 @@ export const commands = [
   toggleRegistrationCommand,
   dmCommand,
   emCommand,
+  unendCommand,
   importCommand,
   clearCommand,
   testFillCommand,
