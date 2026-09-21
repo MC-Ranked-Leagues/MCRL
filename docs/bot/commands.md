@@ -14,7 +14,7 @@ a saved league account.
 | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `/signup`                         | Request reviewed league placement in the signup channel, or restore a saved league role.                                                                                                                |
 | `/migrate_account`                | Confirm a new Discord-linked Minecraft account and request host approval.                                                                                                                               |
-| `/nm week`                        | Start a competition and post its registration list in the league's information channel. Only one competition can be active per league.                                                                  |
+| `/nm`                             | Start a competition for the server's current week and post its registration list in the league's information channel. Only one competition can be active per league.                                    |
 | `/twitch username`                | Save the Twitch username used by registration exports.                                                                                                                                                  |
 | `/reg [streaming]`                | Register your Discord-linked MCSR Ranked account. Streaming uses the saved `/twitch` username or the Twitch account linked on Ranked. Registration must be open and your single league role must match. |
 | `/list`                           | Export the current registration list as a `.ranked` file. Streaming registrations include the player's saved Twitch username.                                                                           |
@@ -26,7 +26,8 @@ a saved league account.
 | `/clear [match_number]`           | Delete a match and its results, defaulting to the latest match. Registrations and other match numbers remain unchanged.                                                                                 |
 | `/em`                             | End the active competition, close registration, and post final standings. Requires at least one imported match.                                                                                         |
 | `/unend`                          | Make the most recently ended competition active again with registration closed, then refresh its messages. Fails if another competition is active for the league.                                       |
-| `/dm`                             | Delete the active competition and all registrations, matches, and results after confirmation within 60 seconds.                                                                                         |
+| `/advance_week [force]`           | After confirmation, delete every competition in the server and advance its stored week. Every competition must have used `/relegate` unless `force` is true.                                            |
+| `/dev_change_week week`           | Set the stored week without changing competitions. Only the developer configured for the server can use this command.                                                                                   |
 
 `/test_fill match_id` and `/test-clear` require the host role and a `dev: true`
 server. Both require confirmation within 60 seconds and work with registration
@@ -80,8 +81,14 @@ messages.
 
 `/unend` clears the end timestamp but preserves registrations, matches, results,
 and message IDs. Registration remains closed. Once active again, the normal
-`/import`, `/clear`, `/admin_reg`, and `/dm` behavior applies. If a competition is
+`/import`, `/clear`, and `/admin_reg` behavior applies. If a competition is
 already active for the league, `/unend` changes nothing, including its messages.
+
+`/advance_week` deletes registrations, matches, and results through competition
+cleanup but leaves players, retained placements, and Discord messages intact. If
+the week changes while its confirmation is open, it changes nothing. Without
+`force`, it also rechecks that every competition has used `/relegate` before
+deleting anything.
 
 Every completed or failed slash command is logged with the actor, invocation
 channel, command text, and interaction timestamp in the configured log channel.

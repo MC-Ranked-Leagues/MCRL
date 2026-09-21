@@ -1,0 +1,1 @@
+ALTER TABLE `competitions` ADD `has_used_relegate` integer DEFAULT false NOT NULL;
