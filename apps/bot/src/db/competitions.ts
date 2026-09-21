@@ -3,12 +3,14 @@ import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { getDatabase } from ".";
 import {
   competitions,
+  guilds,
   matches,
   players as persistentPlayers,
   registrations,
 } from "./schema";
 
 import { getImportedMatches } from "./matches";
+import { getCurrentWeek } from "./guilds";
 
 interface StartCompetitionInput {
   guildId: string;
@@ -152,25 +154,64 @@ export function toggleRegistration(guildId: string, leagueNumber: number) {
   });
 }
 
-export function deleteActiveCompetition(
+export function getAdvanceWeekPreview(guildId: string) {
+  const database = getDatabase();
+  const currentWeek = getCurrentWeek(guildId);
+  const guildCompetitions = database
+    .select({
+      id: competitions.id,
+      leagueNumber: competitions.leagueNumber,
+      weekNumber: competitions.weekNumber,
+      status: competitions.status,
+      hasUsedRelegate: competitions.hasUsedRelegate,
+    })
+    .from(competitions)
+    .where(eq(competitions.guildId, guildId))
+    .orderBy(asc(competitions.leagueNumber), asc(competitions.weekNumber))
+    .all();
+
+  return {
+    currentWeek,
+    competitions: guildCompetitions,
+  };
+}
+
+export function advanceGuildWeek(
   guildId: string,
-  competitionId: number
-): boolean {
-  // Use the ID shown in the prompt so a stale confirmation cannot delete a replacement.
-  // Foreign keys cascade the deletion to registrations, matches, and results.
-  return (
-    getDatabase()
-      .delete(competitions)
+  expectedWeek: number,
+  force: boolean
+): "advanced" | "stale_week" | "unprocessed" {
+  return getDatabase().transaction((tx) => {
+    const guild = tx
+      .select({ currentWeek: guilds.currentWeek })
+      .from(guilds)
+      .where(eq(guilds.id, guildId))
+      .get();
+    if (guild?.currentWeek !== expectedWeek) {
+      return "stale_week" as const;
+    }
+    const unprocessedCompetition = tx
+      .select({ id: competitions.id })
+      .from(competitions)
       .where(
         and(
           eq(competitions.guildId, guildId),
-          eq(competitions.id, competitionId),
-          eq(competitions.status, "active")
+          eq(competitions.hasUsedRelegate, false)
         )
       )
-      .returning({ id: competitions.id })
-      .get() !== undefined
-  );
+      .get();
+    if (unprocessedCompetition && !force) {
+      return "unprocessed" as const;
+    }
+
+    // Foreign keys remove registrations, matches, and results. Discord messages are external and remain untouched.
+    tx.delete(competitions).where(eq(competitions.guildId, guildId)).run();
+    tx.update(guilds)
+      .set({ currentWeek: expectedWeek + 1 })
+      .where(eq(guilds.id, guildId))
+      .run();
+    return "advanced" as const;
+  });
 }
 
 export function getCompetitionRegistration(competitionId: number) {

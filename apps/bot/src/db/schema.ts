@@ -15,6 +15,17 @@ export interface RetainedPlacement {
   placement: number;
 }
 
+export const guilds = sqliteTable(
+  "guilds",
+  {
+    id: text("id").primaryKey(),
+    currentWeek: integer("current_week").notNull().default(1),
+  },
+  (table) => [
+    check("guilds_current_week_positive", sql`${table.currentWeek} > 0`),
+  ]
+);
+
 export const players = sqliteTable(
   "players",
   {
@@ -92,6 +103,9 @@ export const competitions = sqliteTable(
     status: text("status", { enum: ["active", "ended"] })
       .notNull()
       .default("active"),
+    hasUsedRelegate: integer("has_used_relegate", { mode: "boolean" })
+      .notNull()
+      .default(false),
     registrationOpen: integer("registration_open", { mode: "boolean" })
       .notNull()
       .default(false),

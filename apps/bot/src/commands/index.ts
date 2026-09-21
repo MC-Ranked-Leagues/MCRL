@@ -6,7 +6,8 @@ import { adminRegCommand } from "./admin-reg";
 import { unregCommand } from "./unreg";
 import { regCommand } from "./reg";
 import { assignCommand } from "./assign";
-import { dmCommand } from "./dm";
+import { advanceWeekCommand } from "./advance-week";
+import { devChangeWeekCommand } from "./dev-change-week";
 import { emCommand } from "./em";
 import { unendCommand } from "./unend";
 import { toggleRegistrationCommand } from "./toggle-registration";
@@ -35,7 +36,8 @@ export const commands = [
   unregCommand,
   assignCommand,
   toggleRegistrationCommand,
-  dmCommand,
+  advanceWeekCommand,
+  devChangeWeekCommand,
   emCommand,
   unendCommand,
   importCommand,

@@ -14,7 +14,7 @@ import { drizzle } from "drizzle-orm/bun-sqlite";
 import { migrate } from "drizzle-orm/bun-sqlite/migrator";
 import journal from "../../drizzle/meta/_journal.json";
 
-test("schema migrations preserve existing competition data and add profile fields", () => {
+test("schema migrations preserve competition data and initialize guild state", () => {
   const sqlite = new Database(":memory:");
   const db = drizzle(sqlite);
   const baselineFolder = mkdtempSync(join(tmpdir(), "mcrl-migration-"));
@@ -41,6 +41,8 @@ test("schema migrations preserve existing competition data and add profile field
       VALUES (1, 'test', 'player', 'Player', 'uuid', 'Player');
       INSERT INTO competitions (id, guild_id, league_number, week_number, max_time_limit_ms, started_at)
       VALUES (1, 'test', 5, 1, 1000, 1);
+      INSERT INTO competitions (id, guild_id, league_number, week_number, status, max_time_limit_ms, started_at)
+      VALUES (2, 'test', 6, 7, 'ended', 1000, 1);
       INSERT INTO registrations (id, competition_id, discord_user_id, discord_username, minecraft_uuid, ign, registered_at)
       VALUES (1, 1, 'player', 'Player', 'uuid', 'Player', 1);
       INSERT INTO matches (id, competition_id, number, participant_count, time_limit_ms, imported, ranked_match_id, created_at)
@@ -67,6 +69,14 @@ test("schema migrations preserve existing competition data and add profile field
     expect(
       sqlite.query("SELECT streaming FROM registrations WHERE id = 1").get()
     ).toEqual({ streaming: 0 });
+    expect(
+      sqlite.query("SELECT * FROM guilds WHERE id = 'test'").get()
+    ).toEqual({ id: "test", current_week: 7 });
+    expect(
+      sqlite
+        .query("SELECT has_used_relegate FROM competitions WHERE id = 1")
+        .get()
+    ).toEqual({ has_used_relegate: 0 });
     // Re-running migrations is harmless, and cascade deletion still works afterward.
     migrate(db, { migrationsFolder });
     expect(sqlite.query("SELECT * FROM match_results").all()).toEqual(results);

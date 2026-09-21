@@ -9,6 +9,7 @@ import {
   requireChannelLeague,
 } from "../lib/command-context";
 import { getActiveCompetition, startCompetition } from "../db/competitions";
+import { getCurrentWeek } from "../db/guilds";
 import { updateRegistrationMessages } from "../lib/registration-messages";
 import type { BotCommand } from "./command";
 
@@ -16,13 +17,6 @@ export const nmCommand = {
   data: new SlashCommandBuilder()
     .setName("nm")
     .setDescription("Start a new competition.")
-    .addIntegerOption((option) =>
-      option
-        .setName("week")
-        .setDescription("Week number.")
-        .setRequired(true)
-        .setMinValue(1)
-    )
     .setIntegrationTypes(ApplicationIntegrationType.GuildInstall)
     .setContexts(InteractionContextType.Guild),
 
@@ -32,8 +26,6 @@ export const nmCommand = {
     const context = await requireChannelLeague(interaction, guild);
     if (!context) return;
     const { leagueNumber, league } = context;
-    const weekNumber = interaction.options.getInteger("week", true);
-
     const channel = await interaction.guild.channels.fetch(
       league.infoChannelId
     );
@@ -45,6 +37,8 @@ export const nmCommand = {
       return;
     }
 
+    // Read after the Discord fetch so an overlapping /advance_week cannot leave this command on the old week.
+    const weekNumber = getCurrentWeek(interaction.guildId);
     const created = startCompetition({
       guildId: interaction.guildId,
       leagueNumber,

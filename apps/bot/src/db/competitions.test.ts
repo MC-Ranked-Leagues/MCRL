@@ -30,21 +30,25 @@ import {
 import { afterAll, beforeEach, expect, spyOn, test } from "bun:test";
 import type { ChatInputCommandInteraction, SendableChannels } from "discord.js";
 import { updateRegistrationMessages } from "../lib/registration-messages";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
+import { devChangeWeekCommand } from "../commands/dev-change-week";
+import { nmCommand } from "../commands/nm";
 
 import { applyDatabaseMigrations } from "../../scripts/migrate-database";
 import { getDatabase } from ".";
 import {
-  deleteActiveCompetition,
+  advanceGuildWeek,
   endCompetition,
   getActiveCompetition,
   getCompetitionExport,
   getLatestEndedCompetition,
   getCompetitionRegistration,
+  getAdvanceWeekPreview,
   startCompetition,
   toggleRegistration,
   unendCompetition,
 } from "./competitions";
+import { getCurrentWeek, setCurrentWeek } from "./guilds";
 import {
   competitions,
   registrations,
@@ -52,6 +56,7 @@ import {
   matchResults,
   players,
   accountMigrations,
+  guilds,
 } from "./schema";
 
 // Open the lazy database connection in memory, using the real migrations and constraints.
@@ -67,10 +72,26 @@ const input = {
   startedAt: new Date(),
 };
 
+function deleteCompetition(guildId: string, competitionId: number): boolean {
+  return (
+    database
+      .delete(competitions)
+      .where(
+        and(
+          eq(competitions.guildId, guildId),
+          eq(competitions.id, competitionId)
+        )
+      )
+      .returning({ id: competitions.id })
+      .get() !== undefined
+  );
+}
+
 beforeEach(() => {
   database.delete(competitions).run();
   database.delete(players).run();
   database.delete(accountMigrations).run();
+  database.delete(guilds).run();
 });
 
 afterAll(() => {
@@ -107,14 +128,100 @@ test("registration toggles only the active competition in the requested guild an
   });
 });
 
-test("deletion cascades and an old confirmation cannot delete a replacement competition", () => {
-  startCompetition(input);
-  const active = getActiveCompetition(input.guildId, 5)!;
-  // Build the full dependency chain to exercise cascading deletion through results.
+test("guild weeks default to one and can be explicitly changed", () => {
+  expect(getCurrentWeek(input.guildId)).toBe(1);
+  setCurrentWeek(input.guildId, 8);
+  expect(getCurrentWeek(input.guildId)).toBe(8);
+  expect(() => setCurrentWeek(input.guildId, 0)).toThrow();
+  expect(() => setCurrentWeek(input.guildId, 1.5)).toThrow();
+});
+
+test("the developer week command denies other users and changes only the stored week", async () => {
+  const guildId = Object.keys(guildConfiguration)[0]!;
+  const config = guildConfiguration[guildId]!;
+  const mutableConfig = config as typeof config & { developerId?: string };
+  const previousDeveloperId = mutableConfig.developerId;
+  const replies: string[] = [];
+  const interaction = {
+    guildId,
+    user: { id: "other-user" },
+    options: { getInteger: () => 6 },
+    editReply: async (message: string) => {
+      replies.push(message);
+    },
+  } as unknown as ChatInputCommandInteraction<"cached">;
+
+  try {
+    mutableConfig.developerId = "developer";
+    await devChangeWeekCommand.execute(interaction);
+    expect(replies.at(-1)).toBe("Only the configured developer can do this.");
+    expect(getCurrentWeek(guildId)).toBe(1);
+
+    await devChangeWeekCommand.execute({
+      ...interaction,
+      user: { id: "developer" },
+    } as unknown as ChatInputCommandInteraction<"cached">);
+    expect(getCurrentWeek(guildId)).toBe(6);
+    expect(replies.at(-1)).toContain("from 1 to 6");
+  } finally {
+    mutableConfig.developerId = previousDeveloperId;
+  }
+});
+
+test("new competitions use the stored guild week", async () => {
+  const guildId = Object.keys(guildConfiguration)[0]!;
+  const config = guildConfiguration[guildId]!;
+  const [leagueNumberText, league] = Object.entries(config.leagues)[0]!;
+  const leagueNumber = Number(leagueNumberText);
+  const { channel } = registrationChannel();
+  const replies: string[] = [];
+  setCurrentWeek(guildId, 12);
+
+  await nmCommand.execute({
+    guildId,
+    channelId: league.infoChannelId,
+    member: { roles: { cache: { has: () => true } } },
+    guild: { channels: { fetch: async () => channel } },
+    editReply: async (message: string) => {
+      replies.push(message);
+    },
+  } as unknown as ChatInputCommandInteraction<"cached">);
+
+  expect(getActiveCompetition(guildId, leagueNumber)?.weekNumber).toBe(12);
+  expect(replies.at(-1)).toContain("Week 12");
+});
+
+test("week advancement requires relegation unless forced", () => {
+  setCurrentWeek(input.guildId, 4);
+  startCompetition({ ...input, weekNumber: 4 });
+  const preview = getAdvanceWeekPreview(input.guildId);
+
+  expect(preview.competitions[0]?.hasUsedRelegate).toBe(false);
+  expect(advanceGuildWeek(input.guildId, preview.currentWeek, false)).toBe(
+    "unprocessed"
+  );
+  expect(getActiveCompetition(input.guildId, 5)).toBeDefined();
+  expect(advanceGuildWeek(input.guildId, preview.currentWeek, true)).toBe(
+    "advanced"
+  );
+  expect(getCurrentWeek(input.guildId)).toBe(5);
+});
+
+test("completed competitions allow result changes before atomic cleanup", () => {
+  setCurrentWeek(input.guildId, 4);
+  startCompetition({ ...input, weekNumber: 4 });
+  startCompetition({ ...input, guildId: "other-guild" });
+  const competition = getActiveCompetition(input.guildId, 5)!;
+  database
+    .update(competitions)
+    .set({ hasUsedRelegate: true })
+    .where(eq(competitions.id, competition.id))
+    .run();
+  const preview = getAdvanceWeekPreview(input.guildId);
   const registration = database
     .insert(registrations)
     .values({
-      competitionId: active.id,
+      competitionId: competition.id,
       discordUserId: "user",
       discordUsername: "player",
       minecraftUuid: "uuid",
@@ -126,7 +233,7 @@ test("deletion cascades and an old confirmation cannot delete a replacement comp
   const match = database
     .insert(matches)
     .values({
-      competitionId: active.id,
+      competitionId: competition.id,
       number: 1,
       timeLimitMs: 1000,
       createdAt: new Date(),
@@ -135,28 +242,66 @@ test("deletion cascades and an old confirmation cannot delete a replacement comp
     .get();
   database
     .insert(matchResults)
-    .values({ matchId: match.id, registrationId: registration.id })
+    .values({ matchId: match.id, registrationId: registration.id, points: 5 })
     .run();
-  expect(deleteActiveCompetition("other-guild", active.id)).toBe(false);
-  expect(deleteActiveCompetition(input.guildId, active.id)).toBe(true);
-  expect(database.select().from(registrations).all()).toHaveLength(0);
-  expect(database.select().from(matches).all()).toHaveLength(0);
-  expect(database.select().from(matchResults).all()).toHaveLength(0);
-  // Recreate the same week, then simulate confirming the old deletion prompt.
-  expect(startCompetition(input)).toBe(true);
-  expect(deleteActiveCompetition(input.guildId, active.id)).toBe(false);
-  expect(getActiveCompetition(input.guildId, 5)).toBeDefined();
+  database
+    .insert(players)
+    .values({
+      guildId: input.guildId,
+      discordUserId: "user",
+      discordUsername: "player",
+      minecraftUuid: "uuid",
+      ign: "player",
+      placements: [{ week: 3, league: 5, placement: 2 }],
+    })
+    .run();
+
+  expect(advanceGuildWeek(input.guildId, preview.currentWeek, false)).toBe(
+    "advanced"
+  );
+  expect(database.select().from(registrations).all()).toEqual([]);
+  expect(database.select().from(matches).all()).toEqual([]);
+  expect(database.select().from(matchResults).all()).toEqual([]);
+  expect(getActiveCompetition("other-guild", 5)).toBeDefined();
+  expect(getPlayer(input.guildId, "user")?.placements).toEqual([
+    { week: 3, league: 5, placement: 2 },
+  ]);
 });
 
-test("an ended competition cannot be deleted through an active-competition confirmation", () => {
-  startCompetition(input);
-  const active = getActiveCompetition(input.guildId, 5)!;
+test("a newly unprocessed competition blocks confirmed advancement", () => {
+  setCurrentWeek(input.guildId, 4);
+  startCompetition({ ...input, weekNumber: 4 });
   database
     .update(competitions)
-    .set({ status: "ended" })
-    .where(eq(competitions.id, active.id))
+    .set({ hasUsedRelegate: true })
+    .where(eq(competitions.guildId, input.guildId))
     .run();
-  expect(deleteActiveCompetition(input.guildId, active.id)).toBe(false);
+  const preview = getAdvanceWeekPreview(input.guildId);
+  startCompetition({ ...input, leagueNumber: 6, weekNumber: 4 });
+
+  expect(advanceGuildWeek(input.guildId, preview.currentWeek, false)).toBe(
+    "unprocessed"
+  );
+  expect(getAdvanceWeekPreview(input.guildId).competitions).toHaveLength(2);
+});
+
+test("a stale week blocks forced and repeated advancement", () => {
+  setCurrentWeek(input.guildId, 4);
+  startCompetition({ ...input, weekNumber: 4 });
+  const preview = getAdvanceWeekPreview(input.guildId);
+  setCurrentWeek(input.guildId, 5);
+  expect(advanceGuildWeek(input.guildId, preview.currentWeek, true)).toBe(
+    "stale_week"
+  );
+  expect(getActiveCompetition(input.guildId, 5)).toBeDefined();
+  setCurrentWeek(input.guildId, 4);
+  expect(advanceGuildWeek(input.guildId, preview.currentWeek, true)).toBe(
+    "advanced"
+  );
+  expect(advanceGuildWeek(input.guildId, preview.currentWeek, true)).toBe(
+    "stale_week"
+  );
+  expect(getCurrentWeek(input.guildId)).toBe(5);
 });
 
 // Only emulate the Discord methods the updater uses; all persistence uses real SQLite.
@@ -164,6 +309,7 @@ function registrationChannel() {
   const messages = new Map<string, string>();
   let nextId = 1;
   const channel = {
+    isSendable: () => true,
     async send({ content }: { content: string }) {
       const id = String(nextId++);
       messages.set(id, content);
@@ -208,7 +354,7 @@ test("registration toggles edit tracked messages and cleanup preserves Discord h
   expect(messages.get(ids[0]!)).toContain("Registration: **ON**");
 
   // A replacement competition gets its own list; the old week's messages remain.
-  deleteActiveCompetition(input.guildId, active.id);
+  deleteCompetition(input.guildId, active.id);
   startCompetition(input);
   await updateRegistrationMessages(
     channel,
@@ -465,7 +611,7 @@ test("registration rechecks closure and never switches to a replacement competit
   // Simulate a host closing registration while the command awaits the Ranked API.
   toggleRegistration(input.guildId, 5);
   expect(registerPlayer(player)).toBe("closed");
-  deleteActiveCompetition(input.guildId, active.id);
+  deleteCompetition(input.guildId, active.id);
   startCompetition({ ...input, weekNumber: 2 });
   toggleRegistration(input.guildId, 5);
   expect(registerPlayer(player)).toBe("inactive");
@@ -716,7 +862,7 @@ test("invalid and duplicate imports preserve saved matches and a stale import ca
     "no_matching_players"
   );
   expect(database.select().from(matchResults).all()).toEqual(before);
-  deleteActiveCompetition(input.guildId, competition.id);
+  deleteCompetition(input.guildId, competition.id);
   startCompetition(input);
   expect(importMatch(competition.id, rankedMatch()).status).toBe("inactive");
   expect(database.select().from(matches).all()).toHaveLength(0);
@@ -892,7 +1038,7 @@ test("test fill preserves registrations, handles UUID variants, and supports nor
     status: "imported",
     matched: 6,
   });
-  deleteActiveCompetition(input.guildId, competition.id);
+  deleteCompetition(input.guildId, competition.id);
   startCompetition({ ...input, weekNumber: 2 });
   expect(fillTestRegistrations(competition.id, match.players)).toEqual({
     status: "inactive",
@@ -934,9 +1080,7 @@ test("finalization preserves results, ranks played DNFs, and lists all nonpartic
   const content = [...messages.values()].join("\n");
   expect(content).toContain("**Status:** ended");
   expect(content).toContain("5. player4(Player4)");
-  expect(content).toContain(
-    "-----\nLateMinecraft - missed\nPlayer5 - missed"
-  );
+  expect(content).toContain("-----\nLateMinecraft - missed\nPlayer5 - missed");
   expect(content).toContain("Registration: **OFF**");
   expect(endCompetition(input.guildId, competition.id).status).toBe(
     "already_ended"
@@ -1101,7 +1245,7 @@ test("test clear respects guild, competition and active-state boundaries", () =>
     "inactive"
   );
   expect(getCompetitionRegistration(other.id)!.players).toHaveLength(6);
-  deleteActiveCompetition(input.guildId, competition.id);
+  deleteCompetition(input.guildId, competition.id);
   startCompetition(input);
   const replacement = getActiveCompetition(input.guildId, 5)!;
   fillTestRegistrations(replacement.id, rankedMatch().players);
@@ -1240,7 +1384,7 @@ test("test migration rejects missing players, owned accounts, active registratio
     })
   ).toBe("registered");
   expect(setTestMigrationAccount(account)).toBe("active_registration");
-  expect(deleteActiveCompetition(guildId, competition.id)).toBe(true);
+  expect(deleteCompetition(guildId, competition.id)).toBe(true);
   expect(createMigration({ ...account, reviewerId: "host" }).status).toBe(
     "created"
   );
@@ -1252,7 +1396,7 @@ test("membership survives competition deletion and normal registration follows t
   const { competition, registration } = registerMember();
   const first = getPlayer(input.guildId, "member")!;
   expect(first).toMatchObject({ minecraftUuid: "abcd", leagueNumber: 5 });
-  expect(deleteActiveCompetition(input.guildId, competition.id)).toBe(true);
+  expect(deleteCompetition(input.guildId, competition.id)).toBe(true);
   expect(getPlayer(input.guildId, "member")?.id).toBe(first.id);
   startCompetition({ ...input, leagueNumber: 6 });
   const next = getActiveCompetition(input.guildId, 6)!;
@@ -1512,7 +1656,7 @@ test("test membership and placements survive weekly competition cleanup and clea
     .set({ placements: [{ week: 1, league: 5, placement: 1 }] })
     .where(eq(players.id, member.id))
     .run();
-  deleteActiveCompetition(input.guildId, competition.id);
+  deleteCompetition(input.guildId, competition.id);
   startCompetition({ ...input, weekNumber: 2 });
   competition = getActiveCompetition(input.guildId, 5)!;
   fillTestRegistrations(competition.id, matchPlayers);

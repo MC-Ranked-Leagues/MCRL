@@ -89,9 +89,13 @@ week and league. Skipped weeks neither count as zero nor consume a slot; age doe
 not expire a placement. `/past` will show these placements. Published history
 belongs in Convex; add no separate local results-history table.
 
-Guild-wide `/relegate` will finalize movements, advance the stored guild week,
-and clean up completed competitions while preserving players and placements.
-`/nm` will use that week. Remove temporary `/dm` when `/relegate` replaces it.
+Guild-wide `/relegate` finalizes movements without deleting competitions or
+advancing the week. `/advance_week` is the separate, deliberate cleanup step: it
+deletes every competition in the guild and advances the stored guild week while
+preserving players, placements, and existing Discord messages. It requires every
+competition to have used `/relegate`; hosts can explicitly force cleanup when
+that is not possible. `/nm` uses the stored week. A configured developer can
+repair that value with `/dev_change_week` without changing competitions.
 Preserve old registration and leaderboard messages during cleanup.
 
 ## League movement
