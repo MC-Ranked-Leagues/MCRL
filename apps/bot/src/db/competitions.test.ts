@@ -43,6 +43,7 @@ import {
   getCompetitionRegistration,
   startCompetition,
   toggleRegistration,
+  unendCompetition,
 } from "./competitions";
 import {
   competitions,
@@ -757,9 +758,7 @@ test("clear deletes only the selected match and results, defaults to latest, and
   await updateLeaderboardMessages(channel, competition.id);
   expect(database.select().from(matchResults).all()).toHaveLength(0);
   expect(database.select().from(registrations).all()).toHaveLength(6);
-  expect([...messages.values()].join("\n")).toContain(
-    "No submitted results yet."
-  );
+  expect([...messages.values()].join("\n")).not.toContain("Leaderboard");
   expect(messages.has(registrationIds[0]!)).toBe(true);
   expect(clearMatch(competition.id).status).toBe("not_found");
   expect(importMatch(competition.id, rankedMatch())).toMatchObject({
@@ -962,6 +961,54 @@ test("finalization rejects unknown competitions, other guilds, and competitions 
     "no_matches"
   );
   expect(getActiveCompetition(input.guildId, 5)).toBeDefined();
+});
+
+test("unending restores an ended competition without reopening registration or changing results", async () => {
+  const competition = setupMatchPlayers();
+  importMatch(competition.id, rankedMatch());
+  expect(endCompetition(input.guildId, competition.id).status).toBe("ended");
+  const savedResults = database.select().from(matchResults).all();
+
+  expect(unendCompetition(input.guildId, competition.id).status).toBe("active");
+  const active = getActiveCompetition(input.guildId, input.leagueNumber)!;
+  expect(active.id).toBe(competition.id);
+  expect(active.registrationOpen).toBe(false);
+  expect(active.endedAt).toBeNull();
+  expect(database.select().from(matchResults).all()).toEqual(savedResults);
+  expect(getLatestEndedCompetition(input.guildId, input.leagueNumber)).toBe(
+    undefined
+  );
+
+  const { channel, messages } = registrationChannel();
+  await updateLeaderboardMessages(channel, competition.id);
+  await updateRegistrationMessages(channel, competition.id);
+  const content = [...messages.values()].join("\n");
+  expect(content).toContain("**Status:** active");
+  expect(content).toContain("Registration: **OFF**");
+});
+
+test("unending rejects unknown, active, cross-guild, and superseded competitions", () => {
+  const competition = setupMatchPlayers();
+  expect(unendCompetition(input.guildId, -1).status).toBe("not_found");
+  expect(unendCompetition("other-guild", competition.id).status).toBe(
+    "not_found"
+  );
+  expect(unendCompetition(input.guildId, competition.id).status).toBe(
+    "already_active"
+  );
+
+  importMatch(competition.id, rankedMatch());
+  endCompetition(input.guildId, competition.id);
+  expect(startCompetition({ ...input, weekNumber: 2 })).toBe(true);
+  expect(unendCompetition(input.guildId, competition.id).status).toBe(
+    "has_active"
+  );
+  expect(getLatestEndedCompetition(input.guildId, input.leagueNumber)?.id).toBe(
+    competition.id
+  );
+  expect(
+    getActiveCompetition(input.guildId, input.leagueNumber)?.weekNumber
+  ).toBe(2);
 });
 
 test("final leaderboard omits the missed section when everyone participated and retries after Discord failure", async () => {

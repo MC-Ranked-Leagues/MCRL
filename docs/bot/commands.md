@@ -25,6 +25,7 @@ a saved league account.
 | `/import match_id [match_number]` | Import an MCSR Ranked match. Omit the number to create the next match; supply a number to create or replace that match and all its results. Unregistered Ranked players are reported and excluded.      |
 | `/clear [match_number]`           | Delete a match and its results, defaulting to the latest match. Registrations and other match numbers remain unchanged.                                                                                 |
 | `/em`                             | End the active competition, close registration, and post final standings. Requires at least one imported match.                                                                                         |
+| `/unend`                          | Make the most recently ended competition active again with registration closed, then refresh its messages. Fails if another competition is active for the league.                                       |
 | `/dm`                             | Delete the active competition and all registrations, matches, and results after confirmation within 60 seconds.                                                                                         |
 
 `/test_fill match_id` and `/test-clear` require the host role and a `dev: true`
@@ -76,6 +77,11 @@ the table.
 If a message update fails, run `/em` again before starting another competition.
 With no active competition, it refreshes the most recently ended competition's
 messages.
+
+`/unend` clears the end timestamp but preserves registrations, matches, results,
+and message IDs. Registration remains closed. Once active again, the normal
+`/import`, `/clear`, `/admin_reg`, and `/dm` behavior applies. If a competition is
+already active for the league, `/unend` changes nothing, including its messages.
 
 Every completed or failed slash command is logged with the actor, invocation
 channel, command text, and interaction timestamp in the configured log channel.
