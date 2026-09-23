@@ -21,6 +21,44 @@ type RegistrationInput = Omit<
   "id" | "averageUsed" | "movement"
 >;
 
+export function getGuildRegistrationDiscordIds(guildId: string): string[] {
+  return getDatabase()
+    .selectDistinct({ discordUserId: registrations.discordUserId })
+    .from(registrations)
+    .innerJoin(competitions, eq(competitions.id, registrations.competitionId))
+    .innerJoin(
+      persistentPlayers,
+      and(
+        eq(persistentPlayers.guildId, guildId),
+        eq(persistentPlayers.discordUserId, registrations.discordUserId)
+      )
+    )
+    .where(
+      and(
+        eq(competitions.guildId, guildId),
+        eq(persistentPlayers.isTest, false)
+      )
+    )
+    .all()
+    .map((registration) => registration.discordUserId);
+}
+
+export function hasGuildRegistration(guildId: string, discordUserId: string) {
+  return (
+    getDatabase()
+      .select({ id: registrations.id })
+      .from(registrations)
+      .innerJoin(competitions, eq(competitions.id, registrations.competitionId))
+      .where(
+        and(
+          eq(competitions.guildId, guildId),
+          eq(registrations.discordUserId, discordUserId)
+        )
+      )
+      .get() !== undefined
+  );
+}
+
 export function fillTestRegistrations(
   competitionId: number,
   players: MatchDetail["players"]

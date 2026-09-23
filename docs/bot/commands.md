@@ -37,7 +37,7 @@ up to 25 characters. Works in any server channel.
 
 Register your Discord-linked MCSR Ranked account. Registration must be open and
 your single league role must match. Before any imports, this refreshes only the
-registration list.
+registration list. If configured, registration also grants the current week role.
 
 With `streaming:true`, use your saved Twitch username or import the Twitch
 connection from your Ranked profile. If neither exists, set one with `/twitch`
@@ -46,7 +46,8 @@ first.
 ### `/unreg`
 
 Remove your registration while registration is open, provided you have no results
-in an imported match.
+in an imported match. If configured, this also removes the current week role when
+you have no other registration.
 
 ### `/migrate_account`
 
@@ -75,7 +76,8 @@ usernames for streaming registrations.
 ### `/admin_reg user`
 
 Register a Discord-linked account even when registration is closed. The player's
-role and saved league must match; resolve mismatches through `/assign`.
+role and saved league must match; resolve mismatches through `/assign`. If
+configured, registration grants the current week role.
 
 For earlier imports, add missed results and recalculate points using the current
 registration count. Re-import a match to recover the player's actual result.
@@ -148,6 +150,10 @@ updates. Repeating the command does not retry roles for processed competitions.
 After confirmation, delete every competition in the server, including
 registrations, matches, and results, and advance the stored week. Preserves
 players, retained percentages, and Discord messages.
+
+If configured, removes the current week role from remaining registered players
+who hold it. Failed role removals are reported for manual correction and do not
+undo week advancement.
 
 Every competition must have used `/relegate` unless `force:true` is set. Rechecks
 this at confirmation and cancels if the stored week changed in the meantime.

@@ -1,8 +1,9 @@
 import { escapeMarkdown, type ChatInputCommandInteraction } from "discord.js";
 import { guildConfiguration } from "../../config/guilds";
 import { getActiveCompetition } from "../db/competitions";
-import { unregisterPlayer } from "../db/registrations";
+import { hasGuildRegistration, unregisterPlayer } from "../db/registrations";
 import { requireChannelLeague, requireCommandGuild } from "./command-context";
+import { removeCurrentWeekRole } from "./current-week-role";
 import { updateRegistrationMessages } from "./registration-messages";
 
 export async function unregisterCompetitionPlayer(
@@ -46,7 +47,22 @@ export async function unregisterCompetitionPlayer(
     await interaction.editReply(messages[result.status]);
     return;
   }
-  const content = `Unregistered **${escapeMarkdown(result.ign)}** from League ${context.leagueNumber}, Week ${competition.weekNumber}.`;
+  let content = `Unregistered **${escapeMarkdown(result.ign)}** from League ${context.leagueNumber}, Week ${competition.weekNumber}.`;
+  if (
+    guild.currentWeekRoleId &&
+    !hasGuildRegistration(interaction.guildId, user.id)
+  ) {
+    try {
+      await removeCurrentWeekRole(interaction.guild, guild, user.id);
+    } catch (error) {
+      console.error(
+        `Could not remove current week role for ${user.id}.`,
+        error
+      );
+      content +=
+        " The registration is removed, but I could not remove the current week role. Ask a host to remove it manually.";
+    }
+  }
   try {
     const channel = await interaction.guild.channels.fetch(
       context.league.infoChannelId
@@ -59,10 +75,8 @@ export async function unregisterCompetitionPlayer(
       "Player unregistered, but the registration list could not be updated.",
       error
     );
-    await interaction.editReply(
-      `${content} I could not update the registration list in the info channel; However, the removal is saved.`
-    );
-    return;
+    content +=
+      " I could not update the registration list in the info channel. The removal is saved.";
   }
   await interaction.editReply(content);
 }

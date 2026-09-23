@@ -5,5 +5,5 @@
     "lib": ["ES2023"],
     "types": ["bun", "node"]
   },
-  "include": ["src", "scripts", "config"]
+  "include": ["src", "scripts", "config", "tests"]
 }
