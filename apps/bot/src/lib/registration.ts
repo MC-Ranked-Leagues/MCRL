@@ -13,6 +13,7 @@ import type { getActiveCompetition } from "../db/competitions";
 import { registerPlayer } from "../db/registrations";
 import { getPlayer } from "../db/players";
 import { replyWithCompetitionUpdate } from "./competition-messages";
+import { addCurrentWeekRole } from "./current-week-role";
 
 export async function registerCompetitionPlayer(
   interaction: ChatInputCommandInteraction<"cached">,
@@ -90,7 +91,16 @@ export async function registerCompetitionPlayer(
     return;
   }
 
-  const content = `Registered **${escapeMarkdown(profile.nickname)}** for League ${leagueNumber}, Week ${competition.weekNumber}.`;
+  let content = `Registered **${escapeMarkdown(profile.nickname)}** for League ${leagueNumber}, Week ${competition.weekNumber}.`;
+  if (config.currentWeekRoleId) {
+    try {
+      await addCurrentWeekRole(interaction.guild, config, user.id);
+    } catch (error) {
+      console.error(`Could not add current week role for ${user.id}.`, error);
+      content +=
+        " Registration is saved, but I could not add the current week role. Ask a host to check role permissions.";
+    }
+  }
   await replyWithCompetitionUpdate(
     interaction,
     competition.id,

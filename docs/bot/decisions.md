@@ -52,6 +52,11 @@ Normal registration adopts the player's single matching league role.
 a player after registration closes. It has no force option. Use `/assign` to
 resolve league mismatches before registering.
 
+When configured, successful `/reg` and `/admin_reg` registrations add the current
+week role. `/unreg` removes it when the player has no other registration, and
+`/advance_week` clears it from the remaining registered players. Discord role
+failures do not undo saved changes and must be corrected manually.
+
 Manual assignment preserves the account but clears percentage history when the
 league changes, unless the host explicitly chooses to preserve it. Assignments
 are blocked while the current account has participated in a competition that has not used `/relegate`, including played DNFs. Registration

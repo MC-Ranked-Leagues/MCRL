@@ -12,6 +12,8 @@ export interface GuildConfiguration {
   signup?: { channelId: string; reviewerId: string };
   logChannelId: string;
   commandRoleId: string;
+  // Set this to give registered players a role until /advance_week.
+  currentWeekRoleId?: string;
   leagues: Readonly<Record<number, LeagueConfiguration>>;
 }
 
@@ -26,6 +28,7 @@ export const guildConfiguration: Readonly<Record<string, GuildConfiguration>> =
       },
       logChannelId: "1548812861269082283",
       commandRoleId: "1548811856133496903",
+      currentWeekRoleId: "1548813276429811772",
       leagues: {
         1: {
           infoChannelId: "1548810942882779287",
