@@ -95,7 +95,7 @@
     "clsx": "^2.1.1",
     "convex": "^1.35.1",
     "lucide-react": "^1.8.0",
-    "mcsrranked-sdk": "^0.1.1",
+    "mcsrranked-sdk": "^0.2.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "shadcn": "^4.2.0",
@@ -1320,7 +1320,7 @@
 
     "math-intrinsics": ["math-intrinsics@1.1.0", "", {}, "sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g=="],
 
-    "mcsrranked-sdk": ["mcsrranked-sdk@0.1.1", "", { "dependencies": { "valibot": "^1.4.2" } }, "sha512-6HE+9yAMJs0i7ZWCb4sQeLUZoE0oLA8VVKxQ01kEfSwloHLFO1AilHA1rV0s3T6fkPeIl7IZUtJmrMgAMGHxrQ=="],
+    "mcsrranked-sdk": ["mcsrranked-sdk@0.2.0", "", { "dependencies": { "valibot": "^1.4.2" } }, "sha512-FJFn8+Ju94l03hZ/Siter/fMxHvcJyTqQ0Z6uCHdfuqMazI2QR6wdoDVDSBsBVbIua0tYLiddLAucfkmJlHNKg=="],
 
     "mdast-util-definitions": ["mdast-util-definitions@6.0.0", "", { "dependencies": { "@types/mdast": "^4.0.0", "@types/unist": "^3.0.0", "unist-util-visit": "^5.0.0" } }, "sha512-scTllyX6pnYNZH/AIp/0ePz6s4cZtARxImwoPJ7kS42n+MnVsI4XbnG6d4ibehRIldYMWM2LD7ImQblVhUejVQ=="],
 
