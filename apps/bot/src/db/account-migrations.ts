@@ -36,7 +36,7 @@ export function setTestMigrationAccount(input: {
     const uuid = normalizeUuid(input.minecraftUuid);
     if (player.minecraftUuid === uuid) return "same_account";
     if (getAccountOwner(input.guildId, uuid)) return "account_owned";
-    // Separate old result snapshots while retaining placements to test their reset.
+    // Separate old result snapshots while retaining percentages to test their reset.
     tx.update(players)
       .set({
         minecraftUuid: uuid,
@@ -172,7 +172,7 @@ export function decideMigration(
           minecraftUuid: request.minecraftUuid,
           ign: request.ign,
           accountVersion: player.accountVersion + 1,
-          placements: [],
+          percentageHistory: [],
         })
         .where(eq(players.id, player.id))
         .run();

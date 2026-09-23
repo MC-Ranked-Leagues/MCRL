@@ -54,6 +54,8 @@ export const unendCommand = {
     const result = unendCompetition(interaction.guildId, competition.id);
     if (result.status !== "active") {
       const messages = {
+        relegated:
+          "This competition has used /relegate and cannot be reopened.",
         not_found: "That competition no longer exists.",
         already_active: "That competition is already active.",
         has_active: `League ${context.leagueNumber} already has an active competition. End or delete it before using /unend.`,

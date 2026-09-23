@@ -9,11 +9,7 @@ import {
   uniqueIndex,
 } from "drizzle-orm/sqlite-core";
 
-export interface RetainedPlacement {
-  week: number;
-  league: number;
-  placement: number;
-}
+import type { RetainedPercentage } from "../lib/player-history";
 
 export const guilds = sqliteTable(
   "guilds",
@@ -41,12 +37,12 @@ export const players = sqliteTable(
       .default("active"),
     signupMessageId: text("signup_message_id"),
     signupDetails: text("signup_details"),
-    // A forced registration can precede any permanent league assignment.
+    // Pending signups do not have a league assignment yet.
     leagueNumber: integer("league_number"),
     isTest: integer("is_test", { mode: "boolean" }).notNull().default(false),
     accountVersion: integer("account_version").notNull().default(1),
-    placements: text("placements", { mode: "json" })
-      .$type<RetainedPlacement[]>()
+    percentageHistory: text("placements", { mode: "json" })
+      .$type<RetainedPercentage[]>()
       .notNull()
       .default(sql`'[]'`),
   },
@@ -61,7 +57,7 @@ export const players = sqliteTable(
     ),
     check(
       "players_placements_limit",
-      sql`json_array_length(${table.placements}) <= 3`
+      sql`json_array_length(${table.percentageHistory}) <= 3`
     ),
   ]
 );
@@ -156,6 +152,8 @@ export const registrations = sqliteTable(
     ign: text("ign").notNull(),
     elo: real("elo"),
     peakElo: real("peak_elo"),
+    averageUsed: real("average_used"),
+    movement: text("movement", { enum: ["none", "promote", "demote"] }),
     streaming: integer("streaming", { mode: "boolean" })
       .notNull()
       .default(false),

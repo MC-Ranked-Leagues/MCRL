@@ -78,7 +78,7 @@ export const testMigrateCommand = {
       return;
     }
     await interaction.editReply(
-      `Your saved account in this dev server is now **${escapeMarkdown(profile.nickname)}**. Your Ranked Discord link is unchanged. Run /reg to check the mismatch, then /migrate_account to request migration back to your linked account. Your league and retained placements were preserved.`
+      `Your saved account in this dev server is now **${escapeMarkdown(profile.nickname)}**. Your Ranked Discord link is unchanged. Run /reg to check the mismatch, then /migrate_account to request migration back to your linked account. Your league and retained percentages were preserved.`
     );
   },
 } satisfies BotCommand;

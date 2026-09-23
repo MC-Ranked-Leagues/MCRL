@@ -16,7 +16,10 @@ import { normalizeUuid } from "../lib/ranked";
 import { getImportedMatches } from "./matches";
 import { calculateMatchPoints } from "../lib/match-points";
 
-type RegistrationInput = Omit<typeof registrations.$inferInsert, "id">;
+type RegistrationInput = Omit<
+  typeof registrations.$inferInsert,
+  "id" | "averageUsed" | "movement"
+>;
 
 export function fillTestRegistrations(
   competitionId: number,
@@ -55,7 +58,6 @@ export function fillTestRegistrations(
         },
         {
           mode: "test",
-          initialLeague: competition.leagueNumber,
         }
       );
       if (result !== "registered") continue;
@@ -74,11 +76,9 @@ export function registerPlayer(
   input: RegistrationInput,
   {
     mode = "self",
-    initialLeague,
     twitch,
   }: {
-    mode?: "self" | "admin" | "forced" | "test";
-    initialLeague?: number;
+    mode?: "self" | "admin" | "test";
     twitch?: string | null;
   } = {}
 ) {
@@ -131,7 +131,7 @@ export function registerPlayer(
         : ("account_registered" as const);
     const resolvedTwitch = player?.twitch?.trim() || twitch?.trim() || null;
     if (input.streaming && !resolvedTwitch) return "twitch_required" as const;
-    const preserveLeague = mode === "forced" || mode === "test";
+    const preserveLeague = mode === "test";
     const membership = player
       ? transaction
           .update(persistentPlayers)
@@ -155,9 +155,7 @@ export function registerPlayer(
             discordUsername: input.discordUsername,
             minecraftUuid: uuid,
             ign: input.ign,
-            leagueNumber: preserveLeague
-              ? initialLeague
-              : competition.leagueNumber,
+            leagueNumber: competition.leagueNumber,
             isTest: mode === "test",
             twitch: resolvedTwitch,
           })

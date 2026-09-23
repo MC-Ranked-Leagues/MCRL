@@ -1,6 +1,12 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { getDatabase } from ".";
-import { players } from "./schema";
+import {
+  competitions,
+  matches,
+  matchResults,
+  players,
+  registrations,
+} from "./schema";
 import { normalizeUuid } from "../lib/ranked";
 
 export function getPlayer(guildId: string, discordUserId: string) {
@@ -60,13 +66,46 @@ export function assignPlayerLeague(
   account?: Pick<
     typeof players.$inferInsert,
     "discordUsername" | "minecraftUuid" | "ign"
-  >
+  >,
+  { preserveHistory = false } = {}
 ) {
   return getDatabase().transaction((tx) => {
     const existing = getPlayer(guildId, discordUserId);
     if (existing) {
+      const pendingParticipation = tx
+        .select({ id: registrations.id })
+        .from(registrations)
+        .innerJoin(
+          competitions,
+          eq(competitions.id, registrations.competitionId)
+        )
+        .innerJoin(
+          matchResults,
+          eq(matchResults.registrationId, registrations.id)
+        )
+        .innerJoin(matches, eq(matches.id, matchResults.matchId))
+        .where(
+          and(
+            // Can prob be simplified
+            eq(competitions.guildId, guildId),
+            eq(competitions.hasUsedRelegate, false),
+            eq(registrations.discordUserId, discordUserId),
+            eq(registrations.minecraftUuid, existing.minecraftUuid),
+            eq(registrations.accountVersion, existing.accountVersion),
+            eq(matches.imported, true),
+            inArray(matchResults.status, ["finished", "dnf"])
+          )
+        )
+        .get();
+      if (pendingParticipation) return "unprocessed_competition";
       tx.update(players)
-        .set({ leagueNumber, status: "active" })
+        .set({
+          leagueNumber,
+          status: "active",
+          ...(existing.leagueNumber !== leagueNumber && !preserveHistory
+            ? { percentageHistory: [] }
+            : {}),
+        })
         .where(eq(players.id, existing.id))
         .run();
       return "assigned";
