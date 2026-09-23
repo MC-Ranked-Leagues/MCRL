@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, getTableColumns, sql } from "drizzle-orm";
 
 import { getDatabase } from ".";
 import {
@@ -112,6 +112,8 @@ export function unendCompetition(guildId: string, competitionId: number) {
       )
       .get();
     if (!competition) return { status: "not_found" } as const;
+    // Keep processed competitions ended so write operations only need the active-status guard.
+    if (competition.hasUsedRelegate) return { status: "relegated" } as const;
     if (competition.status === "active")
       return { status: "already_active" } as const;
 
@@ -223,8 +225,20 @@ export function getCompetitionRegistration(competitionId: number) {
     .get();
   if (!competition) return;
   const players = database
-    .select()
+    .select({
+      ...getTableColumns(registrations),
+      percentageHistory: persistentPlayers.percentageHistory,
+    })
     .from(registrations)
+    .leftJoin(
+      persistentPlayers,
+      and(
+        eq(persistentPlayers.guildId, competition.guildId),
+        eq(persistentPlayers.discordUserId, registrations.discordUserId),
+        eq(persistentPlayers.minecraftUuid, registrations.minecraftUuid),
+        eq(persistentPlayers.accountVersion, registrations.accountVersion)
+      )
+    )
     .where(eq(registrations.competitionId, competitionId))
     // Ranked may omit peak Elo; use the current Elo captured at registration.
     .orderBy(

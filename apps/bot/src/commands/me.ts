@@ -5,6 +5,7 @@ import {
   escapeMarkdown,
 } from "discord.js";
 import { getPlayer } from "../db/players";
+import { formatHistoryAverage } from "../lib/player-history";
 import type { BotCommand } from "./command";
 
 export const meCommand = {
@@ -22,11 +23,11 @@ export const meCommand = {
       return;
     }
 
-    const placements = player.placements.length
-      ? player.placements
+    const history = player.percentageHistory.length
+      ? player.percentageHistory
           .map(
-            ({ week, league, placement }) =>
-              `Week ${week}, League ${league}: #${placement}`
+            ({ week, league, percentage }) =>
+              `Week ${week}, League ${league}: ${percentage.toFixed(2)}%`
           )
           .join("\n")
       : "None yet";
@@ -37,7 +38,9 @@ export const meCommand = {
         `UUID: ${player.minecraftUuid}`,
         `League: ${player.leagueNumber ?? "Unassigned"}`,
         `Status: ${player.status}`,
-        `placements: ${placements}`,
+        `Latest two average: ${formatHistoryAverage(player.percentageHistory, 2)}`,
+        `Latest three average: ${formatHistoryAverage(player.percentageHistory, 3)}`,
+        `Saved percentages (${player.percentageHistory.length} entries):\n${history}`,
       ].join("\n"),
       allowedMentions: { parse: [] },
     });

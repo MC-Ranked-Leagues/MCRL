@@ -36,6 +36,13 @@
       "when": 1790013072791,
       "tag": "0004_add_relegate_guard",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1790024680216,
+      "tag": "0005_registration_movement",
+      "breakpoints": true
     }
   ]
 }

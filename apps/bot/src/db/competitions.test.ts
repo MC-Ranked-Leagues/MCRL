@@ -20,7 +20,10 @@ import {
   type RankedMatchInput,
 } from "./matches";
 import { replyWithCompetitionUpdate } from "../lib/competition-messages";
-import { updateLeaderboardMessages } from "../lib/leaderboard-messages";
+import {
+  formatLeaderboardMessages,
+  updateLeaderboardMessages,
+} from "../lib/leaderboard-messages";
 import {
   clearTestRegistrations,
   fillTestRegistrations,
@@ -28,7 +31,12 @@ import {
   unregisterPlayer,
 } from "./registrations";
 import { afterAll, beforeEach, expect, spyOn, test } from "bun:test";
-import type { ChatInputCommandInteraction, SendableChannels } from "discord.js";
+import {
+  Collection,
+  type ChatInputCommandInteraction,
+  type SendableChannels,
+} from "discord.js";
+import { relegateCommand } from "../commands/relegate";
 import { updateRegistrationMessages } from "../lib/registration-messages";
 import { and, eq } from "drizzle-orm";
 import { devChangeWeekCommand } from "../commands/dev-change-week";
@@ -49,6 +57,8 @@ import {
   unendCompetition,
 } from "./competitions";
 import { getCurrentWeek, setCurrentWeek } from "./guilds";
+import { getCompetitionMovement, relegateGuild } from "./relegation";
+import { formatRegistrationMessages } from "../lib/registration-messages";
 import {
   competitions,
   registrations,
@@ -207,7 +217,7 @@ test("week advancement requires relegation unless forced", () => {
   expect(getCurrentWeek(input.guildId)).toBe(5);
 });
 
-test("completed competitions allow result changes before atomic cleanup", () => {
+test("week cleanup uses completion flags and cascades results while preserving player history", () => {
   setCurrentWeek(input.guildId, 4);
   startCompetition({ ...input, weekNumber: 4 });
   startCompetition({ ...input, guildId: "other-guild" });
@@ -252,7 +262,7 @@ test("completed competitions allow result changes before atomic cleanup", () => 
       discordUsername: "player",
       minecraftUuid: "uuid",
       ign: "player",
-      placements: [{ week: 3, league: 5, placement: 2 }],
+      percentageHistory: [{ week: 3, league: 5, percentage: 2 }],
     })
     .run();
 
@@ -263,8 +273,8 @@ test("completed competitions allow result changes before atomic cleanup", () => 
   expect(database.select().from(matches).all()).toEqual([]);
   expect(database.select().from(matchResults).all()).toEqual([]);
   expect(getActiveCompetition("other-guild", 5)).toBeDefined();
-  expect(getPlayer(input.guildId, "user")?.placements).toEqual([
-    { week: 3, league: 5, placement: 2 },
+  expect(getPlayer(input.guildId, "user")?.percentageHistory).toEqual([
+    { week: 3, league: 5, percentage: 2 },
   ]);
 });
 
@@ -590,8 +600,8 @@ test("registration messages rank peak Elo above current Elo and keep unrated pla
   const { channel, messages } = registrationChannel();
   await updateRegistrationMessages(channel, active.id);
   const content = [...messages.values()].join("\n");
-  expect(content).toContain("2. PeakLeader (PeakLeader) - Peak Elo: 2000");
-  expect(content).toContain("5. Unrated (Unrated) - unrated");
+  expect(content).toContain("2. PeakLeader - Peak Elo: 2000");
+  expect(content).toContain("5. Unrated - unrated");
 });
 
 test("registration rechecks closure and never switches to a replacement competition after an API lookup", () => {
@@ -661,6 +671,8 @@ test("self unregistration requires open registration and preserves registrations
   const active = getActiveCompetition(input.guildId, 5)!;
   const other = getActiveCompetition(input.guildId, 6)!;
   for (const competitionId of [active.id, other.id]) {
+    if (competitionId === other.id)
+      assignPlayerLeague(input.guildId, "user", 6);
     registerPlayer(
       {
         competitionId,
@@ -670,7 +682,7 @@ test("self unregistration requires open registration and preserves registrations
         ign: "Player",
         registeredAt: new Date(),
       },
-      { mode: "forced" }
+      { mode: "admin" }
     );
   }
   expect(unregisterPlayer(active.id, "unknown").status).toBe("not_registered");
@@ -889,7 +901,7 @@ test("clear deletes only the selected match and results, defaults to latest, and
     "**League 5 Week 1 Leaderboard**\n**Status:** active\n**Current seed:** 2"
   );
   expect([...messages.values()].join("\n")).toContain(
-    "player4(Player4) - 8 pts - 0:00.550"
+    "Player4(player4) - 8 pts - 0:00.550"
   );
   expect(clearMatch(competition.id, 1)).toEqual({
     status: "cleared",
@@ -1079,7 +1091,7 @@ test("finalization preserves results, ranks played DNFs, and lists all nonpartic
   await updateRegistrationMessages(channel, competition.id);
   const content = [...messages.values()].join("\n");
   expect(content).toContain("**Status:** ended");
-  expect(content).toContain("5. player4(Player4)");
+  expect(content).toContain("5. Player4(player4)");
   expect(content).toContain("-----\nLateMinecraft - missed\nPlayer5 - missed");
   expect(content).toContain("Registration: **OFF**");
   expect(endCompetition(input.guildId, competition.id).status).toBe(
@@ -1291,10 +1303,10 @@ test("test migration isolates the dev guild and supports migration back to the r
   )!;
   assignPlayerLeague(guildId, "member", 5, registration);
   const devPlayer = getPlayer(guildId, "member")!;
-  const placements = [{ week: 1, league: 5, placement: 2 }];
+  const percentageHistory = [{ week: 1, league: 5, percentage: 2 }];
   database
     .update(players)
-    .set({ placements })
+    .set({ percentageHistory })
     .where(eq(players.id, devPlayer.id))
     .run();
   const account = {
@@ -1311,7 +1323,7 @@ test("test migration isolates the dev guild and supports migration back to the r
   expect(getPlayer(guildId, "member")).toMatchObject({
     minecraftUuid: "fake",
     ign: "Fake",
-    placements,
+    percentageHistory,
     leagueNumber: 5,
     accountVersion: devPlayer.accountVersion + 1,
   });
@@ -1337,7 +1349,7 @@ test("test migration isolates the dev guild and supports migration back to the r
       registration.minecraftUuid
     )
   ).toBe("approved");
-  expect(getPlayer(guildId, "member")?.placements).toEqual([]);
+  expect(getPlayer(guildId, "member")?.percentageHistory).toEqual([]);
   expect(registerPlayer(devRegistration)).toBe("registered");
   expect(getPlayer(input.guildId, "member")).toEqual(mainPlayer);
 });
@@ -1415,58 +1427,27 @@ test("membership survives competition deletion and normal registration follows t
   expect(getPlayer(input.guildId, "member")?.leagueNumber).toBe(6);
 });
 
-test("admin force preserves membership and cannot bypass account ownership or identity", () => {
+test("admin registration requires matching membership and account identity", () => {
   const { registration } = registerMember();
   startCompetition({ ...input, leagueNumber: 6 });
   const next = getActiveCompetition(input.guildId, 6)!;
   const target = { ...registration, competitionId: next.id };
   expect(registerPlayer(target, { mode: "admin" })).toBe("league_mismatch");
   expect(
-    registerPlayer({ ...target, minecraftUuid: "other" }, { mode: "forced" })
+    registerPlayer({ ...target, minecraftUuid: "other" }, { mode: "admin" })
   ).toBe("account_mismatch");
   expect(
-    registerPlayer({ ...target, discordUserId: "other" }, { mode: "forced" })
+    registerPlayer({ ...target, discordUserId: "other" }, { mode: "admin" })
   ).toBe("account_owned");
   expect(
     registerPlayer(target, {
-      mode: "forced",
+      mode: "admin",
     })
-  ).toBe("registered");
+  ).toBe("league_mismatch");
   expect(getPlayer(input.guildId, "member")?.leagueNumber).toBe(5);
 });
 
-test("forced first registration preserves the role league or leaves membership unassigned", () => {
-  startCompetition(input);
-  const competition = getActiveCompetition(input.guildId, 5)!;
-  const registration = {
-    competitionId: competition.id,
-    discordUserId: "new",
-    discordUsername: "new",
-    minecraftUuid: "new",
-    ign: "new",
-    registeredAt: new Date(),
-  };
-  expect(
-    registerPlayer(registration, {
-      mode: "forced",
-      initialLeague: 6,
-    })
-  ).toBe("registered");
-  expect(getPlayer(input.guildId, "new")?.leagueNumber).toBe(6);
-  expect(
-    registerPlayer(
-      {
-        ...registration,
-        discordUserId: "unassigned",
-        minecraftUuid: "unassigned",
-      },
-      { mode: "forced" }
-    )
-  ).toBe("registered");
-  expect(getPlayer(input.guildId, "unassigned")?.leagueNumber).toBeNull();
-});
-
-test("migration approval resets placements, preserves league and snapshots, and retains history", () => {
+test("migration approval resets percentage history, preserves league and snapshots, and retains history", () => {
   const { competition } = registerMember();
   expect(createMigration(migrationInput).status).toBe("active_registration");
   database
@@ -1477,7 +1458,7 @@ test("migration approval resets placements, preserves league and snapshots, and 
   const member = getPlayer(input.guildId, "member")!;
   database
     .update(players)
-    .set({ placements: [{ week: 1, league: 5, placement: 2 }] })
+    .set({ percentageHistory: [{ week: 1, league: 5, percentage: 2 }] })
     .where(eq(players.id, member.id))
     .run();
   const result = createMigration(migrationInput);
@@ -1499,7 +1480,7 @@ test("migration approval resets placements, preserves league and snapshots, and 
     minecraftUuid: "newuuid",
     ign: "NewName",
     leagueNumber: 4,
-    placements: [],
+    percentageHistory: [],
     accountVersion: 2,
   });
   expect(database.select().from(registrations).get()).toMatchObject({
@@ -1634,7 +1615,7 @@ test("rejected signup retains its player row and a host can assign it", () => {
   });
 });
 
-test("test membership and placements survive weekly competition cleanup and clear together", () => {
+test("test membership and percentage history survive weekly competition cleanup and clear together", () => {
   startCompetition(input);
   let competition = getActiveCompetition(input.guildId, 5)!;
   const matchPlayers = [
@@ -1653,7 +1634,7 @@ test("test membership and placements survive weekly competition cleanup and clea
   expect(member.isTest).toBe(true);
   database
     .update(players)
-    .set({ placements: [{ week: 1, league: 5, placement: 1 }] })
+    .set({ percentageHistory: [{ week: 1, league: 5, percentage: 1 }] })
     .where(eq(players.id, member.id))
     .run();
   deleteCompetition(input.guildId, competition.id);
@@ -1662,7 +1643,7 @@ test("test membership and placements survive weekly competition cleanup and clea
   fillTestRegistrations(competition.id, matchPlayers);
   expect(getPlayer(input.guildId, "test:testuuid")).toMatchObject({
     id: member.id,
-    placements: [{ week: 1, league: 5, placement: 1 }],
+    percentageHistory: [{ week: 1, league: 5, percentage: 1 }],
   });
   clearTestRegistrations(input.guildId, competition.id);
   expect(getPlayer(input.guildId, "test:testuuid")).toBeUndefined();
@@ -1712,13 +1693,13 @@ test("assignment creates a missing player from the linked account", () => {
   });
 });
 
-test("assignment rejects owned accounts and preserves an existing player's history", () => {
+test("assignment rejects owned accounts and resets history when changing league", () => {
   const { competition } = registerMember();
   const member = getPlayer(input.guildId, "member")!;
-  const placements = [{ week: 1, league: 5, placement: 2 }];
+  const percentageHistory = [{ week: 1, league: 5, percentage: 2 }];
   database
     .update(players)
-    .set({ placements })
+    .set({ percentageHistory })
     .where(eq(players.id, member.id))
     .run();
   expect(
@@ -1742,7 +1723,7 @@ test("assignment rejects owned accounts and preserves an existing player's histo
     minecraftUuid: member.minecraftUuid,
     accountVersion: member.accountVersion,
     leagueNumber: 6,
-    placements,
+    percentageHistory: [],
   });
   expect(getCompetitionRegistration(competition.id)!.players).toHaveLength(1);
 });
@@ -1796,7 +1777,7 @@ test("late registration backfills every imported match, rescales points, and per
     ign: "Late",
     registeredAt: new Date(),
   };
-  expect(registerPlayer(late, { mode: "forced" })).toBe("registered");
+  expect(registerPlayer(late, { mode: "admin" })).toBe("registered");
   const registration = database
     .select()
     .from(registrations)
@@ -1832,7 +1813,7 @@ test("late registration backfills every imported match, rescales points, and per
       (row) => row.ign === "Late"
     )
   ).toBe(false);
-  expect(registerPlayer(late, { mode: "forced" })).toBe("already_registered");
+  expect(registerPlayer(late, { mode: "admin" })).toBe("already_registered");
   expect(database.select().from(matchResults).all()).toHaveLength(12);
 
   const later = rankedMatch(102);
@@ -1950,4 +1931,479 @@ test("competition refresh updates registration and rescored standings even if re
   expect([...messages.values()].join("\n")).toContain("8 pts");
   expect(replies.at(-1)).toContain("The changes are saved");
   expect(database.select().from(registrations).all()).toHaveLength(6);
+});
+
+test("assignment preserves same-league history and supports an explicit override", () => {
+  registerMember();
+  const percentageHistory = [{ week: 1, league: 5, percentage: 60 }];
+  database.update(players).set({ percentageHistory }).run();
+  assignPlayerLeague(input.guildId, "member", 5);
+  expect(getPlayer(input.guildId, "member")?.percentageHistory).toEqual(
+    percentageHistory
+  );
+  assignPlayerLeague(input.guildId, "member", 4, undefined, {
+    preserveHistory: true,
+  });
+  expect(getPlayer(input.guildId, "member")?.percentageHistory).toEqual(
+    percentageHistory
+  );
+  assignPlayerLeague(input.guildId, "member", 5);
+  expect(getPlayer(input.guildId, "member")?.percentageHistory).toEqual([]);
+});
+
+function endedMovementCompetition(leagueNumber = 5, weekNumber = 1) {
+  startCompetition({ ...input, leagueNumber, weekNumber });
+  const competition = getActiveCompetition(input.guildId, leagueNumber)!;
+  const matchPlayers = Array.from({ length: 8 }, (_, index) => ({
+    uuid: `league${leagueNumber}player${index}`,
+    nickname: `Player${index}`,
+    roleType: 0,
+    eloRate: null,
+    eloRank: null,
+    country: null,
+  }));
+  for (const player of matchPlayers) {
+    expect(
+      registerPlayer(
+        {
+          competitionId: competition.id,
+          discordUserId: player.uuid,
+          minecraftUuid: player.uuid,
+          discordUsername: player.nickname,
+          ign: player.nickname,
+          registeredAt: new Date(),
+        },
+        { mode: "admin" }
+      )
+    ).toBe("registered");
+  }
+  importMatch(competition.id, {
+    id: leagueNumber * 100 + weekNumber,
+    players: matchPlayers.slice(0, 7),
+    completions: matchPlayers
+      .slice(0, 6)
+      .map((player, index) => ({ uuid: player.uuid, time: 100 + index * 100 })),
+  });
+  expect(endCompetition(input.guildId, competition.id).status).toBe("ended");
+  return competition;
+}
+
+test("assignment waits for participating competitions to be processed", () => {
+  const competition = endedMovementCompetition();
+  for (const userId of ["league5player0", "league5player6"]) {
+    const before = getPlayer(input.guildId, userId);
+    expect(assignPlayerLeague(input.guildId, userId, 2)).toBe(
+      "unprocessed_competition"
+    );
+    expect(
+      assignPlayerLeague(input.guildId, userId, 5, undefined, {
+        preserveHistory: true,
+      })
+    ).toBe("unprocessed_competition");
+    expect(getPlayer(input.guildId, userId)).toEqual(before);
+  }
+  // A missed week does not count as participation.
+  expect(assignPlayerLeague(input.guildId, "league5player7", 2)).toBe(
+    "assigned"
+  );
+  expect(unendCompetition(input.guildId, competition.id).status).toBe("active");
+  expect(assignPlayerLeague(input.guildId, "league5player0", 2)).toBe(
+    "unprocessed_competition"
+  );
+  expect(endCompetition(input.guildId, competition.id).status).toBe("ended");
+  expect(relegateGuild(input.guildId, [5]).status).toBe("processed");
+  expect(assignPlayerLeague(input.guildId, "league5player0", 2)).toBe(
+    "assigned"
+  );
+  expect(getPlayer(input.guildId, "league5player0")?.leagueNumber).toBe(2);
+});
+
+test("relegation uses preview values, retains demotion history, trims oldest, and skips absent players", async () => {
+  const competition = endedMovementCompetition();
+  const history = [20, 30, 40].map((percentage, index) => ({
+    week: index + 1,
+    league: 5,
+    percentage,
+  }));
+  database.update(players).set({ percentageHistory: history }).run();
+  const preview = getCompetitionMovement(competition.id)!;
+  expect(preview.standings).toHaveLength(7);
+  expect(preview.decisions.map((decision) => decision.movement)).toEqual([
+    "promote",
+    "none",
+    "none",
+    "none",
+    "none",
+    "none",
+    "demote",
+  ]);
+  expect(
+    database
+      .select()
+      .from(registrations)
+      .all()
+      .every(
+        (player) => player.movement === null && player.averageUsed === null
+      )
+  ).toBe(true);
+  expect(relegateGuild(input.guildId, [5])).toMatchObject({
+    status: "processed",
+    processed: [{ leagueNumber: 5, promoted: 1, demoted: 1 }],
+  });
+  expect(getPlayer(input.guildId, "league5player0")).toMatchObject({
+    leagueNumber: 4,
+    percentageHistory: [],
+  });
+  expect(getPlayer(input.guildId, "league5player6")).toMatchObject({
+    leagueNumber: 6,
+    percentageHistory: [
+      history[1],
+      history[2],
+      { week: 1, league: 5, percentage: 85 },
+    ],
+  });
+  expect(getPlayer(input.guildId, "league5player7")).toMatchObject({
+    leagueNumber: 5,
+    percentageHistory: history,
+  });
+  const staying = getPlayer(input.guildId, "league5player1")!;
+  expect(staying.percentageHistory.slice(0, 2)).toEqual(history.slice(1));
+  expect(staying.percentageHistory[2]!.percentage).toBeCloseTo((100 * 5) / 6);
+  const registered = getCompetitionRegistration(competition.id)!.players;
+  expect(
+    registered.find((player) => player.discordUserId === "league5player6")
+  ).toMatchObject({ movement: "demote", averageUsed: 70 / 3 });
+  expect(
+    registered.find((player) => player.discordUserId === "league5player7")
+  ).toMatchObject({ movement: "none", averageUsed: null });
+  expect(getCompetitionMovement(competition.id)!.decisions).toEqual(
+    preview.decisions.map(({ registrationId, averageUsed, movement }) => ({
+      registrationId,
+      averageUsed,
+      movement,
+    }))
+  );
+  const { channel, messages } = registrationChannel();
+  await updateLeaderboardMessages(channel, competition.id);
+  const content = [...messages.values()].join("\n");
+  expect(content).toBe(formatLeaderboardMessages(preview).join("\n"));
+  expect(content).toContain("Avg: 23.33% ↓");
+  expect(content).toContain("Avg: 56.67% ↑");
+  const savedPlayers = database.select().from(players).all();
+  expect(relegateGuild(input.guildId, [5])).toMatchObject({
+    status: "processed",
+    processed: [],
+    skipped: [{ leagueNumber: 5, reason: "processed" }],
+  });
+  expect(database.select().from(players).all()).toEqual(savedPlayers);
+  expect(getCurrentWeek(input.guildId)).toBe(1);
+  expect(database.select().from(competitions).all()).toHaveLength(1);
+});
+
+test("missing and active leagues block all writes; forced runs can finish remaining leagues later", () => {
+  const ended = endedMovementCompetition(5);
+  startCompetition({ ...input, leagueNumber: 6 });
+  const active = getActiveCompetition(input.guildId, 6)!;
+  const before = database.select().from(players).all();
+  expect(relegateGuild(input.guildId, [4, 5, 6])).toMatchObject({
+    status: "blocked",
+    skipped: [
+      { leagueNumber: 4, reason: "missing" },
+      { leagueNumber: 6, reason: "active" },
+    ],
+  });
+  expect(database.select().from(players).all()).toEqual(before);
+  expect(
+    getCompetitionRegistration(ended.id)!.competition.hasUsedRelegate
+  ).toBe(false);
+  expect(
+    getCompetitionRegistration(ended.id)!.players.every(
+      (player) => player.movement === null
+    )
+  ).toBe(true);
+  expect(relegateGuild(input.guildId, [4, 5, 6], true)).toMatchObject({
+    status: "processed",
+    processed: [{ leagueNumber: 5 }],
+  });
+  const afterFirstRun = database.select().from(players).all();
+  // An ended empty competition still needs a durable completion flag.
+  database
+    .update(competitions)
+    .set({ status: "ended" })
+    .where(eq(competitions.id, active.id))
+    .run();
+  expect(relegateGuild(input.guildId, [4, 5, 6], true)).toMatchObject({
+    status: "processed",
+    processed: [{ leagueNumber: 6, promoted: 0, demoted: 0 }],
+  });
+  expect(database.select().from(players).all()).toEqual(afterFirstRun);
+  expect(
+    getCompetitionRegistration(active.id)!.competition.hasUsedRelegate
+  ).toBe(true);
+  expect(relegateGuild(input.guildId, [5, 6])).toMatchObject({
+    status: "processed",
+    processed: [],
+  });
+});
+
+test("relegation only processes configured current-week ended competitions in the requested guild", () => {
+  const old = endedMovementCompetition(4, 1);
+  const current = endedMovementCompetition(5, 2);
+  const unconfigured = endedMovementCompetition(6, 2);
+  startCompetition({ ...input, guildId: "other-guild", weekNumber: 2 });
+  setCurrentWeek(input.guildId, 2);
+  expect(relegateGuild(input.guildId, [4, 5], true)).toMatchObject({
+    status: "processed",
+    processed: [{ leagueNumber: 5 }],
+    skipped: [{ leagueNumber: 4, reason: "missing" }],
+  });
+  expect(getCompetitionRegistration(old.id)!.competition.hasUsedRelegate).toBe(
+    false
+  );
+  expect(
+    getCompetitionRegistration(current.id)!.competition.hasUsedRelegate
+  ).toBe(true);
+  expect(
+    getCompetitionRegistration(unconfigured.id)!.competition.hasUsedRelegate
+  ).toBe(false);
+  expect(getActiveCompetition("other-guild", 5)).toBeDefined();
+});
+
+test("guild-wide movements use original league results and commit together", () => {
+  endedMovementCompetition(4);
+  endedMovementCompetition(5);
+  expect(relegateGuild(input.guildId, [4, 5])).toMatchObject({
+    status: "processed",
+    processed: [
+      { leagueNumber: 4, promoted: 1, demoted: 1 },
+      { leagueNumber: 5, promoted: 1, demoted: 1 },
+    ],
+  });
+  expect(getPlayer(input.guildId, "league5player0")!.leagueNumber).toBe(4);
+  expect(getPlayer(input.guildId, "league4player6")!.leagueNumber).toBe(5);
+  expect(getPlayer(input.guildId, "league4player6")!.percentageHistory).toEqual(
+    [{ week: 1, league: 4, percentage: 85 }]
+  );
+});
+
+test("a write failure in a later league rolls back all memberships, histories, snapshots and flags", () => {
+  endedMovementCompetition(4);
+  const second = endedMovementCompetition(5);
+  const beforePlayers = database.select().from(players).all();
+  const beforeRegistrations = database.select().from(registrations).all();
+  const beforeCompetitions = database.select().from(competitions).all();
+  database.$client.exec(
+    `CREATE TRIGGER fail_relegation BEFORE UPDATE OF has_used_relegate ON competitions WHEN NEW.id = ${second.id} BEGIN SELECT RAISE(ABORT, 'test rollback'); END`
+  );
+  try {
+    expect(() => relegateGuild(input.guildId, [4, 5])).toThrow("test rollback");
+  } finally {
+    database.$client.exec("DROP TRIGGER fail_relegation");
+  }
+  expect(database.select().from(players).all()).toEqual(beforePlayers);
+  expect(database.select().from(registrations).all()).toEqual(
+    beforeRegistrations
+  );
+  expect(database.select().from(competitions).all()).toEqual(
+    beforeCompetitions
+  );
+});
+
+test("processed competitions reject unend and every result-changing operation", () => {
+  const competition = endedMovementCompetition();
+  relegateGuild(input.guildId, [5]);
+  expect(unendCompetition(input.guildId, competition.id)).toEqual({
+    status: "relegated",
+  });
+  expect(getCompetitionRegistration(competition.id)!.competition.status).toBe(
+    "ended"
+  );
+  expect(importMatch(competition.id, rankedMatch()).status).toBe("inactive");
+  expect(clearMatch(competition.id).status).toBe("inactive");
+  expect(clearTestRegistrations(input.guildId, competition.id).status).toBe(
+    "inactive"
+  );
+  expect(
+    fillTestRegistrations(competition.id, rankedMatch().players).status
+  ).toBe("inactive");
+  expect(
+    unregisterPlayer(competition.id, "league5player0", { admin: true }).status
+  ).toBe("inactive");
+  expect(
+    registerPlayer(
+      {
+        competitionId: competition.id,
+        discordUserId: "late",
+        discordUsername: "Late",
+        minecraftUuid: "late",
+        ign: "Late",
+        registeredAt: new Date(),
+      },
+      { mode: "admin" }
+    )
+  ).toBe("inactive");
+});
+
+test("old account snapshots cannot read new history or change the current membership", () => {
+  const competition = endedMovementCompetition();
+  const original = getPlayer(input.guildId, "league5player0")!;
+  const percentageHistory = [{ week: 1, league: 2, percentage: 42 }];
+  // Returning to the same UUID still has a distinct version after migration.
+  database
+    .update(players)
+    .set({
+      accountVersion: original.accountVersion + 2,
+      leagueNumber: 2,
+      percentageHistory,
+    })
+    .where(eq(players.id, original.id))
+    .run();
+  expect(
+    getCompetitionRegistration(competition.id)!.players.find(
+      (player) => player.discordUserId === original.discordUserId
+    )!.percentageHistory
+  ).toBeNull();
+  expect(
+    getCompetitionMovement(competition.id)!.decisions[0]!.averageUsed
+  ).toBe(100);
+  relegateGuild(input.guildId, [5]);
+  expect(getPlayer(input.guildId, original.discordUserId)).toMatchObject({
+    leagueNumber: 2,
+    percentageHistory,
+  });
+  expect(getCompetitionMovement(competition.id)!.decisions[0]).toMatchObject({
+    averageUsed: 100,
+    movement: "promote",
+  });
+});
+
+test("registration history display keeps existing Elo order and distinguishes 0% from no history", () => {
+  const competition = setupMatchPlayers();
+  database
+    .update(players)
+    .set({ percentageHistory: [{ week: 1, league: 5, percentage: 0 }] })
+    .where(eq(players.discordUserId, "player1"))
+    .run();
+  const data = getCompetitionRegistration(competition.id)!;
+  const before = data.players.map((player) => player.id);
+  const content = formatRegistrationMessages(data).join("\n");
+  expect(content).toContain("PreAvg: No history");
+  expect(content).toContain("PreAvg: 0% (0%)");
+  data.players[0]!.percentageHistory = [
+    { week: 1, league: 5, percentage: 99 },
+    { week: 2, league: 5, percentage: 50 },
+    { week: 3, league: 5, percentage: 20 },
+  ];
+  expect(formatRegistrationMessages(data).join("\n")).toContain(
+    "PreAvg: 35% (50%, 20%)"
+  );
+  expect(
+    getCompetitionRegistration(competition.id)!.players.map(
+      (player) => player.id
+    )
+  ).toEqual(before);
+});
+
+test("League 7 saves qualification without averages or appended history and renders promotion arrows", () => {
+  const competition = endedMovementCompetition(7);
+  const history = [{ week: 1, league: 7, percentage: 42 }];
+  database.update(players).set({ percentageHistory: history }).run();
+  // Give the DNF a nonqualifying average while finishers still qualify by best finish.
+  database
+    .update(matches)
+    .set({ timeLimitMs: 35 * 60_000 })
+    .where(eq(matches.competitionId, competition.id))
+    .run();
+  const preview = getCompetitionMovement(competition.id)!;
+  expect(
+    preview.decisions.every((decision) => decision.averageUsed === null)
+  ).toBe(true);
+  const content = formatLeaderboardMessages(preview).join("\n");
+  expect(content).toContain(" ↑");
+  expect(content).not.toContain("Avg:");
+  relegateGuild(input.guildId, [7]);
+  expect(getPlayer(input.guildId, "league7player0")).toMatchObject({
+    leagueNumber: 6,
+    percentageHistory: [],
+  });
+  expect(getPlayer(input.guildId, "league7player6")).toMatchObject({
+    leagueNumber: 7,
+    percentageHistory: history,
+  });
+  expect(
+    getCompetitionRegistration(competition.id)!.players.every(
+      (player) => player.averageUsed === null
+    )
+  ).toBe(true);
+  expect(
+    formatLeaderboardMessages(getCompetitionMovement(competition.id)!)
+  ).toEqual(formatLeaderboardMessages(preview));
+});
+
+test("relegate applies roles once and reports failures for manual correction", async () => {
+  const originalGuildId = input.guildId;
+  input.guildId = Object.keys(guildConfiguration)[0]!;
+  const config = guildConfiguration[input.guildId]!;
+  const replies: string[] = [];
+  const updatedRoles: string[] = [];
+  const attemptedUsers: string[] = [];
+  const log = spyOn(console, "error").mockImplementation(() => {});
+  try {
+    endedMovementCompetition();
+    const interaction = {
+      guildId: input.guildId,
+      member: { roles: { cache: { has: () => true } } },
+      options: { getBoolean: () => true },
+      guild: {
+        members: {
+          fetch: async ({ user }: { user: string }) => {
+            attemptedUsers.push(user);
+            if (user === "league5player0")
+              throw new Error("Missing Discord member");
+            return {
+              roles: {
+                cache: new Collection([
+                  [
+                    config.leagues[5]!.leagueRoleId,
+                    { id: config.leagues[5]!.leagueRoleId, editable: true },
+                  ],
+                  ["unrelated", { id: "unrelated", editable: false }],
+                ]),
+                add: async (role: { id: string }) => {
+                  updatedRoles.push(`add:${role.id}`);
+                },
+                remove: async (ids: string[]) => {
+                  updatedRoles.push(...ids.map((id) => `remove:${id}`));
+                },
+              },
+            };
+          },
+        },
+        roles: { fetch: async (id: string) => ({ id, editable: true }) },
+      },
+      editReply: async (reply: string | { content: string }) => {
+        replies.push(typeof reply === "string" ? reply : reply.content);
+      },
+      followUp: async ({ content }: { content: string }) => {
+        replies.push(content);
+      },
+    } as unknown as ChatInputCommandInteraction<"cached">;
+    await relegateCommand.execute(interaction);
+    expect(attemptedUsers).toEqual(["league5player0", "league5player6"]);
+    expect(updatedRoles).toEqual([
+      `add:${config.leagues[6]!.leagueRoleId}`,
+      `remove:${config.leagues[5]!.leagueRoleId}`,
+    ]);
+    expect(replies.at(-1)).toContain("1 league roles updated.");
+    expect(replies.at(-1)).toContain("<@league5player0> → League 4");
+    expect(replies.at(-1)).toContain("manually");
+    expect(getPlayer(input.guildId, "league5player0")?.leagueNumber).toBe(4);
+    const savedPlayers = database.select().from(players).all();
+    await relegateCommand.execute(interaction);
+    expect(attemptedUsers).toHaveLength(2);
+    expect(database.select().from(players).all()).toEqual(savedPlayers);
+  } finally {
+    input.guildId = originalGuildId;
+    log.mockRestore();
+  }
 });

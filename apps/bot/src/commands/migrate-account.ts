@@ -58,7 +58,7 @@ export const migrateAccountCommand = {
     const confirmId = `migration-confirm:${interaction.id}`;
     const cancelId = `migration-cancel:${interaction.id}`;
     const reply = await interaction.editReply({
-      content: `Request migration from **${escapeMarkdown(player.ign)}** to **${escapeMarkdown(profile.nickname)}**? This preserves your league, clears retained placements, and leaves previous competition results on the old account. Confirmation expires in 60 seconds.`,
+      content: `Request migration from **${escapeMarkdown(player.ign)}** to **${escapeMarkdown(profile.nickname)}**? This preserves your league, clears retained percentages, and leaves previous competition results on the old account. Confirmation expires in 60 seconds.`,
       components: [
         new ActionRowBuilder<ButtonBuilder>().addComponents(
           new ButtonBuilder()

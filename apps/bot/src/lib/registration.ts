@@ -22,9 +22,8 @@ export async function registerCompetitionPlayer(
   user: User,
   {
     admin = false,
-    force = false,
     streaming = false,
-  }: { admin?: boolean; force?: boolean; streaming?: boolean } = {}
+  }: { admin?: boolean; streaming?: boolean } = {}
 ) {
   let profile;
   try {
@@ -41,15 +40,14 @@ export async function registerCompetitionPlayer(
     config,
     user.id
   );
-  if (!force && (roleLeagues.length !== 1 || roleLeagues[0] !== leagueNumber)) {
+  if (roleLeagues.length !== 1 || roleLeagues[0] !== leagueNumber) {
     await interaction.editReply(
       admin
-        ? `The player's league roles are ${roleLeagues.join(", ") || "unassigned"}. Use force: true to register in League ${leagueNumber} for this competition only.`
+        ? `The player's league roles are ${roleLeagues.join(", ") || "unassigned"}. Use /assign to set League ${leagueNumber} before registering.`
         : `You need exactly one league role, matching League ${leagueNumber}, to register here. Ask a host to resolve missing or conflicting roles.`
     );
     return;
   }
-  const initialLeague = roleLeagues.length === 1 ? roleLeagues[0] : undefined;
   const twitch = streaming
     ? profile.connections.twitch?.name.trim() || null
     : null;
@@ -66,8 +64,7 @@ export async function registerCompetitionPlayer(
       registeredAt: new Date(),
     },
     {
-      mode: admin ? (force ? "forced" : "admin") : "self",
-      initialLeague,
+      mode: admin ? "admin" : "self",
       twitch,
     }
   );
@@ -79,7 +76,7 @@ export async function registerCompetitionPlayer(
       account_mismatch: `Your saved account is **${escapeMarkdown(savedPlayer?.ign ?? "unknown")}**, but Discord is linked to **${escapeMarkdown(profile.nickname)}**. The player must use /migrate_account to request a change, or connect the discord to the previous Ranked account.`,
       account_owned:
         "This Minecraft account belongs to another player in this server.",
-      league_mismatch: `The stored league is ${savedPlayer?.leagueNumber ?? "unassigned"}. Use force: true to register in League ${leagueNumber} for this competition only.`,
+      league_mismatch: `The stored league is ${savedPlayer?.leagueNumber ?? "unassigned"}. Use /assign to set League ${leagueNumber} before registering.`,
       inactive:
         "No competition is active for the current league. Wait until its announcement is made.",
       closed: "Registration closed.",

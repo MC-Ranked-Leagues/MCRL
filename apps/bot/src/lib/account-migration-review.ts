@@ -37,7 +37,7 @@ export async function sendMigrationReview(client: Client, request: Migration) {
     `League: ${player.leagueNumber ?? "unassigned"}`,
     `Previous requests: ${history.length}. Approved migrations: ${approved.length}.`,
     `Last approved migration: ${approved[0]?.decidedAt?.toISOString().slice(0, 10) ?? "none"}.`,
-    "Approval preserves the league and clears retained placements.",
+    "Approval preserves the league and clears retained percentages.",
   ].join("\n");
   const components = [
     new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -139,7 +139,7 @@ export async function handleMigrationReview(interaction: ButtonInteraction) {
   await applicant
     .send(
       result === "approved"
-        ? `Migration approved: ${request.previousIgn} → ${request.ign}. Your league is unchanged and retained placements have been cleared. Use /reg to register.`
+        ? `Migration approved: ${request.previousIgn} → ${request.ign}. Your league is unchanged and retained percentages have been cleared. Use /reg to register.`
         : "Your account migration was denied."
     )
     .catch((error: unknown) =>

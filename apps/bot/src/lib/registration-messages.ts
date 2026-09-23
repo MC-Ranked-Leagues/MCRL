@@ -10,6 +10,8 @@ import {
 } from "../db/competitions";
 import { formatDuration } from "./time";
 import { chunkMessage } from "./chunk-message";
+import { averagePercentage, formatPercentage } from "./player-history";
+import { formatPlayerName } from "./player-formatting";
 
 type Registration = NonNullable<ReturnType<typeof getCompetitionRegistration>>;
 
@@ -18,7 +20,7 @@ export function formatRegistrationMessages({
   players,
 }: Registration): string[] {
   const lines = [
-    `**League ${competition.leagueNumber}, Week ${competition.weekNumber} Registration**`,
+    `**League ${competition.leagueNumber} Week ${competition.weekNumber} Registration**`,
     `Registration: **${competition.registrationOpen ? "ON" : "OFF"}**`,
     `Time limit: **${formatDuration(competition.maxTimeLimitMs)}**`,
     "",
@@ -27,9 +29,19 @@ export function formatRegistrationMessages({
         player.peakElo !== null
           ? `Peak Elo: ${player.peakElo}`
           : player.elo !== null
-            ? `Elo: ${player.elo} (peak unavailable)`
+            ? `Elo: ${player.elo}`
             : "unrated";
-      return `${index + 1}. ${escapeMarkdown(player.ign)} (${escapeMarkdown(player.discordUsername)}) - ${rating}`;
+      const history = (player.percentageHistory ?? []).slice(-2);
+      const average = averagePercentage(
+        history.map((entry) => entry.percentage),
+        2
+      );
+      const preAverage =
+        average === null
+          ? "No history"
+          : `${formatPercentage(average)} (${history.map((entry) => formatPercentage(entry.percentage)).join(", ")})`;
+      const name = formatPlayerName(player);
+      return `${index + 1}. ${escapeMarkdown(name)} - ${rating} - PreAvg: ${preAverage}`;
     }),
   ];
   if (players.length === 0) lines.push("No registered players yet.");

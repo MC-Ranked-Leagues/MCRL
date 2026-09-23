@@ -24,6 +24,11 @@ export const assignCommand = {
         .setRequired(true)
         .setMinValue(1)
     )
+    .addBooleanOption((option) =>
+      option
+        .setName("preserve_history")
+        .setDescription("Keep percentage history when changing league.")
+    )
     .setIntegrationTypes(ApplicationIntegrationType.GuildInstall)
     .setContexts(InteractionContextType.Guild),
 
@@ -57,8 +62,18 @@ export const assignCommand = {
       interaction.guildId,
       user.id,
       leagueNumber,
-      account
+      account,
+      {
+        preserveHistory:
+          interaction.options.getBoolean("preserve_history") ?? false,
+      }
     );
+    if (result === "unprocessed_competition") {
+      await interaction.editReply(
+        "This player participated in a competition that has not used /relegate. Assigning is blocked because /relegate will then overwrite it. Finalize the competition before using /assign."
+      );
+      return;
+    }
     if (result !== "assigned") {
       await interaction.editReply(
         result === "account_owned"

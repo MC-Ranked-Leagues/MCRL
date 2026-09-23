@@ -21,11 +21,6 @@ export const adminRegCommand = {
         .setDescription("Player to register.")
         .setRequired(true)
     )
-    .addBooleanOption((option) =>
-      option
-        .setName("force")
-        .setDescription("Override league checks for this competition only.")
-    )
     .setIntegrationTypes(ApplicationIntegrationType.GuildInstall)
     .setContexts(InteractionContextType.Guild),
   async execute(interaction) {
@@ -44,14 +39,13 @@ export const adminRegCommand = {
       return;
     }
     const user = interaction.options.getUser("user", true);
-    const force = interaction.options.getBoolean("force") ?? false;
     await registerCompetitionPlayer(
       interaction,
       context.league,
       context.leagueNumber,
       competition,
       user,
-      { admin: true, force }
+      { admin: true }
     );
   },
 } satisfies BotCommand;

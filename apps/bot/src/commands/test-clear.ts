@@ -53,7 +53,7 @@ export const testClearCommand = {
     const confirmId = `test-clear:confirm:${interaction.id}`;
     const cancelId = `test-clear:cancel:${interaction.id}`;
     const reply = await interaction.editReply({
-      content: `Remove all test registrations added by /test_fill from League ${competition.leagueNumber}, Week ${competition.weekNumber}? Their imported results will also be deleted. Persistent test players registered here or assigned to this league, including their retained placements, will be deleted. The competition, matches, and regular registrations will be kept. Confirmation expires in 60 seconds.`,
+      content: `Remove all test registrations added by /test_fill from League ${competition.leagueNumber}, Week ${competition.weekNumber}? Their imported results will also be deleted. Persistent test players registered here or assigned to this league, including their retained percentages, will be deleted. The competition, matches, and regular registrations will be kept. Confirmation expires in 60 seconds.`,
       components: [
         new ActionRowBuilder<ButtonBuilder>().addComponents(
           new ButtonBuilder()
@@ -112,7 +112,7 @@ export const testClearCommand = {
       );
       return;
     }
-    const content = `Removed ${result.removed} test registrations and their associated results, and cleared this league’s persistent test players and retained placements.`;
+    const content = `Removed ${result.removed} test registrations and their associated results, and cleared this league’s persistent test players and retained percentages.`;
     // Include imported matches so a retry can recreate a failed leaderboard send.
     const standings = getCompetitionStandings(competition.id)!;
     const hasLeaderboard =
