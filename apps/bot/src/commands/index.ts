@@ -23,10 +23,12 @@ import { meCommand } from "./me";
 import { rankedCommand } from "./ranked";
 import { twitchCommand } from "./twitch";
 import { listCommand } from "./list";
+import { linkCommand } from "./link";
 
 export const commands = [
   meCommand,
   rankedCommand,
+  linkCommand,
   twitchCommand,
   signupCommand,
   migrateAccountCommand,

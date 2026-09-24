@@ -1,6 +1,26 @@
 import { expect, test } from "bun:test";
+import type { ChatInputCommandInteraction } from "discord.js";
 
-import { formatRankedRegistrationExport } from "./list";
+import { guildConfiguration } from "../../config/guilds";
+import { formatRankedRegistrationExport, listCommand } from "./list";
+
+test("only hosts can export registrations", async () => {
+  const guildId = Object.keys(guildConfiguration)[0]!;
+  const replies: string[] = [];
+  const interaction = {
+    guildId,
+    member: { roles: { cache: { has: () => false } } },
+    editReply: async (message: string) => {
+      replies.push(message);
+    },
+  } as unknown as ChatInputCommandInteraction<"cached">;
+
+  await listCommand.execute(interaction);
+
+  expect(replies).toEqual([
+    "You do not have the required role to use this command.",
+  ]);
+});
 
 test("ranked exports include Twitch usernames only for streaming registrations", () => {
   expect(
