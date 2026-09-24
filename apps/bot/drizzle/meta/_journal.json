@@ -5,50 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1789726081186,
-      "tag": "0000_production_baseline",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1789916829887,
-      "tag": "0001_remove_participant_count",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1789918726022,
-      "tag": "0002_add_twitch_streaming",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "6",
-      "when": 1790011553117,
-      "tag": "0003_add_guild_week",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "6",
-      "when": 1790013072791,
-      "tag": "0004_add_relegate_guard",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "6",
-      "when": 1790024680216,
-      "tag": "0005_registration_movement",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "6",
-      "when": 1790271053654,
-      "tag": "0006_competition_host",
+      "when": 1790272012975,
+      "tag": "0000_initial_schema",
       "breakpoints": true
     }
   ]
