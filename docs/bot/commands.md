@@ -99,10 +99,18 @@ competition that has not used `/relegate`. Retry assignment if role updates fail
 Open or close registration for the current league. Reopening requires clearing
 all imported matches first.
 
-### `/import match_id [match_number]`
+### `/host [mc_name]`
 
-Import an MCSR Ranked match. Omit the number to create the next match; supply one
-to create or replace that match and all its results. Unregistered Ranked players
+Set the host Minecraft account for the active competition. Omit the name to use
+your Discord-linked Ranked account, or supply a Minecraft name to use another
+account. Repeating the command replaces the host for this competition.
+
+### `/import [match_id] [match_number]`
+
+Import an MCSR Ranked match. Omit the ID to use the newest private game in the
+saved host's Ranked match history. Supply an ID to choose a match directly, even
+when no host is set. Omit the number to create the next match; supply one to
+create or replace that match and all its results. Unregistered Ranked players
 are reported and excluded. The first successful import closes registration.
 Refreshes the registration list and leaderboard.
 

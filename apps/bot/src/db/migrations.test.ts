@@ -77,6 +77,14 @@ test("schema migrations preserve competition data and initialize guild state", (
         .query("SELECT has_used_relegate FROM competitions WHERE id = 1")
         .get()
     ).toEqual({ has_used_relegate: 0 });
+    expect(
+      sqlite
+        .query("SELECT host_minecraft_uuid FROM competitions WHERE id = 1")
+        .get()
+    ).toEqual({ host_minecraft_uuid: null });
+    expect(() =>
+      sqlite.query("SELECT host_ign FROM competitions").all()
+    ).toThrow();
     // Re-running migrations is harmless, and cascade deletion still works afterward.
     migrate(db, { migrationsFolder });
     expect(sqlite.query("SELECT * FROM match_results").all()).toEqual(results);

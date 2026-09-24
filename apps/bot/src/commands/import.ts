@@ -4,7 +4,6 @@ import {
   InteractionContextType,
   SlashCommandBuilder,
 } from "discord.js";
-import { RankedClient } from "mcsrranked-sdk";
 import { getActiveCompetition } from "../db/competitions";
 import { importMatch } from "../db/matches";
 import {
@@ -12,9 +11,8 @@ import {
   requireCommandGuild,
 } from "../lib/command-context";
 import { replyWithCompetitionUpdate } from "../lib/competition-messages";
+import { getLatestHostMatchId, ranked } from "../lib/ranked";
 import type { BotCommand } from "./command";
-
-const ranked = new RankedClient({ validation: "error" });
 
 export const importCommand = {
   data: new SlashCommandBuilder()
@@ -23,8 +21,9 @@ export const importCommand = {
     .addIntegerOption((option) =>
       option
         .setName("match_id")
-        .setDescription("MCSR Ranked match ID.")
-        .setRequired(true)
+        .setDescription(
+          "MCSR Ranked match ID. Defaults to the host's latest private game."
+        )
         .setMinValue(1)
     )
     .addIntegerOption((option) =>
@@ -50,8 +49,35 @@ export const importCommand = {
       await interaction.editReply("No competition is active for this league.");
       return;
     }
-    const matchId = interaction.options.getInteger("match_id", true);
+    let matchId = interaction.options.getInteger("match_id");
     const number = interaction.options.getInteger("match_number") ?? undefined;
+    if (matchId === null) {
+      if (!competition.hostMinecraftUuid) {
+        await interaction.editReply(
+          "No host is set for this competition. Run /host or supply match_id. No results were changed."
+        );
+        return;
+      }
+      try {
+        matchId =
+          (await getLatestHostMatchId(competition.hostMinecraftUuid)) ?? null;
+      } catch (error) {
+        console.error(
+          "Could not load the host's MCSR Ranked match history.",
+          error
+        );
+        await interaction.editReply(
+          "Could not load the host's Ranked match history. Try again or supply match_id. No results were changed."
+        );
+        return;
+      }
+      if (matchId === null) {
+        await interaction.editReply(
+          "The host has no recent private games to import. Supply match_id if you have one. No results were changed."
+        );
+        return;
+      }
+    }
     let data;
     try {
       data = await ranked.matches.get(matchId);

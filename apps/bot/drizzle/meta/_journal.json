@@ -43,6 +43,13 @@
       "when": 1790024680216,
       "tag": "0005_registration_movement",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1790271053654,
+      "tag": "0006_competition_host",
+      "breakpoints": true
     }
   ]
 }
