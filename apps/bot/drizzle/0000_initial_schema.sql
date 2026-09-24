@@ -21,7 +21,9 @@ CREATE TABLE `competitions` (
 	`league_number` integer NOT NULL,
 	`week_number` integer NOT NULL,
 	`status` text DEFAULT 'active' NOT NULL,
+	`has_used_relegate` integer DEFAULT false NOT NULL,
 	`registration_open` integer DEFAULT false NOT NULL,
+	`host_minecraft_uuid` text,
 	`registration_message_ids` text DEFAULT '[]' NOT NULL,
 	`leaderboard_message_ids` text DEFAULT '[]' NOT NULL,
 	`max_time_limit_ms` integer NOT NULL,
@@ -34,6 +36,12 @@ CREATE TABLE `competitions` (
 --> statement-breakpoint
 CREATE UNIQUE INDEX `competitions_guild_league_week_unique` ON `competitions` (`guild_id`,`league_number`,`week_number`);--> statement-breakpoint
 CREATE UNIQUE INDEX `competitions_guild_league_active_unique` ON `competitions` (`guild_id`,`league_number`) WHERE "competitions"."status" = 'active';--> statement-breakpoint
+CREATE TABLE `guilds` (
+	`id` text PRIMARY KEY NOT NULL,
+	`current_week` integer DEFAULT 1 NOT NULL,
+	CONSTRAINT "guilds_current_week_positive" CHECK("guilds"."current_week" > 0)
+);
+--> statement-breakpoint
 CREATE TABLE `match_results` (
 	`match_id` integer NOT NULL,
 	`registration_id` integer NOT NULL,
@@ -54,14 +62,12 @@ CREATE TABLE `matches` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`competition_id` integer NOT NULL,
 	`number` integer NOT NULL,
-	`participant_count` integer NOT NULL,
 	`time_limit_ms` integer NOT NULL,
 	`imported` integer DEFAULT false NOT NULL,
 	`ranked_match_id` text,
 	`created_at` integer NOT NULL,
 	FOREIGN KEY (`competition_id`) REFERENCES `competitions`(`id`) ON UPDATE no action ON DELETE cascade,
 	CONSTRAINT "matches_number_positive" CHECK("matches"."number" > 0),
-	CONSTRAINT "matches_participant_count_nonnegative" CHECK("matches"."participant_count" >= 0),
 	CONSTRAINT "matches_time_limit_ms_positive" CHECK("matches"."time_limit_ms" > 0)
 );
 --> statement-breakpoint
@@ -74,6 +80,7 @@ CREATE TABLE `players` (
 	`discord_username` text NOT NULL,
 	`minecraft_uuid` text NOT NULL,
 	`ign` text NOT NULL,
+	`twitch` text,
 	`status` text DEFAULT 'active' NOT NULL,
 	`signup_message_id` text,
 	`signup_details` text,
@@ -96,6 +103,9 @@ CREATE TABLE `registrations` (
 	`ign` text NOT NULL,
 	`elo` real,
 	`peak_elo` real,
+	`average_used` real,
+	`movement` text,
+	`streaming` integer DEFAULT false NOT NULL,
 	`registered_at` integer NOT NULL,
 	FOREIGN KEY (`competition_id`) REFERENCES `competitions`(`id`) ON UPDATE no action ON DELETE cascade
 );

@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "423e3318-871b-4ac8-a5cd-59bbcada71cc",
+  "id": "3ee13c19-c65e-4d89-8a0d-146736347812",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "account_migrations": {
@@ -161,6 +161,14 @@
           "autoincrement": false,
           "default": "'active'"
         },
+        "has_used_relegate": {
+          "name": "has_used_relegate",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
         "registration_open": {
           "name": "registration_open",
           "type": "integer",
@@ -168,6 +176,13 @@
           "notNull": true,
           "autoincrement": false,
           "default": false
+        },
+        "host_minecraft_uuid": {
+          "name": "host_minecraft_uuid",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
         },
         "registration_message_ids": {
           "name": "registration_message_ids",
@@ -242,6 +257,36 @@
         "competitions_status_valid": {
           "name": "competitions_status_valid",
           "value": "\"competitions\".\"status\" in ('active', 'ended')"
+        }
+      }
+    },
+    "guilds": {
+      "name": "guilds",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "current_week": {
+          "name": "current_week",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 1
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "guilds_current_week_positive": {
+          "name": "guilds_current_week_positive",
+          "value": "\"guilds\".\"current_week\" > 0"
         }
       }
     },
@@ -378,13 +423,6 @@
           "notNull": true,
           "autoincrement": false
         },
-        "participant_count": {
-          "name": "participant_count",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
         "time_limit_ms": {
           "name": "time_limit_ms",
           "type": "integer",
@@ -455,10 +493,6 @@
           "name": "matches_number_positive",
           "value": "\"matches\".\"number\" > 0"
         },
-        "matches_participant_count_nonnegative": {
-          "name": "matches_participant_count_nonnegative",
-          "value": "\"matches\".\"participant_count\" >= 0"
-        },
         "matches_time_limit_ms_positive": {
           "name": "matches_time_limit_ms_positive",
           "value": "\"matches\".\"time_limit_ms\" > 0"
@@ -508,6 +542,13 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false
+        },
+        "twitch": {
+          "name": "twitch",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
           "autoincrement": false
         },
         "status": {
@@ -658,6 +699,28 @@
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
+        },
+        "average_used": {
+          "name": "average_used",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "movement": {
+          "name": "movement",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "streaming": {
+          "name": "streaming",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
         },
         "registered_at": {
           "name": "registered_at",
