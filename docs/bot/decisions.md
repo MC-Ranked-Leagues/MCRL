@@ -29,6 +29,10 @@ The first successful import closes self-service registration. Hosts cannot reope
 registration while imported matches remain; late additions use `/admin_reg`.
 Clearing all imported matches allows a host to reopen registration manually.
 
+Each competition stores its own host Minecraft UUID. When an import omits the
+match ID, use the newest private game in that account's Ranked history. An
+explicit match ID remains available when the host played an unrelated game.
+
 Late registration adds a missed result for every earlier imported match and
 recalculates each match's points using the full current registration count.
 Existing placements remain unchanged. Earlier missed matches count at their time

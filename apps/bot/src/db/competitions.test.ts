@@ -12,6 +12,7 @@ import {
   getCompetitionExport,
   getLatestEndedCompetition,
   getAdvanceWeekPreview,
+  setCompetitionHost,
   startCompetition,
   toggleRegistration,
   unendCompetition,
@@ -42,6 +43,34 @@ test("only one active week per guild and league, while ended weeks remain unique
     .run();
   expect(startCompetition(input)).toBe(false);
   expect(startCompetition({ ...input, weekNumber: 2 })).toBe(true);
+});
+
+test("host account belongs to one active competition and cannot be saved after it ends", () => {
+  startCompetition(input);
+  startCompetition({ ...input, leagueNumber: 6 });
+  const active = getActiveCompetition(input.guildId, 5)!;
+
+  expect(setCompetitionHost(input.guildId, active.id, "host-uuid")).toBe(true);
+  expect(getActiveCompetition(input.guildId, 5)).toMatchObject({
+    hostMinecraftUuid: "host-uuid",
+  });
+  expect(getActiveCompetition(input.guildId, 6)?.hostMinecraftUuid).toBeNull();
+
+  database
+    .update(competitions)
+    .set({ status: "ended" })
+    .where(eq(competitions.id, active.id))
+    .run();
+  startCompetition({ ...input, weekNumber: 2 });
+  expect(setCompetitionHost(input.guildId, active.id, "new-uuid")).toBe(false);
+  expect(getActiveCompetition(input.guildId, 5)?.hostMinecraftUuid).toBeNull();
+  expect(
+    database
+      .select()
+      .from(competitions)
+      .where(eq(competitions.id, active.id))
+      .get()?.hostMinecraftUuid
+  ).toBe("host-uuid");
 });
 
 test("registration toggles only the active competition in the requested guild and league", () => {

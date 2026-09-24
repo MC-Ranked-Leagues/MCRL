@@ -105,6 +105,7 @@ export const competitions = sqliteTable(
     registrationOpen: integer("registration_open", { mode: "boolean" })
       .notNull()
       .default(false),
+    hostMinecraftUuid: text("host_minecraft_uuid"),
     registrationMessageIds: text("registration_message_ids", { mode: "json" })
       .$type<string[]>()
       .notNull()

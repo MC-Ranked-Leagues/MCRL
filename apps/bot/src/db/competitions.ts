@@ -46,6 +46,27 @@ export function getActiveCompetition(guildId: string, leagueNumber: number) {
     .get();
 }
 
+export function setCompetitionHost(
+  guildId: string,
+  competitionId: number,
+  minecraftUuid: string
+): boolean {
+  return (
+    getDatabase()
+      .update(competitions)
+      .set({ hostMinecraftUuid: minecraftUuid })
+      .where(
+        and(
+          eq(competitions.id, competitionId),
+          eq(competitions.guildId, guildId),
+          eq(competitions.status, "active")
+        )
+      )
+      .returning({ id: competitions.id })
+      .get() !== undefined
+  );
+}
+
 export function getLatestEndedCompetition(
   guildId: string,
   leagueNumber: number

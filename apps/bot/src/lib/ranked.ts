@@ -5,6 +5,19 @@ export const ranked = new RankedClient({ validation: "error" });
 export const normalizeUuid = (uuid: string) =>
   uuid.replaceAll("-", "").toLowerCase();
 
+export async function getLatestHostMatchId(
+  uuid: string
+): Promise<number | undefined> {
+  const matches = await ranked.users.matches(uuid, {
+    count: 1,
+    sort: "newest",
+    excludeDecay: true,
+    // Query only private games
+    type: 3,
+  });
+  return matches[0]?.id;
+}
+
 export function rankedLookupErrorMessage(
   error: unknown,
   admin = false
