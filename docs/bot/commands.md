@@ -26,6 +26,11 @@ Look up your Discord-linked MCSR Ranked account: current-season Elo, peak Elo,
 completions, average completion time, PB, and profile link. Works in any server
 channel without a saved league account.
 
+### `/link`
+
+Show a private, illustrated guide to linking Discord in the MCSR Ranked client.
+Run `/ranked` afterward to check the link. Works in any server channel.
+
 ### `/twitch username`
 
 Save the Twitch username used for streaming registration exports. Accepts a
@@ -76,8 +81,9 @@ usernames for streaming registrations.
 ### `/admin_reg user`
 
 Register a Discord-linked account even when registration is closed. The player's
-role and saved league must match; resolve mismatches through `/assign`. If
-configured, registration grants the current week role.
+league role must match. If the player has no saved membership, registration creates
+it from that role; otherwise the saved league must match. Resolve mismatches
+through `/assign`. If configured, registration grants the current week role.
 
 For earlier imports, add missed results and recalculate points using the current
 registration count. Re-import a match to recover the player's actual result.

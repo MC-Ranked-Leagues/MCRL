@@ -52,9 +52,10 @@ Streaming is opt-in per competition. Only streaming registrations include Twitch
 usernames in exports.
 
 Normal registration adopts the player's single matching league role.
-`/admin_reg` requires matching roles and saved membership as well, but can register
-a player after registration closes. It has no force option. Use `/assign` to
-resolve league mismatches before registering.
+`/admin_reg` also adopts a matching role when the player has no saved membership,
+and can register after registration closes. Existing saved membership must match
+the role and league. It has no force option. Use `/assign` to resolve league
+mismatches before registering.
 
 When configured, successful `/reg` and `/admin_reg` registrations add the current
 week role. `/unreg` removes it when the player has no other registration, and

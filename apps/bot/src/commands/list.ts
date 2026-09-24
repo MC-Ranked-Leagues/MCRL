@@ -5,8 +5,10 @@ import {
 } from "discord.js";
 
 import { getActiveCompetition, getCompetitionExport } from "../db/competitions";
-import { requireChannelLeague } from "../lib/command-context";
-import { guildConfiguration } from "../../config/guilds";
+import {
+  requireChannelLeague,
+  requireCommandGuild,
+} from "../lib/command-context";
 import type { BotCommand } from "./command";
 
 type ExportPlayer = NonNullable<
@@ -33,11 +35,8 @@ export const listCommand = {
     .setContexts(InteractionContextType.Guild),
 
   async execute(interaction) {
-    const guild = guildConfiguration[interaction.guildId];
-    if (!guild) {
-      await interaction.editReply("This server is not configured.");
-      return;
-    }
+    const guild = await requireCommandGuild(interaction);
+    if (!guild) return;
     const context = await requireChannelLeague(interaction, guild);
     if (!context) return;
     const activeCompetition = getActiveCompetition(
