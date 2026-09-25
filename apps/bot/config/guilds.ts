@@ -19,6 +19,61 @@ export interface GuildConfiguration {
 
 export const guildConfiguration: Readonly<Record<string, GuildConfiguration>> =
   {
+    "1282908945274638347": {
+      dev: false,
+      developerId: "843901903213428816",
+      signup: {
+        channelId: "1477876959462690869",
+        reviewerId: "1108291604248277062",
+      },
+      logChannelId: "1483969111720595620",
+      commandRoleId: "1478250767281553408",
+      currentWeekRoleId: "1323786883188260864",
+      leagues: {
+        1: {
+          infoChannelId: "1483548240807727200",
+          chatChannelId: "1477931318565146784",
+          leagueRoleId: "1477663316531744828",
+          maxTimeLimitMs: 13 * 60 * 1000,
+        },
+        2: {
+          infoChannelId: "1483548929684410421",
+          chatChannelId: "1477931603866161256",
+          leagueRoleId: "1477663343031488582",
+          maxTimeLimitMs: 15 * 60 * 1000,
+        },
+        3: {
+          infoChannelId: "1483549774291403015",
+          chatChannelId: "1477931653102833747",
+          leagueRoleId: "1477663367735808113",
+          maxTimeLimitMs: 17 * 60 * 1000,
+        },
+        4: {
+          infoChannelId: "1483550605925421067",
+          chatChannelId: "1477931691304816703",
+          leagueRoleId: "1477663392335663277",
+          maxTimeLimitMs: 20 * 60 * 1000,
+        },
+        5: {
+          infoChannelId: "1483551190422782214",
+          chatChannelId: "1477931729363796081",
+          leagueRoleId: "1477663419871002625",
+          maxTimeLimitMs: 25 * 60 * 1000,
+        },
+        6: {
+          infoChannelId: "1483551761699442790",
+          chatChannelId: "1477931763203440731",
+          leagueRoleId: "1477929059185856672",
+          maxTimeLimitMs: 30 * 60 * 1000,
+        },
+        7: {
+          infoChannelId: "1491881029164863670",
+          chatChannelId: "1491881089650786364",
+          leagueRoleId: "1492987738490933408",
+          maxTimeLimitMs: 60 * 60 * 1000,
+        },
+      },
+    },
     "1511365088718880788": {
       dev: true,
       developerId: "843901903213428816",
