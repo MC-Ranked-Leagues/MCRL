@@ -1,5 +1,5 @@
 ---
-title: How is the event organized?
+title: How are the leagues organized?
 description: An overview of MCRL's structure.
 ---
 

@@ -1,5 +1,5 @@
 ---
-title: How are the seed types decided?
+title: Seed types
 description: Seed type distribution for each league.
 ---
 

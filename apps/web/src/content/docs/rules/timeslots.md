@@ -1,5 +1,5 @@
 ---
-title: How are the time slots decided?
+title: Time slots
 description: An overview of MCRL's structure.
 ---
 
