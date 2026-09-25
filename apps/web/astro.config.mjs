@@ -63,8 +63,8 @@ export default defineConfig({
             { label: "Organization", slug: "rules/organization" },
             { label: "Seed types", slug: "rules/seeds" },
             { label: "Timeslots", slug: "rules/timeslots" },
-            { label: "Points", slug: "rules/points" },
-            { label: "Relegations and Promotions", slug: "rules/relegations" },
+            { label: "Format", slug: "rules/format" },
+            { label: "Promotions and demotions", slug: "rules/relegations" },
           ],
         },
         {
