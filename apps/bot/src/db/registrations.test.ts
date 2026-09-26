@@ -18,7 +18,7 @@ import {
 } from "./registrations";
 import { beforeEach, expect, test } from "bun:test";
 import { updateRegistrationMessages } from "../lib/registration-messages";
-import { eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import {
   getActiveCompetition,
   getCompetitionRegistration,
@@ -261,6 +261,94 @@ test("imported results block self removal, while admin removal cascades only the
   expect(getCompetitionRegistration(active.id)!.players[0]!.discordUserId).toBe(
     "other"
   );
+});
+
+test("admin removal reranks every imported match and refreshes public messages", async () => {
+  const competition = setupMatchPlayers();
+  const firstMatch = rankedMatch();
+  const secondMatch = rankedMatch(101);
+  secondMatch.completions = [
+    { uuid: "uuid0", time: 100 },
+    { uuid: "uuid1", time: 300 },
+    { uuid: "uuid2", time: 300 },
+  ];
+  expect(importMatch(competition.id, firstMatch).status).toBe("imported");
+  expect(importMatch(competition.id, secondMatch).status).toBe("imported");
+  const imported = getImportedMatches(competition.id);
+  const removed = database
+    .select()
+    .from(registrations)
+    .where(eq(registrations.discordUserId, "player0"))
+    .get()!;
+  const { channel, messages } = registrationChannel();
+  await updateRegistrationMessages(channel, competition.id);
+  await updateLeaderboardMessages(channel, competition.id);
+
+  expect(unregisterPlayer(competition.id, "player0", { admin: true })).toEqual({
+    status: "unregistered",
+    ign: "Player0",
+  });
+  await updateRegistrationMessages(channel, competition.id);
+  await updateLeaderboardMessages(channel, competition.id);
+
+  const rows = database
+    .select({ result: matchResults, player: registrations })
+    .from(matchResults)
+    .innerJoin(registrations, eq(registrations.id, matchResults.registrationId))
+    .orderBy(asc(matchResults.matchId), asc(registrations.id))
+    .all();
+  expect(rows).toHaveLength(10);
+  expect(
+    database
+      .select()
+      .from(matchResults)
+      .where(eq(matchResults.registrationId, removed.id))
+      .all()
+  ).toHaveLength(0);
+  expect(
+    rows
+      .filter(({ result }) => result.matchId === imported[0]!.id)
+      .map(({ result, player }) => [
+        player.discordUserId,
+        result.status,
+        result.placement,
+        result.points,
+      ])
+  ).toEqual([
+    ["player1", "finished", 1, 7],
+    ["player2", "finished", 2, 4],
+    ["player3", "dnf", null, 0],
+    ["player4", "dnf", null, 0],
+    ["player5", "missed", null, 0],
+  ]);
+  expect(
+    rows
+      .filter(({ result }) => result.matchId === imported[1]!.id)
+      .slice(0, 2)
+      .map(({ result }) => [result.placement, result.points])
+  ).toEqual([
+    [1, 7],
+    [1, 7],
+  ]);
+  expect(
+    getCompetitionStandings(competition.id)!.standings.map((player) => [
+      player.ign,
+      player.points,
+    ])
+  ).toEqual([
+    ["Player1", 14],
+    ["Player2", 11],
+    ["Player3", 0],
+    ["Player4", 0],
+  ]);
+  expect([...messages.values()].join("\n")).not.toContain("Player0");
+  expect([...messages.values()].join("\n")).toContain(
+    "Player1(player1) - 14 pts"
+  );
+  expect(importMatch(competition.id, firstMatch, 1)).toMatchObject({
+    status: "imported",
+    unmatched: ["Player0", "Player99"],
+  });
 });
 
 test("test fill preserves registrations, handles UUID variants, and supports normal import", () => {

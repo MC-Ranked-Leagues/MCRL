@@ -16,6 +16,7 @@ import { normalizeUuid } from "../lib/ranked";
 import {
   buildMatchResults,
   getImportedMatches,
+  scoreMatchResults,
   type RankedMatchInput,
 } from "./matches";
 import { calculateMatchPoints } from "../lib/match-points";
@@ -355,6 +356,42 @@ export function unregisterPlayer(
       .delete(registrations)
       .where(eq(registrations.id, player.id))
       .run();
+    if (admin) {
+      const registeredCount = transaction
+        .select({ value: count() })
+        .from(registrations)
+        .where(eq(registrations.competitionId, competitionId))
+        .get()!.value;
+      const importedMatches = transaction
+        .select({ id: matches.id })
+        .from(matches)
+        .where(
+          and(
+            eq(matches.competitionId, competitionId),
+            eq(matches.imported, true)
+          )
+        )
+        .all();
+      for (const match of importedMatches) {
+        const results = transaction
+          .select()
+          .from(matchResults)
+          .where(eq(matchResults.matchId, match.id))
+          .all();
+        scoreMatchResults(results, registeredCount);
+        for (const result of results)
+          transaction
+            .update(matchResults)
+            .set({ placement: result.placement, points: result.points })
+            .where(
+              and(
+                eq(matchResults.matchId, match.id),
+                eq(matchResults.registrationId, result.registrationId)
+              )
+            )
+            .run();
+      }
+    }
     return { status: "unregistered", ign: player.ign } as const;
   });
 }

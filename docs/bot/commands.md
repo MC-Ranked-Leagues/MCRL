@@ -96,6 +96,15 @@ fetched or saved, leave the registration and all results unchanged. Refresh both
 the registration list and leaderboard if matches exist, otherwise only the
 registration list.
 
+### `/admin_unreg user`
+
+Remove a player from the active competition, including their imported match
+results. Recalculate the remaining players' placements and points, then refresh
+the registration list and leaderboard. Use `/unend` first if the competition has
+ended; finalized competitions cannot be reopened. This does not ban the player
+from registering again while registration is open. If configured, it removes the
+current week role when the player has no other registration.
+
 ### `/assign user league [preserve_history]`
 
 Assign league membership and replace league roles, including League 7. Works in
@@ -213,7 +222,3 @@ pending migrations, and accounts owned by another player in this server.
 To test migration, run `/reg` with registration open and the matching league role
 to see the account mismatch, then `/migrate_account` and complete host approval to
 return to your real account. Approval clears retained percentages as usual.
-
-## Unavailable commands
-
-`/admin_unreg` is intentionally unavailable.

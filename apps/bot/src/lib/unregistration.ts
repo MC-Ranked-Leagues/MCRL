@@ -3,8 +3,8 @@ import { guildConfiguration } from "../../config/guilds";
 import { getActiveCompetition } from "../db/competitions";
 import { hasGuildRegistration, unregisterPlayer } from "../db/registrations";
 import { requireChannelLeague, requireCommandGuild } from "./command-context";
+import { replyWithCompetitionUpdate } from "./competition-messages";
 import { removeCurrentWeekRole } from "./current-week-role";
-import { updateRegistrationMessages } from "./registration-messages";
 
 export async function unregisterCompetitionPlayer(
   interaction: ChatInputCommandInteraction<"cached">,
@@ -63,20 +63,10 @@ export async function unregisterCompetitionPlayer(
         " The registration is removed, but I could not remove the current week role. Ask a host to remove it manually.";
     }
   }
-  try {
-    const channel = await interaction.guild.channels.fetch(
-      context.league.infoChannelId
-    );
-    if (!channel?.isSendable())
-      throw new Error("Information channel cannot receive messages.");
-    await updateRegistrationMessages(channel, competition.id);
-  } catch (error) {
-    console.error(
-      "Player unregistered, but the registration list could not be updated.",
-      error
-    );
-    content +=
-      " I could not update the registration list in the info channel. The removal is saved.";
-  }
-  await interaction.editReply(content);
+  await replyWithCompetitionUpdate(
+    interaction,
+    competition.id,
+    context.league.infoChannelId,
+    content
+  );
 }

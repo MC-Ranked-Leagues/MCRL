@@ -11,8 +11,31 @@ export type RankedMatchInput = Pick<
 >;
 
 type RegisteredPlayer = typeof registrations.$inferSelect;
+type ScoredResult = Pick<
+  typeof matchResults.$inferSelect,
+  "status" | "timeMs" | "placement" | "points"
+>;
 
 const normalizeUuid = (uuid: string) => uuid.replaceAll("-", "").toLowerCase();
+
+export function scoreMatchResults(rows: ScoredResult[], playerCount: number) {
+  for (const row of rows) {
+    row.placement = null;
+    row.points = 0;
+  }
+  const finishers = rows
+    .filter((row) => row.status === "finished")
+    .sort((a, b) => a.timeMs! - b.timeMs!);
+  let placement = 0;
+  let previousTimeMs: number | null = null;
+  for (const [index, finisher] of finishers.entries()) {
+    // Equal times share placement and points. After 1, 2, 2, the next place is 4.
+    if (finisher.timeMs !== previousTimeMs) placement = index + 1;
+    finisher.placement = placement;
+    finisher.points = calculateMatchPoints(playerCount, placement);
+    previousTimeMs = finisher.timeMs;
+  }
+}
 
 export function getImportedMatches(competitionId: number) {
   return getDatabase()
@@ -72,18 +95,7 @@ export function buildMatchResults(
       submittedAt: played ? new Date() : null,
     };
   });
-  const finishers = rows
-    .filter((row) => row.status === "finished")
-    .sort((a, b) => a.timeMs! - b.timeMs!);
-  let placement = 0;
-  let previousTimeMs: number | null = null;
-  for (const [index, finisher] of finishers.entries()) {
-    // Equal times share placement and points. After 1, 2, 2, the next place is 4.
-    if (finisher.timeMs !== previousTimeMs) placement = index + 1;
-    finisher.placement = placement;
-    finisher.points = calculateMatchPoints(players.length, placement);
-    previousTimeMs = finisher.timeMs;
-  }
+  scoreMatchResults(rows, players.length);
   return { rows, matched, unmatched };
 }
 

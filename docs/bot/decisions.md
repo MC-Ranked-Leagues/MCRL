@@ -65,7 +65,8 @@ the role and league. It has no force option. Use `/assign` to resolve league
 mismatches before registering.
 
 When configured, successful `/reg` and `/admin_reg` registrations add the current
-week role. `/unreg` removes it when the player has no other registration, and
+week role. `/unreg` and `/admin_unreg` remove it when the player has no other
+registration, and
 `/advance_week` clears it from the remaining registered players. Discord role
 failures do not undo saved changes and must be corrected manually.
 
@@ -76,8 +77,14 @@ alone does not block assignment. Same-league assignments preserve history.
 Stale signup reviews must not overwrite membership activated through registration
 or assignment.
 
-`/admin_unreg` is intentionally unavailable. Test-player cleanup must preserve
-regular players and registration snapshots in other competitions.
+`/admin_unreg` removes one registration from an active competition, even after
+matches have been imported. Remove that player's match results and recalculate
+each imported match's placements and points as if they had never registered.
+Refresh the registration list and leaderboard. An ended competition must be
+reopened with `/unend` first; a relegated competition cannot be changed.
+The command does not ban the player from registering again. Test-player
+cleanup must preserve regular players and registration snapshots in other
+competitions.
 
 ## Account migration
 
