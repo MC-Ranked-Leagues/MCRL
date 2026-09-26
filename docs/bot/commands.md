@@ -12,13 +12,16 @@ invocation, and timestamp in the configured log channel.
 
 Request reviewed league placement in the signup channel. The reviewer receives a
 Ranked profile summary. Repeat to retry review delivery or restore an assigned
-league role. A host can reconsider a rejected signup through `/assign`.
+league role. If you already have one league role but no saved account, `/signup`
+saves your linked Ranked account in that league without review. A host can
+reconsider a rejected signup through `/assign`.
 
 ### `/me`
 
 Show your saved account, league, membership status, and retained percentages,
 including latest-two and latest-three averages and entry count. Works in any
-server channel.
+server channel. If you have one league role but no saved account, it saves your
+linked Ranked account first.
 
 ### `/ranked`
 
@@ -36,7 +39,8 @@ Run `/ranked` afterward to check the link. Works in any server channel.
 Save the Twitch username used for streaming registration exports. Accepts a
 username, `@handle`, or Twitch profile URL with or without `https://`. Trims
 whitespace and saves lowercase. Usernames allow letters, numbers, and underscores,
-up to 25 characters. Works in any server channel.
+up to 25 characters. Works in any server channel. If you have one league role but
+no saved account, it saves your linked Ranked account first.
 
 ### `/reg [streaming]`
 

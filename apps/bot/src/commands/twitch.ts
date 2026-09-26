@@ -6,6 +6,7 @@ import {
 } from "discord.js";
 
 import { setPlayerTwitchUsername } from "../db/players";
+import { getOrCreatePlayerFromRole } from "../lib/player-from-role";
 import { normalizeTwitchUsername } from "../lib/twitch";
 import type { BotCommand } from "./command";
 
@@ -32,6 +33,18 @@ export const twitchCommand = {
       );
       return;
     }
+    const player = await getOrCreatePlayerFromRole(interaction);
+    if (player.status === "error") {
+      await interaction.editReply(player.message);
+      return;
+    }
+    if (player.status === "no_role") {
+      await interaction.editReply(
+        "You have no saved Ranked Leagues account or league role in this server. Use /signup first."
+      );
+      return;
+    }
+
     const saved = setPlayerTwitchUsername(
       interaction.guildId,
       interaction.user.id,

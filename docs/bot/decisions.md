@@ -45,8 +45,13 @@ Identity is the guild and Discord ID together. Each Minecraft UUID belongs to
 only one player per guild. A challenge account requires a separate Discord
 account; Minecraft name changes never change identity.
 
-No role import or legacy player-data backfill is required; the rewrite targets
+No bulk role import or legacy player-data backfill is required; the rewrite targets
 fresh databases.
+
+When a player with exactly one configured league role uses `/signup`, `/me`, or
+`/twitch` without a saved account, save their linked Ranked account and adopt that
+role as their active league. Do not change an existing account through this path.
+Players without a role use the reviewed signup flow.
 
 Streaming is opt-in per competition. Only streaming registrations include Twitch
 usernames in exports.

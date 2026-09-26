@@ -39,6 +39,31 @@ export function getAccountOwner(guildId: string, uuid: string) {
     .get();
 }
 
+export function createPlayerFromLeagueRole(
+  input: Pick<
+    typeof players.$inferInsert,
+    "guildId" | "discordUserId" | "discordUsername" | "minecraftUuid" | "ign"
+  >,
+  leagueNumber: number
+) {
+  return getDatabase().transaction((tx) => {
+    const existing = getPlayer(input.guildId, input.discordUserId);
+    if (existing) return { player: existing, created: false } as const;
+    if (getAccountOwner(input.guildId, input.minecraftUuid)) return;
+    const player = tx
+      .insert(players)
+      .values({
+        ...input,
+        minecraftUuid: normalizeUuid(input.minecraftUuid),
+        leagueNumber,
+        status: "active",
+      })
+      .returning()
+      .get();
+    return { player, created: true } as const;
+  });
+}
+
 export function setPlayerTwitchUsername(
   guildId: string,
   discordUserId: string,

@@ -5,7 +5,8 @@ import {
 } from "discord.js";
 import { guildConfiguration } from "../../config/guilds";
 import { createSignup, getPlayer } from "../db/players";
-import { getMemberLeagues, syncLeagueRole } from "../lib/league-roles";
+import { syncLeagueRole } from "../lib/league-roles";
+import { getOrCreatePlayerFromRole } from "../lib/player-from-role";
 import { ranked, rankedLookupErrorMessage } from "../lib/ranked";
 import { sendSignupReview } from "../lib/signup-review";
 import { formatDuration } from "../lib/time";
@@ -45,6 +46,22 @@ export const signupCommand = {
       return;
     }
     let player = getPlayer(interaction.guildId, interaction.user.id);
+    if (!player) {
+      const result = await getOrCreatePlayerFromRole(interaction);
+      if (result.status === "error") {
+        await interaction.editReply(result.message);
+        return;
+      }
+      if (result.status === "found") {
+        player = result.player;
+        if (result.created) {
+          await interaction.editReply(
+            `Saved your League ${player.leagueNumber} account from your league role.`
+          );
+          return;
+        }
+      }
+    }
     if (player?.status === "active") {
       if (player.leagueNumber === null) {
         await interaction.editReply(
@@ -78,13 +95,6 @@ export const signupCommand = {
       return;
     }
     if (!player) {
-      if (
-        (await getMemberLeagues(interaction.guild, config, interaction.user.id))
-          .length
-      ) {
-        await interaction.editReply("You already have a league role.");
-        return;
-      }
       let profile;
       try {
         profile = await ranked.users.get(`discord.${interaction.user.id}`);

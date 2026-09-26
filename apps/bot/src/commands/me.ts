@@ -4,8 +4,8 @@ import {
   SlashCommandBuilder,
   escapeMarkdown,
 } from "discord.js";
-import { getPlayer } from "../db/players";
 import { formatHistoryAverage } from "../lib/player-history";
+import { getOrCreatePlayerFromRole } from "../lib/player-from-role";
 import type { BotCommand } from "./command";
 
 export const meCommand = {
@@ -15,13 +15,18 @@ export const meCommand = {
     .setIntegrationTypes(ApplicationIntegrationType.GuildInstall)
     .setContexts(InteractionContextType.Guild),
   async execute(interaction) {
-    const player = getPlayer(interaction.guildId, interaction.user.id);
-    if (!player) {
+    const result = await getOrCreatePlayerFromRole(interaction);
+    if (result.status === "error") {
+      await interaction.editReply(result.message);
+      return;
+    }
+    if (result.status === "no_role") {
       await interaction.editReply(
-        "You have no saved Ranked Leagues account in this server. Use /signup or register with your league role first."
+        "You have no saved Ranked Leagues account or league role in this server. Use /signup first."
       );
       return;
     }
+    const { player } = result;
 
     const history = player.percentageHistory.length
       ? player.percentageHistory
