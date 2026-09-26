@@ -1,16 +1,16 @@
-import { clearMatch, getCompetitionStandings, importMatch } from "./matches";
+import {
+  clearMatch,
+  getCompetitionStandings,
+  getImportedMatches,
+  importMatch,
+} from "./matches";
 import { updateLeaderboardMessages } from "../lib/leaderboard-messages";
 import { registerPlayer } from "./registrations";
 import { beforeEach, expect, test } from "bun:test";
 import { updateRegistrationMessages } from "../lib/registration-messages";
 import { eq } from "drizzle-orm";
 import { getActiveCompetition, startCompetition } from "./competitions";
-import {
-  competitions,
-  registrations,
-  matches,
-  matchResults,
-} from "./schema";
+import { competitions, registrations, matches, matchResults } from "./schema";
 import {
   resetDatabase,
   database,
@@ -161,7 +161,7 @@ test("one player still earns a point and missed matches count toward average but
   const competition = setupMatchPlayers(1);
   importMatch(competition.id, rankedMatch());
   expect(database.select().from(matchResults).get()!.points).toBe(1);
-  // A late registration receives missed results for earlier matches.
+  // A late player absent from the old Ranked match still receives a missed result.
   registerPlayer(
     {
       competitionId: competition.id,
@@ -171,7 +171,13 @@ test("one player still earns a point and missed matches count toward average but
       ign: "Late",
       registeredAt: new Date(),
     },
-    { mode: "admin" }
+    {
+      mode: "admin",
+      replayMatches: getImportedMatches(competition.id).map((match) => ({
+        match,
+        data: rankedMatch(Number(match.rankedMatchId)),
+      })),
+    }
   );
   const later = rankedMatch(101);
   later.players = [{ ...later.players[0]!, uuid: "late", nickname: "Late" }];

@@ -10,6 +10,8 @@ export type RankedMatchInput = Pick<
   "id" | "players" | "completions"
 >;
 
+type RegisteredPlayer = typeof registrations.$inferSelect;
+
 const normalizeUuid = (uuid: string) => uuid.replaceAll("-", "").toLowerCase();
 
 export function getImportedMatches(competitionId: number) {
@@ -19,7 +21,70 @@ export function getImportedMatches(competitionId: number) {
     .where(
       and(eq(matches.competitionId, competitionId), eq(matches.imported, true))
     )
+    .orderBy(asc(matches.number))
     .all();
+}
+
+export function buildMatchResults(
+  players: RegisteredPlayer[],
+  data: RankedMatchInput,
+  timeLimitMs: number
+) {
+  const participants = new Set(
+    data.players.map((player) => normalizeUuid(player.uuid))
+  );
+  const completions = new Map(
+    data.completions.map((completion) => [
+      normalizeUuid(completion.uuid),
+      completion.time,
+    ])
+  );
+  const registeredUuids = new Set(
+    players.map((player) => normalizeUuid(player.minecraftUuid))
+  );
+  const unmatched = data.players
+    .filter((player) => !registeredUuids.has(normalizeUuid(player.uuid)))
+    .map((player) => player.nickname);
+  const matched = players.filter((player) =>
+    participants.has(normalizeUuid(player.minecraftUuid))
+  ).length;
+  // A played DNF counts as participation; a missed player does not.
+  const rows = players.map((player) => {
+    const uuid = normalizeUuid(player.minecraftUuid);
+    const played = participants.has(uuid);
+    const time = completions.get(uuid);
+    const finished =
+      played &&
+      time !== undefined &&
+      Number.isSafeInteger(time) &&
+      time >= 0 &&
+      time <= timeLimitMs;
+    return {
+      registrationId: player.id,
+      status: finished
+        ? ("finished" as const)
+        : played
+          ? ("dnf" as const)
+          : ("missed" as const),
+      timeMs: finished ? time : null,
+      placement: null as number | null,
+      points: 0,
+      submittedAt: played ? new Date() : null,
+    };
+  });
+  const finishers = rows
+    .filter((row) => row.status === "finished")
+    .sort((a, b) => a.timeMs! - b.timeMs!);
+  let placement = 0;
+  let previousTimeMs: number | null = null;
+  for (const [index, finisher] of finishers.entries()) {
+    // Equal times share placement and points. After 1, 2, 2, the next place is 4.
+    if (finisher.timeMs !== previousTimeMs) placement = index + 1;
+    finisher.placement = placement;
+    finisher.points = calculateMatchPoints(players.length, placement);
+    previousTimeMs = finisher.timeMs;
+  }
+  return { rows, matched, unmatched };
 }
 
 export function importMatch(
@@ -57,65 +122,16 @@ export function importMatch(
       .all();
     if (!players.length) return { status: "no_registrations" } as const;
     if (!data.players.length) return { status: "empty_match" } as const;
-    const participants = new Set(
-      data.players.map((player) => normalizeUuid(player.uuid))
-    );
-    const completions = new Map(
-      data.completions.map((completion) => [
-        normalizeUuid(completion.uuid),
-        completion.time,
-      ])
-    );
-    const registeredUuids = new Set(
-      players.map((player) => normalizeUuid(player.minecraftUuid))
-    );
-    const unmatched = data.players
-      .filter((player) => !registeredUuids.has(normalizeUuid(player.uuid)))
-      .map((player) => player.nickname);
-    const matched = players.filter((player) =>
-      participants.has(normalizeUuid(player.minecraftUuid))
-    ).length;
-    if (!matched) return { status: "no_matching_players" } as const;
     const existing = existingMatches.find(
       (match) => match.number === matchNumber
     );
     const timeLimitMs = existing?.timeLimitMs ?? competition.maxTimeLimitMs;
-    // A played DNF counts as participation; a missed placeholder does not.
-    const rows = players.map((player) => {
-      const uuid = normalizeUuid(player.minecraftUuid);
-      const played = participants.has(uuid);
-      const time = completions.get(uuid);
-      const finished =
-        played &&
-        time !== undefined &&
-        Number.isSafeInteger(time) &&
-        time >= 0 &&
-        time <= timeLimitMs;
-      return {
-        registrationId: player.id,
-        status: finished
-          ? ("finished" as const)
-          : played
-            ? ("dnf" as const)
-            : ("missed" as const),
-        timeMs: finished ? time : null,
-        placement: null as number | null,
-        points: 0,
-        submittedAt: played ? new Date() : null,
-      };
-    });
-    const finishers = rows
-      .filter((row) => row.status === "finished")
-      .sort((a, b) => a.timeMs! - b.timeMs!);
-    let placement = 0;
-    let previousTimeMs: number | null = null;
-    for (const [index, finisher] of finishers.entries()) {
-      // Equal times share placement and points. After 1, 2, 2, the next place is 4.
-      if (finisher.timeMs !== previousTimeMs) placement = index + 1;
-      finisher.placement = placement;
-      finisher.points = calculateMatchPoints(players.length, placement);
-      previousTimeMs = finisher.timeMs;
-    }
+    const { rows, matched, unmatched } = buildMatchResults(
+      players,
+      data,
+      timeLimitMs
+    );
+    if (!matched) return { status: "no_matching_players" } as const;
 
     const match = tx
       .insert(matches)

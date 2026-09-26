@@ -13,13 +13,22 @@ import {
 import { getPlayer, getAccountOwner } from "./players";
 import { normalizeUuid } from "../lib/ranked";
 
-import { getImportedMatches } from "./matches";
+import {
+  buildMatchResults,
+  getImportedMatches,
+  type RankedMatchInput,
+} from "./matches";
 import { calculateMatchPoints } from "../lib/match-points";
 
 type RegistrationInput = Omit<
   typeof registrations.$inferInsert,
   "id" | "averageUsed" | "movement"
 >;
+
+export interface ImportedMatchReplay {
+  match: ReturnType<typeof getImportedMatches>[number];
+  data: RankedMatchInput;
+}
 
 export function getGuildRegistrationDiscordIds(guildId: string): string[] {
   return getDatabase()
@@ -115,9 +124,11 @@ export function registerPlayer(
   {
     mode = "self",
     twitch,
+    replayMatches,
   }: {
     mode?: "self" | "admin" | "test";
     twitch?: string | null;
+    replayMatches?: ImportedMatchReplay[];
   } = {}
 ) {
   // The API lookup happens before this transaction. Recheck the exact competition
@@ -136,6 +147,22 @@ export function registerPlayer(
       (!competition.registrationOpen || importedMatches.length > 0)
     )
       return "closed" as const;
+    if (
+      mode === "admin" &&
+      (importedMatches.length !== (replayMatches?.length ?? 0) ||
+        importedMatches.some((match, index) => {
+          const replay = replayMatches?.[index];
+          return (
+            !replay ||
+            match.id !== replay.match.id ||
+            match.number !== replay.match.number ||
+            match.timeLimitMs !== replay.match.timeLimitMs ||
+            match.rankedMatchId !== replay.match.rankedMatchId ||
+            match.rankedMatchId !== String(replay.data.id)
+          );
+        }))
+    )
+      return "matches_changed" as const;
     const uuid = normalizeUuid(input.minecraftUuid);
     const player = getPlayer(competition.guildId, input.discordUserId);
     if (player?.status === "rejected") return "signup_rejected" as const;
@@ -209,8 +236,38 @@ export function registerPlayer(
       .returning()
       .get();
 
-    // recalculate points for the imported matches
-    if (importedMatches.length) {
+    if (mode === "admin" && importedMatches.length) {
+      const players = transaction
+        .select()
+        .from(registrations)
+        .where(eq(registrations.competitionId, competition.id))
+        .all();
+      for (const { match, data } of replayMatches!) {
+        if (!data.players.length)
+          throw new Error(
+            `Ranked match ${match.rankedMatchId} has no players.`
+          );
+        const { rows, matched } = buildMatchResults(
+          players,
+          data,
+          match.timeLimitMs
+        );
+        if (!matched)
+          throw new Error(
+            `Ranked match ${match.rankedMatchId} has no registered players.`
+          );
+        transaction
+          .delete(matchResults)
+          .where(eq(matchResults.matchId, match.id))
+          .run();
+        for (const row of rows)
+          transaction
+            .insert(matchResults)
+            .values({ ...row, matchId: match.id })
+            .run();
+      }
+    } else if (importedMatches.length) {
+      // Test registrations have no Ranked account to fetch; keep their missed rows.
       const registeredCount = transaction
         .select({ value: count() })
         .from(registrations)

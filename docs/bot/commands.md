@@ -90,10 +90,11 @@ league role must match. If the player has no saved membership, registration crea
 it from that role; otherwise the saved league must match. Resolve mismatches
 through `/assign`. If configured, registration grants the current week role.
 
-For earlier imports, add missed results and recalculate points using the current
-registration count. Re-import a match to recover the player's actual result.
-Refresh both the registration list and leaderboard if matches exist, otherwise
-only the registration list.
+Fetch and re-import every earlier match before saving the registration, so a
+player who participated receives their actual results. If any match cannot be
+fetched or saved, leave the registration and all results unchanged. Refresh both
+the registration list and leaderboard if matches exist, otherwise only the
+registration list.
 
 ### `/assign user league [preserve_history]`
 

@@ -1,5 +1,9 @@
 import { getPlayer } from "../../src/db/players";
-import { clearMatch, importMatch } from "../../src/db/matches";
+import {
+  clearMatch,
+  getImportedMatches,
+  importMatch,
+} from "../../src/db/matches";
 import {
   formatLeaderboardMessages,
   updateLeaderboardMessages,
@@ -121,7 +125,13 @@ test("finalization preserves results, ranks played DNFs, and lists all nonpartic
       ign: "LateMinecraft",
       registeredAt: new Date(),
     },
-    { mode: "admin" }
+    {
+      mode: "admin",
+      replayMatches: getImportedMatches(competition.id).map((match) => ({
+        match,
+        data: rankedMatch(Number(match.rankedMatchId)),
+      })),
+    }
   );
   const originalResults = database.select().from(matchResults).all();
   const { channel, messages } = registrationChannel();

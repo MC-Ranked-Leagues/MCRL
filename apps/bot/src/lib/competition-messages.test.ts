@@ -1,4 +1,4 @@
-import { importMatch } from "../db/matches";
+import { getImportedMatches, importMatch } from "../db/matches";
 import { replyWithCompetitionUpdate } from "./competition-messages";
 import { registerPlayer } from "../db/registrations";
 import { beforeEach, expect, spyOn, test } from "bun:test";
@@ -58,7 +58,13 @@ test("competition refresh updates registration and rescored standings even if re
       ign: "Late",
       registeredAt: new Date(),
     },
-    { mode: "admin" }
+    {
+      mode: "admin",
+      replayMatches: getImportedMatches(competition.id).map((match) => ({
+        match,
+        data: rankedMatch(Number(match.rankedMatchId)),
+      })),
+    }
   );
   const registrationId = getActiveCompetition(input.guildId, 5)!
     .registrationMessageIds[0]!;

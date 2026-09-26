@@ -3,7 +3,12 @@ import {
   getPlayer,
   setPlayerTwitchUsername,
 } from "./players";
-import { clearMatch, getCompetitionStandings, importMatch } from "./matches";
+import {
+  clearMatch,
+  getCompetitionStandings,
+  getImportedMatches,
+  importMatch,
+} from "./matches";
 import { updateLeaderboardMessages } from "../lib/leaderboard-messages";
 import {
   clearTestRegistrations,
@@ -20,12 +25,7 @@ import {
   startCompetition,
   toggleRegistration,
 } from "./competitions";
-import {
-  competitions,
-  registrations,
-  matches,
-  matchResults,
-} from "./schema";
+import { competitions, registrations, matches, matchResults } from "./schema";
 import {
   resetDatabase,
   database,
@@ -426,11 +426,10 @@ test("successful imports close registration and prevent reopening until imports 
   });
 });
 
-test("late registration backfills every imported match, rescales points, and permits explicit re-import", () => {
+test("late admin registration replays every imported match and recalculates placements", () => {
   const competition = setupMatchPlayers(5);
   importMatch(competition.id, rankedMatch());
   importMatch(competition.id, rankedMatch(101));
-  const before = database.select().from(matchResults).all();
   const late = {
     competitionId: competition.id,
     discordUserId: "late",
@@ -439,43 +438,49 @@ test("late registration backfills every imported match, rescales points, and per
     ign: "Late",
     registeredAt: new Date(),
   };
-  expect(registerPlayer(late, { mode: "admin" })).toBe("registered");
+  const replayMatches = getImportedMatches(competition.id).map((match) => ({
+    match,
+    data: rankedMatch(Number(match.rankedMatchId)),
+  }));
+  expect(registerPlayer(late, { mode: "admin" })).toBe("matches_changed");
+  expect(database.select().from(registrations).all()).toHaveLength(5);
+  expect(registerPlayer(late, { mode: "admin", replayMatches })).toBe(
+    "registered"
+  );
   const registration = database
     .select()
     .from(registrations)
     .where(eq(registrations.discordUserId, "late"))
     .get()!;
-  const missed = database
+  const results = database
     .select()
     .from(matchResults)
     .where(eq(matchResults.registrationId, registration.id))
     .all();
-  expect(missed).toHaveLength(2);
-  for (const result of missed)
+  expect(results).toHaveLength(2);
+  for (const result of results)
     expect(result).toMatchObject({
-      status: "missed",
-      points: 0,
-      placement: null,
-      timeMs: null,
-      submittedAt: null,
+      status: "finished",
+      points: 8,
+      placement: 1,
+      timeMs: 100,
     });
-  const after = database
+  const otherResults = database
     .select()
     .from(matchResults)
     .all()
     .filter((row) => row.registrationId !== registration.id);
-  expect(after.map(({ points: _points, ...result }) => result)).toEqual(
-    before.map(({ points: _points, ...result }) => result)
-  );
-  expect(after.map((row) => row.points)).toEqual([
-    8, 8, 2, 0, 0, 8, 8, 2, 0, 0,
+  expect(otherResults.map((row) => row.points)).toEqual([
+    5, 5, 1, 0, 0, 5, 5, 1, 0, 0,
   ]);
   expect(
-    getCompetitionStandings(competition.id)!.standings.some(
+    getCompetitionStandings(competition.id)!.standings.find(
       (row) => row.ign === "Late"
     )
-  ).toBe(false);
-  expect(registerPlayer(late, { mode: "admin" })).toBe("already_registered");
+  ).toMatchObject({ points: 16, played: 2, averageTimeMs: 100 });
+  expect(registerPlayer(late, { mode: "admin", replayMatches })).toBe(
+    "already_registered"
+  );
   expect(database.select().from(matchResults).all()).toHaveLength(12);
 
   const later = rankedMatch(102);
@@ -484,13 +489,13 @@ test("late registration backfills every imported match, rescales points, and per
     getCompetitionStandings(competition.id)!.standings.find(
       (row) => row.ign === "Late"
     )
-  ).toMatchObject({ played: 1, averageTimeMs: 700 });
+  ).toMatchObject({ played: 3, averageTimeMs: 100 });
   importMatch(competition.id, rankedMatch(), 1);
   expect(
     getCompetitionStandings(competition.id)!.standings.find(
       (row) => row.ign === "Late"
     )
-  ).toMatchObject({ played: 2, averageTimeMs: 400 });
+  ).toMatchObject({ played: 3, averageTimeMs: 100 });
 });
 
 test("failed late result insertion rolls back registration, membership, and scoring", () => {
@@ -512,7 +517,13 @@ test("failed late result insertion rolls back registration, membership, and scor
           ign: "Late",
           registeredAt: new Date(),
         },
-        { mode: "admin" }
+        {
+          mode: "admin",
+          replayMatches: getImportedMatches(competition.id).map((match) => ({
+            match,
+            data: rankedMatch(Number(match.rankedMatchId)),
+          })),
+        }
       )
     ).toThrow();
   } finally {

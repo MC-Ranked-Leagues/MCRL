@@ -10,7 +10,8 @@ import {
   type GuildConfiguration,
 } from "../../config/guilds";
 import type { getActiveCompetition } from "../db/competitions";
-import { registerPlayer } from "../db/registrations";
+import { registerPlayer, type ImportedMatchReplay } from "../db/registrations";
+import { getImportedMatches } from "../db/matches";
 import { getPlayer } from "../db/players";
 import { replyWithCompetitionUpdate } from "./competition-messages";
 import { addCurrentWeekRole } from "./current-week-role";
@@ -52,23 +53,60 @@ export async function registerCompetitionPlayer(
   const twitch = streaming
     ? profile.connections.twitch?.name.trim() || null
     : null;
-  const result = registerPlayer(
-    {
-      competitionId: competition.id,
-      discordUserId: user.id,
-      discordUsername: user.username,
-      minecraftUuid: profile.uuid,
-      ign: profile.nickname,
-      elo: profile.eloRate,
-      peakElo: profile.seasonResult.highest,
-      streaming,
-      registeredAt: new Date(),
-    },
-    {
-      mode: admin ? "admin" : "self",
-      twitch,
+  const replayMatches: ImportedMatchReplay[] = [];
+  if (admin) {
+    // Fetch everything before the database transaction so a Ranked failure saves nothing.
+    for (const match of getImportedMatches(competition.id)) {
+      const matchId = Number(match.rankedMatchId);
+      if (
+        !match.rankedMatchId ||
+        !Number.isSafeInteger(matchId) ||
+        matchId < 1
+      ) {
+        await interaction.editReply(
+          `Match ${match.number} has no valid Ranked match ID. No changes were saved.`
+        );
+        return;
+      }
+      try {
+        const data = await ranked.matches.get(matchId);
+        replayMatches.push({ match, data });
+      } catch (error) {
+        console.error(`Could not fetch Ranked match ${matchId}.`, error);
+        await interaction.editReply(
+          `Could not load Ranked match ${matchId}. No changes were saved. Try /admin_reg again.`
+        );
+        return;
+      }
     }
-  );
+  }
+  let result;
+  try {
+    result = registerPlayer(
+      {
+        competitionId: competition.id,
+        discordUserId: user.id,
+        discordUsername: user.username,
+        minecraftUuid: profile.uuid,
+        ign: profile.nickname,
+        elo: profile.eloRate,
+        peakElo: profile.seasonResult.highest,
+        streaming,
+        registeredAt: new Date(),
+      },
+      {
+        mode: admin ? "admin" : "self",
+        twitch,
+        replayMatches,
+      }
+    );
+  } catch (error) {
+    console.error("Could not save the registration and match results.", error);
+    await interaction.editReply(
+      "Could not save the registration and match results. No changes were saved. Try again."
+    );
+    return;
+  }
   if (result !== "registered") {
     const savedPlayer = getPlayer(interaction.guildId, user.id);
     const messages = {
@@ -86,6 +124,8 @@ export async function registerCompetitionPlayer(
         "This Minecraft account is already registered by another Discord user.",
       twitch_required:
         "No Twitch username is saved or linked on MCSR Ranked. Use /twitch first, then register again.",
+      matches_changed:
+        "Imported matches changed while registering. No changes were saved. Try /admin_reg again.",
     };
     await interaction.editReply(messages[result]);
     return;

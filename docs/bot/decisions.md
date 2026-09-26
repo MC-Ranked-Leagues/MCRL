@@ -33,11 +33,13 @@ Each competition stores its own host Minecraft UUID. When an import omits the
 match ID, use the newest private game in that account's Ranked history. An
 explicit match ID remains available when the host played an unrelated game.
 
-Late registration adds a missed result for every earlier imported match and
-recalculates each match's points using the full current registration count.
-Existing placements remain unchanged. Earlier missed matches count at their time
-limits toward the late player's average; only players who participate appear in
-the standings.
+Late host registration fetches every earlier imported Ranked match before saving
+anything. Registration and all match replacements then commit together; if a
+fetch or replacement fails, none of them are saved. Re-import each match with the
+full current registration count so a late player who played receives their
+result and everyone's placements and points reflect that player. Earlier matches
+the player missed count at their time limits toward their average; only players
+who participate appear in the standings.
 
 ## Player identity and registration
 
