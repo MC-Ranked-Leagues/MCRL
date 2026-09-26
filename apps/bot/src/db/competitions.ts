@@ -249,6 +249,7 @@ export function getCompetitionRegistration(competitionId: number) {
     .select({
       ...getTableColumns(registrations),
       percentageHistory: persistentPlayers.percentageHistory,
+      twitch: persistentPlayers.twitch,
     })
     .from(registrations)
     .leftJoin(

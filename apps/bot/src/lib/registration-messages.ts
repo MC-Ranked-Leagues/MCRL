@@ -41,7 +41,11 @@ export function formatRegistrationMessages({
           ? "No history"
           : `${formatPercentage(average)} (${history.map((entry) => formatPercentage(entry.percentage)).join(", ")})`;
       const name = formatPlayerName(player);
-      return `${index + 1}. ${escapeMarkdown(name)} - ${rating} - PreAvg: ${preAverage}`;
+      const twitch =
+        player.streaming && player.twitch
+          ? ` - Twitch: ${escapeMarkdown(player.twitch)}`
+          : "";
+      return `${index + 1}. ${escapeMarkdown(name)} - ${rating} - PreAvg: ${preAverage}${twitch}`;
     }),
   ];
   if (players.length === 0) lines.push("No registered players yet.");

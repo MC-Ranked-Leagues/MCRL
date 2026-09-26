@@ -10,6 +10,7 @@ import {
 } from "../db/competitions";
 import { formatRegistrationMessages } from "./registration-messages";
 import { registrations, players } from "../db/schema";
+import { setPlayerTwitchUsername } from "../db/players";
 import {
   resetDatabase,
   database,
@@ -128,6 +129,49 @@ test("registration messages rank peak Elo above current Elo and keep unrated pla
   const content = [...messages.values()].join("\n");
   expect(content).toContain("2. PeakLeader - Peak Elo: 2000");
   expect(content).toContain("5. Unrated - unrated");
+});
+
+test("registration messages show Twitch usernames only for streaming registrations", () => {
+  startCompetition(input);
+  toggleRegistration(input.guildId, 5);
+  const competition = getActiveCompetition(input.guildId, 5)!;
+  for (const [ign, streaming, twitch] of [
+    ["Streamer", true, "streamer_name"],
+    ["Viewer", false, "viewer_name"],
+    ["NoTwitch", false, null],
+  ] as const) {
+    expect(
+      registerPlayer(
+        {
+          competitionId: competition.id,
+          discordUserId: ign,
+          discordUsername: ign,
+          minecraftUuid: ign,
+          ign,
+          streaming,
+          registeredAt: new Date(),
+        },
+        { twitch }
+      )
+    ).toBe("registered");
+  }
+
+  const content = formatRegistrationMessages(
+    getCompetitionRegistration(competition.id)!
+  ).join("\n");
+  expect(content).toContain(
+    "Streamer - unrated - PreAvg: No history - Twitch: streamer\\_name"
+  );
+  expect(content).toContain("Viewer - unrated - PreAvg: No history");
+  expect(content).not.toContain("Twitch: viewer\\_name");
+  expect(content).toContain("NoTwitch - unrated - PreAvg: No history");
+
+  setPlayerTwitchUsername(input.guildId, "Streamer", "new_name");
+  expect(
+    formatRegistrationMessages(
+      getCompetitionRegistration(competition.id)!
+    ).join("\n")
+  ).toContain("Twitch: new\\_name");
 });
 
 test("registration history display keeps existing Elo order and distinguishes 0% from no history", () => {
