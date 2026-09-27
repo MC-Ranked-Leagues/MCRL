@@ -274,7 +274,7 @@ test("League 7 saves qualification without averages or appended history and rend
     preview.decisions.every((decision) => decision.averageUsed === null)
   ).toBe(true);
   const content = formatLeaderboardMessages(preview).join("\n");
-  expect(content).toContain(" ↑");
+  expect(content).toContain(" **↑**");
   expect(content).not.toContain("Avg:");
   relegateGuild(input.guildId, [7]);
   expect(getPlayer(input.guildId, "league7player0")).toMatchObject({

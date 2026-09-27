@@ -30,8 +30,8 @@ export function formatLeaderboardMessages(
       let movement = "";
       if (data.competition.status === "ended" && decision) {
         let marker = "";
-        if (decision.movement === "promote") marker = " ↑";
-        if (decision.movement === "demote") marker = " ↓";
+        if (decision.movement === "promote") marker = " **↑**";
+        if (decision.movement === "demote") marker = " **↓**";
         // Dont show avg for league 7 lb
         movement =
           decision.averageUsed === null

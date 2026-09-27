@@ -124,8 +124,8 @@ test("relegation uses preview values, retains demotion history, trims oldest, an
   await updateLeaderboardMessages(channel, competition.id);
   const content = [...messages.values()].join("\n");
   expect(content).toBe(formatLeaderboardMessages(preview).join("\n"));
-  expect(content).toContain("Avg: 23.33% ↓");
-  expect(content).toContain("Avg: 56.67% ↑");
+  expect(content).toContain("Avg: 23.33% **↓**");
+  expect(content).toContain("Avg: 56.67% **↑**");
   const savedPlayers = database.select().from(players).all();
   expect(relegateGuild(input.guildId, [5])).toMatchObject({
     status: "processed",
