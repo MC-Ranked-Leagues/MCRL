@@ -10,11 +10,7 @@ import {
 } from "discord.js";
 
 import { guildConfiguration } from "../../config/guilds";
-import {
-  decideSignup,
-  getPlayerById,
-  saveSignupMessage,
-} from "../db/players";
+import { decideSignup, getPlayerById, saveSignupMessage } from "../db/players";
 import type { getPlayer } from "../db/players";
 import { syncLeagueRole } from "./league-roles";
 import { ranked } from "./ranked";
@@ -79,7 +75,7 @@ export async function sendSignupReview(client: Client, player: Player) {
 }
 
 export async function handleSignupReview(interaction: ButtonInteraction) {
-  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+  await interaction.deferUpdate();
   const [, action, id, selectedLeague] = interaction.customId.split(":");
   const player = getPlayerById(Number(id));
   const config = player && guildConfiguration[player.guildId];
@@ -89,34 +85,39 @@ export async function handleSignupReview(interaction: ButtonInteraction) {
     interaction.user.id !== config.signup.reviewerId ||
     player.signupMessageId !== interaction.message.id
   ) {
-    await interaction.editReply(
-      "This signup is unavailable or you are not its reviewer."
-    );
+    await interaction.followUp({
+      content: "This signup is unavailable or you are not its reviewer.",
+      flags: MessageFlags.Ephemeral,
+    });
     return;
   }
   if (player.status !== "pending") {
-    await interaction.editReply(`This player is already ${player.status}.`);
+    await interaction.followUp({
+      content: `This player is already ${player.status}.`,
+      flags: MessageFlags.Ephemeral,
+    });
     return;
   }
 
   const league = Number(selectedLeague);
   if ((action === "pick" || action === "approve") && !config.leagues[league]) {
-    await interaction.editReply("That league is not configured.");
+    await interaction.followUp({
+      content: "That league is not configured.",
+      flags: MessageFlags.Ephemeral,
+    });
     return;
   }
   if (action === "pick" || action === "back") {
-    await interaction.message.edit({
+    await interaction.editReply({
       components: signupButtons(player, action === "pick" ? league : undefined),
     });
-    await interaction.editReply(
-      action === "pick"
-        ? `Confirm League ${league} using the review buttons.`
-        : "Choose a league."
-    );
     return;
   }
   if (action !== "approve" && action !== "deny") {
-    await interaction.editReply("Unknown signup action.");
+    await interaction.followUp({
+      content: "Unknown signup action.",
+      flags: MessageFlags.Ephemeral,
+    });
     return;
   }
 
@@ -131,15 +132,18 @@ export async function handleSignupReview(interaction: ButtonInteraction) {
     profile?.uuid
   );
   if (result === "link_changed" || result === "resolved") {
-    await interaction.editReply(
-      result === "link_changed"
-        ? "The linked account changed. Ask the player to restore the account used for signup before approval."
-        : "This signup is already resolved."
-    );
+    await interaction.followUp({
+      content:
+        result === "link_changed"
+          ? "The linked account changed. Ask the player to restore the account used for signup before approval."
+          : "This signup is already resolved.",
+      flags: MessageFlags.Ephemeral,
+    });
     return;
   }
 
   let outcome = `Signup ${result}.`;
+  let roleFailure: string | undefined;
   if (result === "approved") {
     try {
       await syncLeagueRole(
@@ -151,16 +155,22 @@ export async function handleSignupReview(interaction: ButtonInteraction) {
       );
     } catch (error) {
       console.error("Signup saved but roles failed.", error);
-      outcome +=
-        " Membership is saved. Retry the role update with /assign or /signup.";
+      roleFailure =
+        "Membership is saved. Retry the role update with /assign or /signup.";
+      outcome += ` ${roleFailure}`;
     }
   }
 
-  await interaction.editReply(outcome);
-  await interaction.message.edit({
+  await interaction.editReply({
     content: `${interaction.message.content}\n\n${outcome}`,
     components: [],
   });
+  if (roleFailure) {
+    await interaction.followUp({
+      content: roleFailure,
+      flags: MessageFlags.Ephemeral,
+    });
+  }
   const applicant = await interaction.client.users.fetch(player.discordUserId);
   await applicant
     .send(

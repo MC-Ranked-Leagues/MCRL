@@ -70,11 +70,15 @@ client.on(Events.InteractionCreate, (interaction) => {
   void handleInteraction(interaction).catch(async (error: unknown) => {
     console.error("Failed to handle a Discord interaction.", error);
     if (interaction.isButton() && interaction.deferred) {
-      await interaction
-        .editReply(
-          "Could not finish the review. Retry the button to check its saved status."
-        )
-        .catch(() => {});
+      const content =
+        "Could not finish the review. Retry the button to check its saved status.";
+      if (interaction.ephemeral) {
+        await interaction.editReply(content).catch(() => {});
+      } else {
+        await interaction
+          .followUp({ content, flags: MessageFlags.Ephemeral })
+          .catch(() => {});
+      }
     }
   });
 });
