@@ -42,6 +42,51 @@ export function getCompetitionMovement(competitionId: number) {
   return { ...data, decisions };
 }
 
+export function getRelegatedRoleAssignments(guildId: string, week: number) {
+  // Saved movements are authoritative; this only re-reads them for Discord repair.
+  const rows = getDatabase()
+    .select({
+      discordUserId: registrations.discordUserId,
+      movement: registrations.movement,
+      leagueNumber: competitions.leagueNumber,
+      isTest: players.isTest,
+    })
+    .from(registrations)
+    .innerJoin(competitions, eq(competitions.id, registrations.competitionId))
+    .leftJoin(
+      players,
+      and(
+        eq(players.guildId, competitions.guildId),
+        eq(players.discordUserId, registrations.discordUserId),
+        eq(players.minecraftUuid, registrations.minecraftUuid)
+      )
+    )
+    .where(
+      and(
+        eq(competitions.guildId, guildId),
+        eq(competitions.weekNumber, week),
+        eq(competitions.hasUsedRelegate, true)
+      )
+    )
+    .all();
+  const assignments: { discordUserId: string; leagueNumber: number }[] = [];
+  for (const row of rows) {
+    if (row.isTest) continue;
+    if (row.movement === "promote") {
+      assignments.push({
+        discordUserId: row.discordUserId,
+        leagueNumber: row.leagueNumber - 1,
+      });
+    } else if (row.movement === "demote") {
+      assignments.push({
+        discordUserId: row.discordUserId,
+        leagueNumber: row.leagueNumber + 1,
+      });
+    }
+  }
+  return assignments;
+}
+
 export function relegateGuild(
   guildId: string,
   leagueNumbers: readonly number[],

@@ -196,6 +196,13 @@ The test commands require the host role and a `dev: true` server.
 Set the stored week without changing competitions. Only the server's configured
 developer can use it.
 
+### `/relegate_reapply [week]`
+
+Re-apply Discord league roles from saved relegation movements without changing
+memberships, history, or competitions. Only the server's configured developer
+can use it. Failed players and destination leagues are reported for manual
+correction.
+
 ### `/test_fill match_id`
 
 After confirmation within 60 seconds, add the match's players as test

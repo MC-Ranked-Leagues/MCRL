@@ -12,6 +12,7 @@ import { advanceWeekCommand } from "./advance-week";
 import { devChangeWeekCommand } from "./dev-change-week";
 import { emCommand } from "./em";
 import { relegateCommand } from "./relegate";
+import { relegateReapplyCommand } from "./relegate-reapply";
 import { unendCommand } from "./unend";
 import { toggleRegistrationCommand } from "./toggle-registration";
 import type { BotCommand } from "./command";
@@ -46,6 +47,7 @@ export const commands = [
   devChangeWeekCommand,
   emCommand,
   relegateCommand,
+  relegateReapplyCommand,
   unendCommand,
   hostCommand,
   importCommand,
