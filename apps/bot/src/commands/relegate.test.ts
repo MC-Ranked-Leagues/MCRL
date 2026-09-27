@@ -1,9 +1,10 @@
 import { getPlayer } from "../db/players";
 import { guildConfiguration } from "../../config/guilds";
 import { beforeEach, expect, spyOn, test } from "bun:test";
-import { Collection, type ChatInputCommandInteraction } from "discord.js";
+import { type ChatInputCommandInteraction } from "discord.js";
 import { relegateCommand } from "./relegate";
 import { players } from "../db/schema";
+import { createMemberRoles, type MemberRolesMock } from "../testing/discord";
 import {
   resetDatabase,
   database,
@@ -18,8 +19,8 @@ test("relegate applies roles once and reports failures for manual correction", a
   input.guildId = Object.keys(guildConfiguration)[0]!;
   const config = guildConfiguration[input.guildId]!;
   const replies: string[] = [];
-  const updatedRoles: string[] = [];
   const attemptedUsers: string[] = [];
+  const members = new Map<string, MemberRolesMock>();
   const log = spyOn(console, "error").mockImplementation(() => {});
   try {
     endedMovementCompetition();
@@ -33,23 +34,15 @@ test("relegate applies roles once and reports failures for manual correction", a
             attemptedUsers.push(user);
             if (user === "league5player0")
               throw new Error("Missing Discord member");
-            return {
-              roles: {
-                cache: new Collection([
-                  [
-                    config.leagues[5]!.leagueRoleId,
-                    { id: config.leagues[5]!.leagueRoleId, editable: true },
-                  ],
-                  ["unrelated", { id: "unrelated", editable: false }],
-                ]),
-                add: async (role: { id: string }) => {
-                  updatedRoles.push(`add:${role.id}`);
-                },
-                remove: async (ids: string[]) => {
-                  updatedRoles.push(...ids.map((id) => `remove:${id}`));
-                },
-              },
-            };
+            let member = members.get(user);
+            if (!member) {
+              member = createMemberRoles([
+                { id: config.leagues[5]!.leagueRoleId, editable: true },
+                { id: "unrelated", editable: false },
+              ]);
+              members.set(user, member);
+            }
+            return { roles: member.roles };
           },
         },
         roles: { fetch: async (id: string) => ({ id, editable: true }) },
@@ -63,10 +56,15 @@ test("relegate applies roles once and reports failures for manual correction", a
     } as unknown as ChatInputCommandInteraction<"cached">;
     await relegateCommand.execute(interaction);
     expect(attemptedUsers).toEqual(["league5player0", "league5player6"]);
-    expect(updatedRoles).toEqual([
-      `add:${config.leagues[6]!.leagueRoleId}`,
-      `remove:${config.leagues[5]!.leagueRoleId}`,
-    ]);
+    // The demoted member holds the new league role alongside unrelated roles.
+    expect([...members.get("league5player6")!.serverRoles].sort()).toEqual(
+      [config.leagues[6]!.leagueRoleId, "unrelated"].sort()
+    );
+    expect(members.get("league5player6")!.calls).toEqual({
+      add: 1,
+      remove: 1,
+      set: 0,
+    });
     expect(replies.at(-1)).toContain("1 league roles updated.");
     expect(replies.at(-1)).toContain("<@league5player0> → League 4");
     expect(replies.at(-1)).toContain("manually");

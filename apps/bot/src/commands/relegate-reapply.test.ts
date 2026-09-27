@@ -1,9 +1,10 @@
 import { guildConfiguration } from "../../config/guilds";
 import { beforeEach, expect, spyOn, test } from "bun:test";
-import { Collection, type ChatInputCommandInteraction } from "discord.js";
+import { type ChatInputCommandInteraction } from "discord.js";
 import { relegateReapplyCommand } from "./relegate-reapply";
 import { relegateGuild } from "../db/relegation";
 import { players } from "../db/schema";
+import { createMemberRoles, type MemberRolesMock } from "../testing/discord";
 import {
   resetDatabase,
   database,
@@ -15,8 +16,8 @@ beforeEach(resetDatabase);
 
 function mockInteraction(replies: string[]) {
   const config = guildConfiguration[input.guildId]!;
-  const updatedRoles: string[] = [];
   const attemptedUsers: string[] = [];
+  const members = new Map<string, MemberRolesMock>();
   const interaction = {
     guildId: input.guildId,
     user: { id: "developer" },
@@ -27,23 +28,15 @@ function mockInteraction(replies: string[]) {
           attemptedUsers.push(user);
           if (user === "league5player0")
             throw new Error("Missing Discord member");
-          return {
-            roles: {
-              cache: new Collection([
-                [
-                  config.leagues[5]!.leagueRoleId,
-                  { id: config.leagues[5]!.leagueRoleId, editable: true },
-                ],
-                ["unrelated", { id: "unrelated", editable: false }],
-              ]),
-              add: async (role: { id: string }) => {
-                updatedRoles.push(`add:${role.id}`);
-              },
-              remove: async (ids: string[]) => {
-                updatedRoles.push(...ids.map((id) => `remove:${id}`));
-              },
-            },
-          };
+          let member = members.get(user);
+          if (!member) {
+            member = createMemberRoles([
+              { id: config.leagues[5]!.leagueRoleId, editable: true },
+              { id: "unrelated", editable: false },
+            ]);
+            members.set(user, member);
+          }
+          return { roles: member.roles };
         },
       },
       roles: { fetch: async (id: string) => ({ id, editable: true }) },
@@ -55,7 +48,7 @@ function mockInteraction(replies: string[]) {
       replies.push(content);
     },
   } as unknown as ChatInputCommandInteraction<"cached">;
-  return { interaction, updatedRoles, attemptedUsers };
+  return { interaction, members, attemptedUsers };
 }
 
 test("relegate_reapply is developer-only and repairs roles without touching saved data", async () => {
@@ -72,8 +65,7 @@ test("relegate_reapply is developer-only and repairs roles without touching save
     relegateGuild(input.guildId, [5]);
     const savedPlayers = database.select().from(players).all();
 
-    const { interaction, updatedRoles, attemptedUsers } =
-      mockInteraction(replies);
+    const { interaction, members, attemptedUsers } = mockInteraction(replies);
     await relegateReapplyCommand.execute({
       ...interaction,
       user: { id: "other-user" },
@@ -83,10 +75,15 @@ test("relegate_reapply is developer-only and repairs roles without touching save
 
     await relegateReapplyCommand.execute(interaction);
     expect(attemptedUsers).toEqual(["league5player0", "league5player6"]);
-    expect(updatedRoles).toEqual([
-      `add:${config.leagues[6]!.leagueRoleId}`,
-      `remove:${config.leagues[5]!.leagueRoleId}`,
-    ]);
+    // The demoted member holds the new league role alongside unrelated roles.
+    expect([...members.get("league5player6")!.serverRoles].sort()).toEqual(
+      [config.leagues[6]!.leagueRoleId, "unrelated"].sort()
+    );
+    expect(members.get("league5player6")!.calls).toEqual({
+      add: 1,
+      remove: 1,
+      set: 0,
+    });
     expect(replies.at(-1)).toContain("1 of 2 league roles re-applied");
     expect(replies.at(-1)).toContain("<@league5player0> → League 4");
     expect(replies.at(-1)).toContain("manually");

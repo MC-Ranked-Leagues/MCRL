@@ -8,7 +8,7 @@ import {
 import { guildConfiguration } from "../../config/guilds";
 import { getCurrentWeek } from "../db/guilds";
 import { getRelegatedRoleAssignments } from "../db/relegation";
-import { syncLeagueRole } from "../lib/league-roles";
+import { LeagueRoleUpdateError, syncLeagueRole } from "../lib/league-roles";
 import { chunkMessage } from "../lib/chunk-message";
 import type { BotCommand } from "./command";
 
@@ -62,8 +62,12 @@ export const relegateReapplyCommand = {
           `Could not re-apply league role for ${assignment.discordUserId}.`,
           error
         );
+        const step =
+          error instanceof LeagueRoleUpdateError
+            ? ` (${error.step} failed)`
+            : "";
         failures.push(
-          `<@${assignment.discordUserId}> → League ${assignment.leagueNumber}`
+          `<@${assignment.discordUserId}> → League ${assignment.leagueNumber}${step}`
         );
       }
     }
@@ -72,7 +76,7 @@ export const relegateReapplyCommand = {
     ];
     if (failures.length) {
       lines.push(
-        "These role updates failed. Apply the listed league roles manually:",
+        "These role updates failed. Apply the listed league roles manually. Members marked (add failed) hold no league role and can re-apply through /signup:",
         ...failures
       );
     }

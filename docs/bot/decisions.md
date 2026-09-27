@@ -141,6 +141,11 @@ Saved movement is authoritative even if Discord role updates fail. Hosts correct
 failed roles manually; repeating finalization must not reapply movement. Test
 players do not receive Discord role updates.
 
+Role updates remove the previous league role before adding the new one, naming
+only league roles in single-role updates so unrelated roles are never touched.
+A failed addition therefore leaves no role instead of a wrong one; members
+without a league role re-apply through `/signup`.
+
 ## League movement
 
 Weekly order is points descending, average time ascending, then Minecraft name

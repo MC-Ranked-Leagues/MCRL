@@ -1,9 +1,10 @@
 import { afterEach, beforeEach, expect, spyOn, test } from "bun:test";
-import { Collection, MessageFlags, type ButtonInteraction } from "discord.js";
+import { MessageFlags, type ButtonInteraction } from "discord.js";
 
 import { guildConfiguration } from "../../config/guilds";
 import { createSignup, getPlayer, saveSignupMessage } from "../db/players";
 import { resetDatabase } from "../testing/competition";
+import { createMemberRoles } from "../testing/discord";
 import { ranked } from "./ranked";
 import { handleSignupReview } from "./signup-review";
 
@@ -40,14 +41,7 @@ function review(roleEditable = true) {
       fetch: async () => ({
         members: {
           fetch: async () => ({
-            roles: {
-              cache: new Collection<
-                string,
-                { id: string; editable: boolean }
-              >(),
-              add: async () => {},
-              remove: async () => {},
-            },
+            roles: createMemberRoles([]).roles,
           }),
         },
         roles: { fetch: async () => role },

@@ -1,6 +1,16 @@
 import type { Guild } from "discord.js";
 import type { GuildConfiguration } from "../../config/guilds";
 
+export class LeagueRoleUpdateError extends Error {
+  readonly step: "remove" | "add";
+
+  constructor(step: "remove" | "add", target: string) {
+    super(`Failed to ${step} ${target}.`);
+    this.name = "LeagueRoleUpdateError";
+    this.step = step;
+  }
+}
+
 export async function syncLeagueRole(
   guild: Guild,
   config: GuildConfiguration,
@@ -22,9 +32,23 @@ export async function syncLeagueRole(
     throw new Error(
       "I need Manage Roles and a bot role above the league roles being changed."
     );
-  // Add first so partial Discord failures never leave a player with no league role.
-  await member.roles.add(role, reason);
-  if (previous.size) await member.roles.remove([...previous.keys()], reason);
+  if (!previous.size && member.roles.cache.has(league.leagueRoleId)) return;
+  // Remove-then-add with single-role updates, so only league roles are ever
+  // named and unrelated roles cannot be touched. A failed removal keeps the
+  // old role and skips the addition; a failed addition leaves no role, which
+  // hosts repair through /signup.
+  for (const oldRole of previous.values()) {
+    try {
+      await member.roles.remove(oldRole, reason);
+    } catch {
+      throw new LeagueRoleUpdateError("remove", "the previous league role");
+    }
+  }
+  try {
+    await member.roles.add(role, reason);
+  } catch {
+    throw new LeagueRoleUpdateError("add", `the League ${leagueNumber} role`);
+  }
 }
 
 export async function getMemberLeagues(

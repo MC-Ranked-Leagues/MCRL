@@ -171,8 +171,12 @@ competitions and the current week. Result edits and `/unend` are then blocked.
 The leaderboard already shows the movement values and does not need a refresh.
 
 Attempts Discord role updates once and reports failed players and destination
-leagues for manual correction. Failures do not undo movements or stop other role
-updates. Repeating the command does not retry roles for processed competitions.
+leagues for manual correction. Each update removes the previous league role
+before adding the new one using single-role updates, so unrelated roles are
+never touched; the report marks whether the removal or the addition failed.
+Members left without a league role can re-apply through /signup. Failures do
+not undo movements or stop other role updates. Repeating the command does not
+retry roles for processed competitions.
 
 ### `/advance_week [force]`
 
@@ -201,7 +205,8 @@ developer can use it.
 Re-apply Discord league roles from saved relegation movements without changing
 memberships, history, or competitions. Only the server's configured developer
 can use it. Failed players and destination leagues are reported for manual
-correction.
+correction, marked by whether the removal or the addition failed. Members left
+without a league role can re-apply through /signup.
 
 ### `/test_fill match_id`
 
