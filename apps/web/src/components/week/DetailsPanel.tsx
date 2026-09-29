@@ -4,6 +4,14 @@ import { api } from "@mcrl/backend/api";
 import type { Id } from "@mcrl/backend/data-model";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { formatPercentage } from "../stats/stats-utils";
+
+interface PlayerWeekStats {
+  name: string;
+  totalPoints: number;
+  rank: number | null;
+  averagePercentage: number | null;
+}
 
 const LazyMatchData = lazy(async () => {
   const module = await import("./MatchData");
@@ -24,11 +32,7 @@ export function DetailsPanel({
   playerId: string | null;
   matchId: string | null;
   rankedMatchId: string | null;
-  playerStats: {
-    name: string;
-    totalPoints: number;
-    rank: number | null;
-  } | null;
+  playerStats: PlayerWeekStats | null;
   showBorder?: boolean;
 }) {
   if (playerId && weekNumber !== null && leagueTier !== null && playerStats) {
@@ -82,7 +86,7 @@ function PlayerDetails({
   weekNumber: number;
   leagueTier: number;
   playerId: Id<"players">;
-  stats: { name: string; totalPoints: number; rank: number | null };
+  stats: PlayerWeekStats;
 }) {
   const placements = useQuery(api.weekView.getPlayerWeekPlacements, {
     weekNumber,
@@ -106,27 +110,37 @@ function PlayerDetails({
 
   return (
     <div className="flex flex-col font-minecraft">
-      <div className="mb-6 flex flex-col gap-2 border-b border-border/50 pb-6">
-        <div className="flex items-center gap-3">
-          {stats.rank !== null && (
-            <span className="text-xl font-bold text-muted-foreground">
-              #{stats.rank}
-            </span>
-          )}
-          <a
-            className="text-xl tracking-widest text-foreground hover:underline"
-            href={`https://mcsrranked.com/stats/${stats.name}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {stats.name}
-          </a>
+      <div className="mb-6 flex items-start justify-between gap-4 border-b border-border/50 pb-6">
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          <div className="flex items-center gap-3">
+            {stats.rank !== null && (
+              <span className="shrink-0 text-xl font-bold text-muted-foreground">
+                #{stats.rank}
+              </span>
+            )}
+            <a
+              className="min-w-0 text-xl tracking-widest break-all text-foreground hover:underline"
+              href={`https://mcsrranked.com/stats/${stats.name}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {stats.name}
+            </a>
+          </div>
+          <p className="space-x-2 text-sm text-foreground">
+            <span className="font-bold">{stats.totalPoints}</span>
+            <span>total points -</span>
+            <span>{placements.length} matches</span>
+          </p>
         </div>
-        <p className="space-x-2 text-sm text-foreground">
-          <span className="font-bold">{stats.totalPoints}</span>
-          <span>total points -</span>
-          <span>{placements.length} matches</span>
-        </p>
+        {stats.averagePercentage !== null && (
+          <dl className="shrink-0 text-right">
+            <dt className="text-xs text-muted-foreground">Movement average</dt>
+            <dd className="mt-1 text-3xl font-bold text-primary tabular-nums">
+              {formatPercentage(stats.averagePercentage)}
+            </dd>
+          </dl>
+        )}
       </div>
 
       <div className="flex flex-col gap-3">
