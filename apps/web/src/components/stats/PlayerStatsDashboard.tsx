@@ -7,6 +7,8 @@ import { AverageTimeTrend } from "./AverageTimeTrend";
 import { WeeklyPerformance } from "./WeeklyPerformance";
 import {
   formatDuration,
+  formatPercentage,
+  getCurrentPercentageAverage,
   mergeWeeklyPerformance,
   type PlayerStats,
 } from "./stats-utils";
@@ -142,6 +144,9 @@ export function PlayerStatsDashboard({ stats }: PlayerStatsDashboardProps) {
     );
   }
 
+  const savedPercentages = stats.percentageHistory.slice(-2).reverse();
+  const currentAverage = getCurrentPercentageAverage(stats.percentageHistory);
+
   return (
     <div className="min-w-0 space-y-5">
       <Card className="gap-0 py-0">
@@ -194,6 +199,45 @@ export function PlayerStatsDashboard({ stats }: PlayerStatsDashboardProps) {
             note="Fastest completion"
           />
         </CardContent>
+      </Card>
+
+      <Card className="gap-0 px-5 py-5 md:px-7">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h3 className="text-[10px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
+              Current percentage average
+            </h3>
+            <p className="mt-2 font-minecraft text-3xl tracking-tight tabular-nums">
+              {formatPercentage(currentAverage)}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              From the two most recent saved weeks
+            </p>
+          </div>
+          <div className="sm:text-right">
+            <h3 className="text-[10px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
+              Saved percentages
+            </h3>
+            {savedPercentages.length ? (
+              <ul className="mt-2 space-y-1 text-sm tabular-nums">
+                {savedPercentages.map((entry) => (
+                  <li key={`${entry.week}-${entry.league}`}>
+                    <span className="text-muted-foreground">
+                      Week {entry.week}, League {entry.league}
+                    </span>{" "}
+                    <span className="font-semibold text-primary">
+                      {formatPercentage(entry.percentage)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-2 text-sm text-muted-foreground">
+                No saved percentages yet
+              </p>
+            )}
+          </div>
+        </div>
       </Card>
 
       <AverageTimeTrend weeks={weeks} />

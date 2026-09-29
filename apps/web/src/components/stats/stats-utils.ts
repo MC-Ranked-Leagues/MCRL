@@ -18,7 +18,22 @@ export interface WeeklyPerformance {
   matches: number;
   totalPoints: number;
   averageTimeMs: number | null;
+  currentPercentage: number | null;
+  averagePercentage: number | null;
   matchDetails: MatchDetail[];
+}
+
+export function formatPercentage(value: number | null): string {
+  return value === null ? "—" : `${Number(value.toFixed(2))}%`;
+}
+
+export function getCurrentPercentageAverage(
+  history: PlayerStats["percentageHistory"]
+): number | null {
+  const recent = history.slice(-2);
+  return recent.length
+    ? recent.reduce((sum, entry) => sum + entry.percentage, 0) / recent.length
+    : null;
 }
 
 export function formatDuration(
@@ -69,6 +84,8 @@ export function mergeWeeklyPerformance(
           week.averageTimeMs !== null && week.averageTimeMs > 0
             ? Math.round(week.averageTimeMs)
             : null,
+        currentPercentage: week.currentPercentage,
+        averagePercentage: week.averagePercentage,
         matchDetails: [...week.matchDetails].sort(
           (a, b) => a.matchNumber - b.matchNumber
         ),

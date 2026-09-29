@@ -3,6 +3,8 @@ import type { Id } from "@mcrl/backend/data-model";
 import {
   buildPlayerUrl,
   formatDuration,
+  formatPercentage,
+  getCurrentPercentageAverage,
   mergeWeeklyPerformance,
   type PlayerStats,
 } from "./stats-utils";
@@ -25,12 +27,27 @@ describe("stats data formatting", () => {
     expect(formatDuration(null)).toBe("—");
   });
 
+  test("formats percentages and averages the latest two saved values", () => {
+    expect(formatPercentage(null)).toBe("—");
+    expect(formatPercentage(0)).toBe("0%");
+    expect(formatPercentage(86.6666)).toBe("86.67%");
+    expect(getCurrentPercentageAverage([])).toBeNull();
+    expect(
+      getCurrentPercentageAverage([
+        { week: 1, league: 2, percentage: 10 },
+        { week: 2, league: 2, percentage: 0 },
+        { week: 3, league: 2, percentage: 85 },
+      ])
+    ).toBe(42.5);
+  });
+
   test("merges history, preserves gaps, and sorts weeks and matches", () => {
     const stats: PlayerStats = {
       name: "Runner",
       elo: 1200,
       currentLeague: "League 2",
       currentTier: 2,
+      percentageHistory: [{ week: 2, league: 2, percentage: 85 }],
       summary: { totalMatches: 3, avgTimeMs: 72_000, bestTimeMs: 61_000 },
       leagueHistory: [
         { weekNumber: 2, leagueNumber: 2, movement: "promoted" },
@@ -43,6 +60,8 @@ describe("stats data formatting", () => {
           matches: 3,
           totalPoints: 18,
           averageTimeMs: 70_000,
+          currentPercentage: 80,
+          averagePercentage: 75,
           matchDetails: [
             {
               matchId: "match-3" as Id<"matches">,
@@ -79,6 +98,8 @@ describe("stats data formatting", () => {
           matches: 1,
           totalPoints: 4,
           averageTimeMs: null,
+          currentPercentage: 0,
+          averagePercentage: null,
           matchDetails: [
             {
               matchId: "match-0" as Id<"matches">,
@@ -103,9 +124,13 @@ describe("stats data formatting", () => {
 
     expect(weeks.map((week) => week.weekNumber)).toEqual([1, 2]);
     expect(weekOne.averageTimeMs).toBeNull();
+    expect(weekOne.currentPercentage).toBe(0);
+    expect(weekOne.averagePercentage).toBeNull();
     expect(weekTwo).toMatchObject({
       leagueNumber: 2,
       movement: "promoted",
+      currentPercentage: 80,
+      averagePercentage: 75,
     });
     expect(weekTwo.matchDetails.map((match) => match.matchNumber)).toEqual([
       1, 2, 3,
