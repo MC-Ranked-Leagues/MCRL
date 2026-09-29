@@ -1,3 +1,4 @@
+import { api } from "@mcrl/backend/api";
 import {
   ApplicationIntegrationType,
   InteractionContextType,
@@ -11,6 +12,10 @@ import {
 } from "../lib/command-context";
 import { replyWithLeaderboardUpdate } from "../lib/leaderboard-messages";
 import type { BotCommand } from "./command";
+import {
+  publishToWebsite,
+  reportPublicationResults,
+} from "../lib/backend-publisher";
 
 export const clearCommand = {
   data: new SlashCommandBuilder()
@@ -49,11 +54,23 @@ export const clearCommand = {
       );
       return;
     }
+    const publicationResults = publishToWebsite(
+      interaction.guildId,
+      `Delete match: League ${competition.leagueNumber}, Week ${competition.weekNumber}`,
+      (client, writerKey) =>
+        client.mutation(api.writes.matches.deleteMatch, {
+          writerKey,
+          leagueTier: competition.leagueNumber,
+          weekNumber: competition.weekNumber,
+          matchNumber: result.number,
+        })
+    );
     await replyWithLeaderboardUpdate(
       interaction,
       competition.id,
       context.league.infoChannelId,
       `Deleted Match ${result.number} and all its results from League ${competition.leagueNumber}, Week ${competition.weekNumber}.`
     );
+    await reportPublicationResults(interaction, publicationResults);
   },
 } satisfies BotCommand;

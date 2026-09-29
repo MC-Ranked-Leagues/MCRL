@@ -1,3 +1,5 @@
+import { getAllMatchSnapshots } from "../db/publication-snapshots";
+import { api } from "@mcrl/backend/api";
 import { escapeMarkdown, type ChatInputCommandInteraction } from "discord.js";
 import { guildConfiguration } from "../../config/guilds";
 import { getActiveCompetition } from "../db/competitions";
@@ -5,6 +7,10 @@ import { hasGuildRegistration, unregisterPlayer } from "../db/registrations";
 import { requireChannelLeague, requireCommandGuild } from "./command-context";
 import { replyWithCompetitionUpdate } from "./competition-messages";
 import { removeCurrentWeekRole } from "./current-week-role";
+import {
+  publishToWebsite,
+  reportPublicationResults,
+} from "./backend-publisher";
 
 export async function unregisterCompetitionPlayer(
   interaction: ChatInputCommandInteraction<"cached">,
@@ -32,7 +38,9 @@ export async function unregisterCompetitionPlayer(
   const user = admin
     ? interaction.options.getUser("user", true)
     : interaction.user;
-  const result = unregisterPlayer(competition.id, user.id, { admin });
+  const result = unregisterPlayer(competition.id, user.id, {
+    admin,
+  });
   if (result.status !== "unregistered") {
     const messages = {
       inactive: "This competition is no longer active.",
@@ -47,6 +55,27 @@ export async function unregisterCompetitionPlayer(
     await interaction.editReply(messages[result.status]);
     return;
   }
+  const publicationResults = publishToWebsite(
+    interaction.guildId,
+    `Unregister player: League ${competition.leagueNumber}, Week ${competition.weekNumber}`,
+    (client, writerKey) => {
+      const snapshots = admin ? getAllMatchSnapshots(competition) : [];
+      return [
+        client.mutation(api.writes.players.unregisterPlayer, {
+          writerKey,
+          leagueTier: competition.leagueNumber,
+          weekNumber: competition.weekNumber,
+          uuid: result.uuid,
+        }),
+        ...snapshots.map((snapshot) =>
+          client.mutation(api.writes.matches.importMatchData, {
+            writerKey,
+            ...snapshot,
+          })
+        ),
+      ];
+    }
+  );
   let content = `Unregistered **${escapeMarkdown(result.ign)}** from League ${context.leagueNumber}, Week ${competition.weekNumber}.`;
   if (
     guild.currentWeekRoleId &&
@@ -69,4 +98,5 @@ export async function unregisterCompetitionPlayer(
     context.league.infoChannelId,
     content
   );
+  await reportPublicationResults(interaction, publicationResults);
 }

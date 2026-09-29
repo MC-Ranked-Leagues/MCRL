@@ -206,6 +206,7 @@ test("self unregistration requires open registration and preserves registrations
   await updateRegistrationMessages(channel, active.id);
   expect(unregisterPlayer(active.id, "user")).toEqual({
     status: "unregistered",
+    uuid: "uuid",
     ign: "Player",
   });
   await updateRegistrationMessages(channel, active.id);
@@ -286,6 +287,7 @@ test("admin removal reranks every imported match and refreshes public messages",
 
   expect(unregisterPlayer(competition.id, "player0", { admin: true })).toEqual({
     status: "unregistered",
+    uuid: "uuid0",
     ign: "Player0",
   });
   await updateRegistrationMessages(channel, competition.id);
@@ -358,6 +360,7 @@ test("test fill preserves registrations, handles UUID variants, and supports nor
   match.players[0]!.uuid = "UUID-0";
   expect(fillTestRegistrations(competition.id, match.players)).toEqual({
     status: "filled",
+    addedPlayers: [{ minecraftUuid: "uuid99", ign: "Player99", elo: null }],
     added: 1,
     skipped: 5,
   });
@@ -367,6 +370,7 @@ test("test fill preserves registrations, handles UUID variants, and supports nor
   expect(database.select().from(matches).all()).toHaveLength(0);
   expect(fillTestRegistrations(competition.id, match.players)).toEqual({
     status: "filled",
+    addedPlayers: [],
     added: 0,
     skipped: 6,
   });
@@ -407,6 +411,7 @@ test("test clear removes only test registrations and their results, preserving m
 
   expect(clearTestRegistrations(input.guildId, competition.id)).toEqual({
     status: "cleared",
+    uuids: ["uuid99"],
     removed: 1,
   });
   expect(getActiveCompetition(input.guildId, 5)).toEqual(savedCompetition);
@@ -419,6 +424,7 @@ test("test clear removes only test registrations and their results, preserving m
   expect(messages.size).toBe(2);
   expect(clearTestRegistrations(input.guildId, competition.id)).toEqual({
     status: "cleared",
+    uuids: [],
     removed: 0,
   });
 });

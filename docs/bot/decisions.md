@@ -183,3 +183,42 @@ configured league, including League 7.
 The final leaderboard previews the same movement calculation used by relegation
 without changing membership or history. After finalization, it uses the saved
 decisions.
+
+## Website publication
+
+SQLite owns live operations. After a successful local save, start typed Convex
+mutation calls in the same order as those saves, before awaiting Discord work.
+Finish roles, messages, and the command reply without waiting for the website;
+then report any website failure in a separate private notice and one short log
+summary. Use one Convex client per deployment and a 60-second timeout per HTTP
+request. A timeout can leave the remote outcome unknown.
+
+Do not store backend calls, pause publication, or retry failed or unsent calls.
+A failed update can cause later updates to fail or leave the website incomplete.
+This is an accepted limitation. The owner can copy SQLite before `/advance_week`
+and use it for manual repair; hosts do not need a recovery workflow. Website
+availability must not block week advancement. Development and production guilds
+publish to separate Convex deployments.
+
+Keep each registration's final `currentPercentage` in SQLite so manual repairs
+can use the saved weekly value. Keep rolling percentage history in Convex for
+the future player statistics page. Its average can differ from the average used
+to decide a completed week's movement, particularly after a promotion resets
+history or a demotion appends 85%.
+
+Normal match imports compare new valid times with the saved personal best.
+Only corrections or deletions that affect that best need to recheck the player's
+remaining history. At this event's scale, use straightforward queries without
+arbitrary row-count cutoffs or separate large-roster paths.
+
+The website treats Minecraft accounts independently of Discord identity.
+Migration creates or updates the destination account and clears rolling
+percentage history for both accounts. Published match results and historical
+registration percentages remain intact; the old account keeps its last known
+league. A return to that account updates its league without a promotion record.
+
+`/em` ends the competition and publishes each registration's current and average
+percentages with its expected movement in one Convex transaction. `/unend` removes that preview. `/relegate` publishes final
+movement and marks the competition done. Convex sorts website standings from
+the submitted match points and times for now. The implementation plan is in
+[website publishing](plans/website-publishing.md).

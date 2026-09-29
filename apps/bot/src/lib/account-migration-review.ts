@@ -1,3 +1,4 @@
+import { api } from "@mcrl/backend/api";
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -17,6 +18,10 @@ import {
 } from "../db/account-migrations";
 import { getPlayerById } from "../db/players";
 import { ranked } from "./ranked";
+import {
+  publishToWebsite,
+  reportPublicationResults,
+} from "./backend-publisher";
 
 type Migration = NonNullable<ReturnType<typeof getMigration>>;
 
@@ -130,6 +135,22 @@ export async function handleMigrationReview(interaction: ButtonInteraction) {
     return;
   }
 
+  const publication =
+    result === "approved" && player.leagueNumber !== null
+      ? publishToWebsite(
+          player.guildId,
+          `Migrate player ${request.previousUuid}`,
+          (client, writerKey) =>
+            client.mutation(api.writes.players.migratePlayerAccount, {
+              writerKey,
+              oldUuid: request.previousUuid,
+              newUuid: request.minecraftUuid,
+              ign: request.ign,
+              leagueTier: player.leagueNumber!,
+            })
+        )
+      : [];
+
   await interaction.editReply(`Migration ${result}.`);
   await interaction.message.edit({
     content: `${interaction.message.content}\n\nMigration ${result}.`,
@@ -145,4 +166,5 @@ export async function handleMigrationReview(interaction: ButtonInteraction) {
     .catch((error: unknown) =>
       console.error("Could not notify migration applicant.", error)
     );
+  await reportPublicationResults(interaction, publication, player.guildId);
 }

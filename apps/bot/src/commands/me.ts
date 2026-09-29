@@ -6,6 +6,7 @@ import {
 } from "discord.js";
 import { formatHistoryAverage } from "../lib/player-history";
 import { getOrCreatePlayerFromRole } from "../lib/player-from-role";
+import { reportPublicationResults } from "../lib/backend-publisher";
 import type { BotCommand } from "./command";
 
 export const meCommand = {
@@ -49,5 +50,6 @@ export const meCommand = {
       ].join("\n"),
       allowedMentions: { parse: [] },
     });
+    await reportPublicationResults(interaction, result.publication);
   },
 } satisfies BotCommand;

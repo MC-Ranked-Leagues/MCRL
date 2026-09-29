@@ -69,45 +69,6 @@ export async function validateApiKey(
   return null;
 }
 
-export async function extractRequestBody<T>(
-  request: Request,
-  schema: z.ZodType<T>
-): Promise<{ data: T } | { errorResponse: Response }> {
-  const contentType = request.headers.get("content-type") ?? "";
-  if (!contentType.includes("application/json")) {
-    return {
-      errorResponse: jsonError(
-        "Invalid Content-Type. Expected application/json.",
-        415,
-        { received: contentType || "(none)" }
-      ),
-    };
-  }
-
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch (error) {
-    console.error("[HTTP] Failed to parse JSON body", error);
-    return { errorResponse: jsonError("Invalid JSON body.", 400) };
-  }
-
-  const parsed = schema.safeParse(body);
-  if (!parsed.success) {
-    console.error("[HTTP] Request body validation failed", parsed.error.issues);
-    return {
-      errorResponse: jsonError("Invalid body payload.", 400, {
-        issues: parsed.error.issues.map((issue) => ({
-          path: issue.path.join("."),
-          message: issue.message,
-        })),
-      }),
-    };
-  }
-
-  return { data: parsed.data };
-}
-
 export function extractQueryParams<T>(
   request: Request,
   schema: z.ZodType<T>

@@ -10,6 +10,7 @@ import { getOrCreatePlayerFromRole } from "../lib/player-from-role";
 import { ranked, rankedLookupErrorMessage } from "../lib/ranked";
 import { sendSignupReview } from "../lib/signup-review";
 import { formatDuration } from "../lib/time";
+import { reportPublicationResults } from "../lib/backend-publisher";
 import type { BotCommand } from "./command";
 
 // The upstream Elo suggestion informs the reviewer; it does not assign a league.
@@ -58,6 +59,7 @@ export const signupCommand = {
           await interaction.editReply(
             `Saved your League ${player.leagueNumber} account from your league role.`
           );
+          await reportPublicationResults(interaction, result.publication);
           return;
         }
       }

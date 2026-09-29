@@ -1,3 +1,4 @@
+import { mockWebsite } from "../../src/testing/website";
 import { afterEach, beforeEach, expect, spyOn, test } from "bun:test";
 import type { ChatInputCommandInteraction } from "discord.js";
 
@@ -40,6 +41,8 @@ function interaction() {
     },
   } as unknown as ChatInputCommandInteraction<"cached">;
 }
+
+mockWebsite();
 
 beforeEach(() => {
   resetDatabase();

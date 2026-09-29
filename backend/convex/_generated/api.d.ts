@@ -26,7 +26,10 @@ import type * as players from "../players.js";
 import type * as readAPI from "../readAPI.js";
 import type * as weekView from "../weekView.js";
 import type * as weeks from "../weeks.js";
-import type * as writeApi from "../writeApi.js";
+import type * as writes_competitions from "../writes/competitions.js";
+import type * as writes_helpers from "../writes/helpers.js";
+import type * as writes_matches from "../writes/matches.js";
+import type * as writes_players from "../writes/players.js";
 
 import type {
   ApiFromModules,
@@ -53,7 +56,10 @@ declare const fullApi: ApiFromModules<{
   readAPI: typeof readAPI;
   weekView: typeof weekView;
   weeks: typeof weeks;
-  writeApi: typeof writeApi;
+  "writes/competitions": typeof writes_competitions;
+  "writes/helpers": typeof writes_helpers;
+  "writes/matches": typeof writes_matches;
+  "writes/players": typeof writes_players;
 }>;
 
 /**

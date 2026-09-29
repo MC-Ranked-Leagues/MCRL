@@ -14,6 +14,7 @@ import { decideSignup, getPlayerById, saveSignupMessage } from "../db/players";
 import type { getPlayer } from "../db/players";
 import { syncLeagueRole } from "./league-roles";
 import { ranked } from "./ranked";
+import { publishPlayer, reportPublicationResults } from "./backend-publisher";
 
 type Player = NonNullable<ReturnType<typeof getPlayer>>;
 
@@ -141,6 +142,8 @@ export async function handleSignupReview(interaction: ButtonInteraction) {
     });
     return;
   }
+  const publication =
+    result === "approved" ? publishPlayer(getPlayerById(player.id)!) : [];
 
   let outcome = `Signup ${result}.`;
   let roleFailure: string | undefined;
@@ -181,6 +184,7 @@ export async function handleSignupReview(interaction: ButtonInteraction) {
     .catch((error: unknown) =>
       console.error("Could not notify signup applicant.", error)
     );
+  await reportPublicationResults(interaction, publication, player.guildId);
 }
 
 export async function moderateSignupChannel(message: Message) {

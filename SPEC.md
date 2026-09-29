@@ -63,16 +63,14 @@ The intended operational flow is:
 1. Hosts use `/nm` in a league Discord channel to create a new competition for that league and week.
 2. Registration is opened in the bot a few hours before the event starts.
 3. When the event starts, registration is closed in the bot so players cannot join or leave in a way that would skew standings or points.
-4. Hosts use `/ns` to create a new seed for the league. In the website domain this is stored as a match.
-5. Hosts use `/import` to send the match data into the website backend, and update the bots internal state.
-6. If results later change because of corrections, cheating rulings, host mistakes, or `/edit`, the bot should call the same api as `/import` again with the corrected full match data.
-7. If hosts need to add or remove points outside the imported match results, they use `/adjust`.
-8. When all matches are done and results are verified, hosts use `/em` to end the competition for that league and week.
-9. After the competition is ended, hosts use `/relegate` to apply the final weekly league movements.
-10. If a later correction is needed outside the normal `/relegate` flow, hosts can use `/promote` and `/demote` to manually change a player's league placement. This isn't captured as the weekly relegations/promotions in the leaderboards.
-11. After the bot is finished with that week's operational flow, it uses `/dm` to clear its own internal state and prepare for the next week.
+4. Hosts use `/import` to save a new match or replace an existing match with its full results.
+5. Late `/admin_reg` and `/admin_unreg` operations recalculate earlier imported matches in the bot and publish corrected full snapshots.
+6. When all matches are done and results are verified, hosts use `/em` to end the competition and publish percentage and movement previews.
+7. Hosts can use `/unend` to reopen an ended competition and remove its previews before finalization.
+8. Hosts use `/relegate` to apply the saved weekly movements and mark them final.
+9. Hosts use `/advance_week` to clear the bot's local competition state for the past week.
 
-`/dm` is a bot-only cleanup concept. It should not require a matching concept in the website backend because that internal bot state is not the website's responsibility.
+`/advance_week` does not erase the website's published history. Website updates are attempted after local saves without blocking Discord work. Failures may leave website data incomplete; the owner can copy SQLite before advancing for manual repair. Calls are not stored or automatically retried.
 
 ## Match Import Philosophy
 
@@ -81,7 +79,7 @@ The website should think of match imports as full snapshots, not partial patches
 - `/import` is the authoritative write for match results.
 - If one player's placement, time, or points change, the corrected match should be re-imported as the new truth for that match.
 - The backend should store the latest accepted version of that match.
-- Standings are provided by the bot to make the backend as loose as possible without breaking stuff. For example, if the bot somehow thinks the player with most points should be last, than so be it.
+- The bot provides each result's placement and points. For now, Convex orders weekly standings by those points, average time, and player name.
 
 This is important because placements, points, and winners are coupled. A single-player edit can affect the whole match.
 
@@ -92,7 +90,7 @@ End-of-week movement is a separate step from importing matches.
 - Match imports establish the weekly results.
 - Ending the competition confirms that the week is over.
 - `/relegate` applies the intended promotion and demotion outcome for that finished competition.
-- `/promote` and `/demote` exist as manual correction tools outside the normal batch movement step.
+- Manual corrections outside weekly finalization may be added later.
 
 The website should preserve both ideas:
 
@@ -117,6 +115,7 @@ The bot is responsible for:
 - recalculating corrected match data when edits happen
 - deciding when a competition should start or end
 - deciding when league movements should be applied
+- calculating points and movement percentages before publishing them
 
 The website should not assume it can reconstruct every host intent from raw results alone. Some tournament actions are explicit host decisions and should arrive from the bot as explicit writes.
 

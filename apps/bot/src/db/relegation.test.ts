@@ -108,6 +108,10 @@ test("relegation uses preview values, retains demotion history, trims oldest, an
   expect(staying.percentageHistory[2]!.percentage).toBeCloseTo((100 * 5) / 6);
   const registered = getCompetitionRegistration(competition.id)!.players;
   expect(
+    registered.find((player) => player.discordUserId === "league5player1")
+      ?.currentPercentage
+  ).toBeCloseTo((100 * 5) / 6);
+  expect(
     registered.find((player) => player.discordUserId === "league5player6")
   ).toMatchObject({ movement: "demote", averageUsed: 70 / 3 });
   expect(

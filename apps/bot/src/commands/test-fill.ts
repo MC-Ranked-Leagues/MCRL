@@ -1,3 +1,5 @@
+import { getAllMatchSnapshots } from "../db/publication-snapshots";
+import { api } from "@mcrl/backend/api";
 import {
   ActionRowBuilder,
   ApplicationIntegrationType,
@@ -18,6 +20,10 @@ import {
 } from "../lib/command-context";
 import { replyWithCompetitionUpdate } from "../lib/competition-messages";
 import type { BotCommand } from "./command";
+import {
+  publishToWebsite,
+  reportPublicationResults,
+} from "../lib/backend-publisher";
 
 const ranked = new RankedClient({ validation: "error" });
 
@@ -140,6 +146,33 @@ export const testFillCommand = {
       );
       return;
     }
+    const publicationResults = result.added
+      ? publishToWebsite(
+          interaction.guildId,
+          `Test fill: League ${competition.leagueNumber}, Week ${competition.weekNumber}`,
+          (client, writerKey) => {
+            const snapshots = getAllMatchSnapshots(competition);
+            return [
+              ...result.addedPlayers.map((player) =>
+                client.mutation(api.writes.players.registerPlayer, {
+                  writerKey,
+                  leagueTier: competition.leagueNumber,
+                  weekNumber: competition.weekNumber,
+                  uuid: player.minecraftUuid,
+                  ign: player.ign,
+                  ...(player.elo === null ? {} : { elo: player.elo }),
+                })
+              ),
+              ...snapshots.map((snapshot) =>
+                client.mutation(api.writes.matches.importMatchData, {
+                  writerKey,
+                  ...snapshot,
+                })
+              ),
+            ];
+          }
+        )
+      : [];
     const content = `Added ${result.added} test registrations; skipped ${result.skipped} already registered or unavailable accounts. Run /import match_id:${matchId} to import the results.`;
     await replyWithCompetitionUpdate(
       interaction,
@@ -147,5 +180,6 @@ export const testFillCommand = {
       context.league.infoChannelId,
       content
     );
+    await reportPublicationResults(interaction, publicationResults);
   },
 } satisfies BotCommand;

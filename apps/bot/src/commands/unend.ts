@@ -1,3 +1,4 @@
+import { api } from "@mcrl/backend/api";
 import {
   ApplicationIntegrationType,
   InteractionContextType,
@@ -15,6 +16,10 @@ import {
 } from "../lib/command-context";
 import { replyWithCompetitionUpdate } from "../lib/competition-messages";
 import type { BotCommand } from "./command";
+import {
+  publishToWebsite,
+  reportPublicationResults,
+} from "../lib/backend-publisher";
 
 export const unendCommand = {
   data: new SlashCommandBuilder()
@@ -64,11 +69,23 @@ export const unendCommand = {
       return;
     }
 
+    const publicationResults = publishToWebsite(
+      interaction.guildId,
+      `Reopen competition: League ${competition.leagueNumber}, Week ${competition.weekNumber}`,
+      (client, writerKey) =>
+        client.mutation(api.writes.competitions.reopenCompetition, {
+          writerKey,
+          leagueTier: competition.leagueNumber,
+          weekNumber: competition.weekNumber,
+        })
+    );
+
     await replyWithCompetitionUpdate(
       interaction,
       competition.id,
       context.league.infoChannelId,
       `League ${competition.leagueNumber}, Week ${competition.weekNumber} is active again. Registration remains closed.`
     );
+    await reportPublicationResults(interaction, publicationResults);
   },
 } satisfies BotCommand;

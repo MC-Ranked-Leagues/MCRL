@@ -6,6 +6,13 @@ including `developerId` for the account allowed to run `/dev_change_week`.
 Set `currentWeekRoleId` in a guild's configuration to give registered players
 a current week role until `/unreg` or `/advance_week`. The bot needs Manage Roles
 and a role above that role in Discord's role order.
+Set `DEV_CONVEX_URL` and `DEV_CONVEX_WRITER_KEY` for the development guild, and
+`PROD_CONVEX_URL` and `PROD_CONVEX_WRITER_KEY` for the production guild. The bot
+selects the pair using each guild's `dev` setting. Configure the matching
+`WRITER_API_KEY` in each Convex deployment. Website failures leave local and Discord
+changes intact and produce a private notice plus a short log entry. Calls are
+not stored or retried. The owner can copy SQLite before `/advance_week` if manual
+website repair is needed.
 From the repository root:
 
 ```sh

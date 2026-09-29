@@ -1,3 +1,4 @@
+import { mockWebsite } from "../testing/website";
 import { beforeEach, expect, spyOn, test } from "bun:test";
 import type { ChatInputCommandInteraction } from "discord.js";
 
@@ -16,6 +17,8 @@ import {
   setupMatchPlayers,
 } from "../testing/competition";
 import { adminRegCommand } from "./admin-reg";
+
+const website = mockWebsite();
 
 beforeEach(resetDatabase);
 
@@ -93,6 +96,22 @@ test("admin registration replays every imported match and refreshes the leaderbo
       "Late(late) - 16 pts"
     );
     expect(setup.replies.at(-1)).toContain("Registered **Late**");
+    expect(website.requests.map((request) => request.path)).toEqual([
+      "writes/players:registerPlayer",
+      "writes/matches:importMatchData",
+      "writes/matches:importMatchData",
+    ]);
+    const [match] = website.requests[1]!.args as [
+      { matchNumber: number; results: unknown[] },
+    ];
+    expect(match.matchNumber).toBe(1);
+    expect(match.results).toContainEqual({
+      uuid: "uuid99",
+      timeMs: 100,
+      dnf: false,
+      placement: 1,
+      pointsWon: 8,
+    });
   } finally {
     setup.restore();
   }
@@ -113,6 +132,7 @@ test("a failed match fetch leaves registration and all results untouched", async
     expect(database.select().from(registrations).all()).toHaveLength(5);
     expect(getPlayer(input.guildId, "late")).toBeUndefined();
     expect(setup.replies.at(-1)).toContain("No changes were saved");
+    expect(website.requests).toEqual([]);
   } finally {
     log.mockRestore();
     setup.restore();
@@ -153,6 +173,7 @@ test("a failed result write rolls back registration and every replayed match", a
     expect(database.select().from(registrations).all()).toHaveLength(5);
     expect(getPlayer(input.guildId, "late")).toBeUndefined();
     expect(setup.replies.at(-1)).toContain("No changes were saved");
+    expect(website.requests).toEqual([]);
   } finally {
     database.$client.exec("DROP TRIGGER reject_replay");
     log.mockRestore();

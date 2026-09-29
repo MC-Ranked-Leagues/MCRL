@@ -153,6 +153,7 @@ export const registrations = sqliteTable(
     ign: text("ign").notNull(),
     elo: real("elo"),
     peakElo: real("peak_elo"),
+    currentPercentage: real("current_percentage"),
     averageUsed: real("average_used"),
     movement: text("movement", { enum: ["none", "promote", "demote"] }),
     streaming: integer("streaming", { mode: "boolean" })

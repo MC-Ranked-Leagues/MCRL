@@ -60,10 +60,15 @@ test("initial migration creates the bot schema on an empty database", () => {
     expect(
       sqlite
         .query(
-          "SELECT average_used, movement, streaming FROM registrations WHERE id = 1"
+          "SELECT current_percentage, average_used, movement, streaming FROM registrations WHERE id = 1"
         )
         .get()
-    ).toEqual({ average_used: null, movement: null, streaming: 0 });
+    ).toEqual({
+      current_percentage: null,
+      average_used: null,
+      movement: null,
+      streaming: 0,
+    });
 
     migrate(db, { migrationsFolder });
     sqlite.exec("DELETE FROM matches WHERE id = 1");

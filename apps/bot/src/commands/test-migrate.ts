@@ -1,3 +1,4 @@
+import { getPlayer } from "../db/players";
 import {
   ApplicationIntegrationType,
   InteractionContextType,
@@ -8,6 +9,10 @@ import {
 import { setTestMigrationAccount } from "../db/account-migrations";
 import { requireCommandGuild } from "../lib/command-context";
 import { ranked } from "../lib/ranked";
+import {
+  publishPlayer,
+  reportPublicationResults,
+} from "../lib/backend-publisher";
 import type { BotCommand } from "./command";
 
 export const testMigrateCommand = {
@@ -77,8 +82,12 @@ export const testMigrateCommand = {
       await interaction.editReply(messages[result]);
       return;
     }
+    const publication = publishPlayer(
+      getPlayer(interaction.guildId, interaction.user.id)!
+    );
     await interaction.editReply(
       `Your saved account in this dev server is now **${escapeMarkdown(profile.nickname)}**. Your Ranked Discord link is unchanged. Run /reg to check the mismatch, then /migrate_account to request migration back to your linked account. Your league and retained percentages were preserved.`
     );
+    await reportPublicationResults(interaction, publication);
   },
 } satisfies BotCommand;
