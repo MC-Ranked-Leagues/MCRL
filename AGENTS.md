@@ -25,11 +25,27 @@ Use concise comments to explain non-obvious intent or constraints, including in 
 
 ## Documentation
 
-Document what code cannot tell you, plus the small amount of duplication that
-saves humans time. Keep architecture focused on rationale and constraints.
+Do not update documentation merely because code changed.
+
+Update docs only when:
+
+- Existing documentation becomes incorrect.
+- A new or changed rule, constraint, ownership boundary, or intentionally
+  surprising behavior needs explanation.
+- Human setup, operation, or recovery instructions change.
+
+Before adding text, identify the specific misunderstanding or missing
+instruction it resolves. If there is none, leave the docs alone.
+
+Make the smallest edit in the document that owns the topic. Prefer correcting
+or replacing existing text over adding sections. Do not repeat the change
+across multiple documents. Keep architecture focused on rationale and constraints.
 Record agreed decisions for the bot in the relevant `decisions.md`; keep ideas
 and open questions in plans. Plans do not need individual status labels.
-Update the document that owns a changed rule rather than repeating it elsewhere.
+
+Do not document code structure, execution sequences, output fields, or
+implementation details unless humans need them to operate the system.
+When changing docs, briefly explain why in the completion message.
 
 ## Architecture and imports
 
