@@ -4,13 +4,19 @@ import { guildConfiguration } from "../../config/guilds";
 import { createPlayerFromLeagueRole, getPlayer } from "../db/players";
 import { getMemberLeagues } from "./league-roles";
 import { ranked, rankedLookupErrorMessage } from "./ranked";
+import { publishPlayer } from "./backend-publisher";
 
 export async function getOrCreatePlayerFromRole(
   interaction: ChatInputCommandInteraction<"cached">
 ) {
   const existing = getPlayer(interaction.guildId, interaction.user.id);
   if (existing)
-    return { status: "found", player: existing, created: false } as const;
+    return {
+      status: "found",
+      player: existing,
+      created: false,
+      publication: [],
+    } as const;
 
   const config = guildConfiguration[interaction.guildId];
   if (!config)
@@ -56,5 +62,6 @@ export async function getOrCreatePlayerFromRole(
       status: "error",
       message: "This Minecraft account already belongs to another player.",
     } as const;
-  return { status: "found", ...result } as const;
+  const publication = result.created ? publishPlayer(result.player) : [];
+  return { status: "found", ...result, publication } as const;
 }

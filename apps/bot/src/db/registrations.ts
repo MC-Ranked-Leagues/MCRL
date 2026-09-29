@@ -89,6 +89,10 @@ export function fillTestRegistrations(
         .all()
         .map((player) => normalizeUuid(player.minecraftUuid))
     );
+    const addedPlayers: Pick<
+      typeof registrations.$inferSelect,
+      "minecraftUuid" | "ign" | "elo"
+    >[] = [];
     let added = 0;
     for (const player of players) {
       const uuid = normalizeUuid(player.uuid);
@@ -111,9 +115,15 @@ export function fillTestRegistrations(
       if (result !== "registered") continue;
       existing.add(uuid);
       added++;
+      addedPlayers.push({
+        minecraftUuid: uuid,
+        ign: player.nickname,
+        elo: player.eloRate,
+      });
     }
     return {
       status: "filled",
+      addedPlayers,
       added,
       skipped: players.length - added,
     } as const;
@@ -392,7 +402,11 @@ export function unregisterPlayer(
             .run();
       }
     }
-    return { status: "unregistered", ign: player.ign } as const;
+    return {
+      status: "unregistered",
+      ign: player.ign,
+      uuid: player.minecraftUuid,
+    } as const;
   });
 }
 
@@ -450,8 +464,12 @@ export function clearTestRegistrations(guildId: string, competitionId: number) {
           like(registrations.discordUserId, "test:%")
         )
       )
-      .returning({ id: registrations.id })
+      .returning({ uuid: registrations.minecraftUuid })
       .all();
-    return { status: "cleared", removed: deleted.length } as const;
+    return {
+      status: "cleared",
+      removed: deleted.length,
+      uuids: deleted.map((row) => row.uuid),
+    } as const;
   });
 }

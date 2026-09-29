@@ -3,4 +3,4 @@
 Plans hold proposals and open questions. Move agreed requirements into
 [decisions](../decisions.md); consult current code for implementation progress.
 
-- [Website publishing](website-publishing.md): publication and failure recovery.
+- [Website publishing](website-publishing.md): future player statistics and release follow-up.

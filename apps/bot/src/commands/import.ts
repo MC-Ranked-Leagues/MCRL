@@ -1,3 +1,5 @@
+import { getMatchSnapshot } from "../db/publication-snapshots";
+import { api } from "@mcrl/backend/api";
 import {
   ApplicationIntegrationType,
   escapeMarkdown,
@@ -13,6 +15,10 @@ import {
 import { replyWithCompetitionUpdate } from "../lib/competition-messages";
 import { getLatestHostMatchId, ranked } from "../lib/ranked";
 import type { BotCommand } from "./command";
+import {
+  publishToWebsite,
+  reportPublicationResults,
+} from "../lib/backend-publisher";
 
 export const importCommand = {
   data: new SlashCommandBuilder()
@@ -104,6 +110,15 @@ export const importCommand = {
       await interaction.editReply(messages[result.status]);
       return;
     }
+    const publicationResults = publishToWebsite(
+      interaction.guildId,
+      `Import match ${result.number}: League ${competition.leagueNumber}, Week ${competition.weekNumber}`,
+      (client, writerKey) =>
+        client.mutation(api.writes.matches.importMatchData, {
+          writerKey,
+          ...getMatchSnapshot(competition, result.matchId),
+        })
+    );
     let content = `Imported Ranked match ${data.id} into Match ${result.number}. Matched ${result.matched}/${result.total} registered players. Registration is closed.`;
     if (result.unmatched.length) {
       const names = result.unmatched
@@ -117,5 +132,6 @@ export const importCommand = {
       context.league.infoChannelId,
       content
     );
+    await reportPublicationResults(interaction, publicationResults);
   },
 } satisfies BotCommand;

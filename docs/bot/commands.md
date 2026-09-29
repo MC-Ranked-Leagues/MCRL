@@ -191,6 +191,10 @@ undo week advancement.
 Every competition must have used `/relegate` unless `force:true` is set. Rechecks
 this at confirmation and cancels if the stored week changed in the meantime.
 
+Website failures do not stop local operations or week advancement. The bot sends
+a short private notice and logs the error. If website data needs manual repair,
+the owner should copy SQLite before advancing; no call export is kept.
+
 ## Development commands
 
 The test commands require the host role and a `dev: true` server.
@@ -220,6 +224,9 @@ After confirmation within 60 seconds, remove the current competition's test
 registrations and results, plus test membership and percentage history for its
 league. Works with registration closed. Preserves regular players and other
 competitions' registrations.
+Unused test Minecraft accounts are also removed from the development website.
+Accounts referenced by older published results remain there for that history,
+with their rolling percentage history cleared.
 
 Re-import matches if remaining players' points and placements need recalculating.
 Repeat if the Discord refresh fails.

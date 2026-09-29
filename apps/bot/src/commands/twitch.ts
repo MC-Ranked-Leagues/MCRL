@@ -14,6 +14,7 @@ import { setPlayerTwitchUsername } from "../db/players";
 import { replyWithCompetitionUpdate } from "../lib/competition-messages";
 import { getOrCreatePlayerFromRole } from "../lib/player-from-role";
 import { normalizeTwitchUsername } from "../lib/twitch";
+import { reportPublicationResults } from "../lib/backend-publisher";
 import type { BotCommand } from "./command";
 
 export const twitchCommand = {
@@ -60,6 +61,7 @@ export const twitchCommand = {
       await interaction.editReply(
         "You have no saved Ranked Leagues account in this server. Use /signup or /reg first."
       );
+      await reportPublicationResults(interaction, player.publication);
       return;
     }
 
@@ -85,8 +87,10 @@ export const twitchCommand = {
         league.infoChannelId,
         content
       );
+      await reportPublicationResults(interaction, player.publication);
       return;
     }
     await interaction.editReply(content);
+    await reportPublicationResults(interaction, player.publication);
   },
 } satisfies BotCommand;

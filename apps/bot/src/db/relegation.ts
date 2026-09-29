@@ -4,6 +4,7 @@ import { getDatabase } from ".";
 import { getCompetitionRegistration } from "./competitions";
 import { getCompetitionStandings } from "./matches";
 import { competitions, guilds, players, registrations } from "./schema";
+import { websiteMovementStatus } from "./publication-snapshots";
 import {
   calculateLeagueMovement,
   calculateLeague7Qualification,
@@ -148,14 +149,26 @@ export function relegateGuild(
       const roleAssignments: { discordUserId: string; leagueNumber: number }[] =
         [];
       for (const { competition, decisions, registered } of calculations) {
+        const playerUpdates = new Map<
+          number,
+          {
+            leagueTier: number;
+            percentageHistory: {
+              week: number;
+              league: number;
+              percentage: number;
+            }[];
+          }
+        >();
         // Absent registrations get an explicit no-movement decision, but no average.
         tx.update(registrations)
-          .set({ movement: "none", averageUsed: null })
+          .set({ movement: "none", currentPercentage: null, averageUsed: null })
           .where(eq(registrations.competitionId, competition.id))
           .run();
         for (const decision of decisions) {
           tx.update(registrations)
             .set({
+              currentPercentage: decision.percentage,
               averageUsed: decision.averageUsed,
               movement: decision.movement,
             })
@@ -204,8 +217,15 @@ export function relegateGuild(
             .returning({
               discordUserId: players.discordUserId,
               isTest: players.isTest,
+              leagueNumber: players.leagueNumber,
+              percentageHistory: players.percentageHistory,
             })
             .get();
+          if (updated && updated.leagueNumber !== null)
+            playerUpdates.set(registration.id, {
+              leagueTier: updated.leagueNumber,
+              percentageHistory: updated.percentageHistory,
+            });
           if (updated && !updated.isTest && update.leagueNumber !== undefined) {
             roleAssignments.push({
               discordUserId: updated.discordUserId,
@@ -217,7 +237,21 @@ export function relegateGuild(
           .set({ hasUsedRelegate: true })
           .where(eq(competitions.id, competition.id))
           .run();
+        const decisionById = new Map(
+          decisions.map((decision) => [decision.registrationId, decision])
+        );
         processed.push({
+          movements: [...registered.values()].map((registration) => {
+            const decision = decisionById.get(registration.id);
+            const playerUpdate = playerUpdates.get(registration.id);
+            return {
+              uuid: registration.minecraftUuid,
+              movementStatus: websiteMovementStatus(decision?.movement),
+              currentPercentage: decision?.percentage ?? null,
+              averagePercentage: decision?.averageUsed ?? null,
+              ...(playerUpdate ? { playerUpdate } : {}),
+            };
+          }),
           leagueNumber: competition.leagueNumber,
           promoted: decisions.filter(
             (decision) => decision.movement === "promote"

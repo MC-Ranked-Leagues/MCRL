@@ -27,6 +27,7 @@ test("imports rank only registered finishers, share tied places, and distinguish
   const competition = setupMatchPlayers();
   expect(importMatch(competition.id, rankedMatch())).toEqual({
     status: "imported",
+    matchId: database.select().from(matches).get()!.id,
     number: 1,
     matched: 5,
     total: 6,

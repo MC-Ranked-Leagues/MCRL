@@ -1,9 +1,13 @@
+import { getCompetitionMovement } from "../db/relegation";
+import { websiteMovementStatus } from "../db/publication-snapshots";
+import { api } from "@mcrl/backend/api";
 import {
   ApplicationIntegrationType,
   InteractionContextType,
   SlashCommandBuilder,
 } from "discord.js";
 import {
+  getCompetitionRegistration,
   endCompetition,
   getActiveCompetition,
   getLatestEndedCompetition,
@@ -15,6 +19,10 @@ import {
 import { updateLeaderboardMessages } from "../lib/leaderboard-messages";
 import { updateRegistrationMessages } from "../lib/registration-messages";
 import type { BotCommand } from "./command";
+import {
+  publishToWebsite,
+  reportPublicationResults,
+} from "../lib/backend-publisher";
 
 export const emCommand = {
   data: new SlashCommandBuilder()
@@ -45,6 +53,42 @@ export const emCommand = {
       );
       return;
     }
+    const publicationResults =
+      result.status === "already_ended"
+        ? []
+        : publishToWebsite(
+            interaction.guildId,
+            `End competition: League ${competition.leagueNumber}, Week ${competition.weekNumber}`,
+            (client, writerKey) => {
+              const movement = getCompetitionMovement(competition.id)!;
+              const decisions = new Map(
+                movement.decisions.map((decision) => [
+                  decision.registrationId,
+                  decision,
+                ])
+              );
+              const registrations = getCompetitionRegistration(
+                competition.id
+              )!.players;
+              return client.mutation(api.writes.competitions.endCompetition, {
+                writerKey,
+                leagueTier: competition.leagueNumber,
+                weekNumber: competition.weekNumber,
+                movements: registrations.map((player) => {
+                  const decision = decisions.get(player.id);
+                  return {
+                    uuid: player.minecraftUuid,
+                    movementStatus: websiteMovementStatus(decision?.movement),
+                    currentPercentage:
+                      decision && "percentage" in decision
+                        ? (decision.percentage as number | null)
+                        : null,
+                    averagePercentage: decision?.averageUsed ?? null,
+                  };
+                }),
+              });
+            }
+          );
     const content = `League ${competition.leagueNumber}, Week ${competition.weekNumber} ${result.status === "already_ended" ? "is already ended" : "has ended"}.`;
     try {
       const channel = await interaction.guild.channels.fetch(
@@ -67,10 +111,12 @@ export const emCommand = {
       await interaction.editReply(
         `${content}\nThe results are saved, but I could not refresh all messages in <#${context.league.infoChannelId}>. Run /em again before starting another competition to retry.`
       );
+      await reportPublicationResults(interaction, publicationResults);
       return;
     }
     await interaction.editReply(
       `${content} Final standings are posted in <#${context.league.infoChannelId}>.`
     );
+    await reportPublicationResults(interaction, publicationResults);
   },
 } satisfies BotCommand;

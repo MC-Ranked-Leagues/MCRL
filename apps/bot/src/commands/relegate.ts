@@ -1,3 +1,4 @@
+import { api } from "@mcrl/backend/api";
 import {
   ApplicationIntegrationType,
   InteractionContextType,
@@ -10,6 +11,10 @@ import { LeagueRoleUpdateError, syncLeagueRole } from "../lib/league-roles";
 import { requireCommandGuild } from "../lib/command-context";
 import { chunkMessage } from "../lib/chunk-message";
 import type { BotCommand } from "./command";
+import {
+  publishToWebsite,
+  reportPublicationResults,
+} from "../lib/backend-publisher";
 
 export const relegateCommand = {
   data: new SlashCommandBuilder()
@@ -46,6 +51,21 @@ export const relegateCommand = {
       );
       return;
     }
+    const publicationResults = result.processed.length
+      ? publishToWebsite(
+          interaction.guildId,
+          `Finalize movements: Week ${result.week}`,
+          (client, writerKey) =>
+            result.processed.map((league) =>
+              client.mutation(api.writes.competitions.processMovements, {
+                writerKey,
+                leagueTier: league.leagueNumber,
+                weekNumber: result.week,
+                movements: league.movements,
+              })
+            )
+        )
+      : [];
     if (result.roleAssignments.length) {
       await interaction.editReply(
         "Movements saved. Updating Discord league roles..."
@@ -106,5 +126,6 @@ export const relegateCommand = {
         allowedMentions: { parse: [] },
       });
     }
+    await reportPublicationResults(interaction, publicationResults);
   },
 } satisfies BotCommand;

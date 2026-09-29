@@ -1,3 +1,4 @@
+import { mockWebsite } from "../testing/website";
 import { afterEach, beforeEach, expect, spyOn, test } from "bun:test";
 import { MessageFlags, type ButtonInteraction } from "discord.js";
 
@@ -12,6 +13,8 @@ const guildId = Object.keys(guildConfiguration)[0]!;
 const config = guildConfiguration[guildId]!;
 const leagueRoleId = config.leagues[5]!.leagueRoleId;
 const lookup = spyOn(ranked.users, "get");
+
+mockWebsite();
 
 beforeEach(() => {
   resetDatabase();

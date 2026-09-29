@@ -178,6 +178,7 @@ export function importMatch(
     return {
       status: "imported",
       number: matchNumber,
+      matchId: match.id,
       matched,
       total: players.length,
       unmatched,

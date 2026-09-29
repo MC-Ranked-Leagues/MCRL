@@ -8,6 +8,10 @@ import { assignPlayerLeague, getPlayer } from "../db/players";
 import { syncLeagueRole } from "../lib/league-roles";
 import { requireCommandGuild } from "../lib/command-context";
 import { ranked, rankedLookupErrorMessage } from "../lib/ranked";
+import {
+  publishPlayer,
+  reportPublicationResults,
+} from "../lib/backend-publisher";
 import type { BotCommand } from "./command";
 
 export const assignCommand = {
@@ -82,6 +86,7 @@ export const assignCommand = {
       );
       return;
     }
+    const publication = publishPlayer(getPlayer(interaction.guildId, user.id)!);
     try {
       await syncLeagueRole(
         interaction.guild,
@@ -95,10 +100,12 @@ export const assignCommand = {
       await interaction.editReply(
         "The assignment was saved, but Discord roles could not be updated. Check Manage Roles and role ordering, then run /assign again."
       );
+      await reportPublicationResults(interaction, publication);
       return;
     }
     await interaction.editReply(
       `Assigned <@${user.id}> to League ${leagueNumber}.`
     );
+    await reportPublicationResults(interaction, publication);
   },
 } satisfies BotCommand;

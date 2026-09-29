@@ -1,3 +1,4 @@
+import { mockWebsite } from "../testing/website";
 import { guildConfiguration } from "../../config/guilds";
 import { beforeEach, expect, test } from "bun:test";
 import { type ChatInputCommandInteraction } from "discord.js";
@@ -5,6 +6,8 @@ import { nmCommand } from "./nm";
 import { getActiveCompetition } from "../db/competitions";
 import { setCurrentWeek } from "../db/guilds";
 import { resetDatabase, registrationChannel } from "../testing/competition";
+
+mockWebsite();
 
 beforeEach(resetDatabase);
 

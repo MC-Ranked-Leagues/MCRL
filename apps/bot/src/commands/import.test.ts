@@ -1,3 +1,4 @@
+import { mockWebsite } from "../testing/website";
 import { beforeEach, expect, spyOn, test } from "bun:test";
 import type { ChatInputCommandInteraction } from "discord.js";
 
@@ -17,6 +18,8 @@ import {
   resetDatabase,
 } from "../testing/competition";
 import { importCommand } from "./import";
+
+mockWebsite();
 
 beforeEach(resetDatabase);
 

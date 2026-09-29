@@ -1,3 +1,4 @@
+import { api } from "@mcrl/backend/api";
 import {
   ApplicationIntegrationType,
   InteractionContextType,
@@ -12,6 +13,10 @@ import { getActiveCompetition, startCompetition } from "../db/competitions";
 import { getCurrentWeek } from "../db/guilds";
 import { updateRegistrationMessages } from "../lib/registration-messages";
 import type { BotCommand } from "./command";
+import {
+  publishToWebsite,
+  reportPublicationResults,
+} from "../lib/backend-publisher";
 
 export const nmCommand = {
   data: new SlashCommandBuilder()
@@ -58,6 +63,18 @@ export const nmCommand = {
       interaction.guildId,
       leagueNumber
     )!;
+    const publicationResults = publishToWebsite(
+      interaction.guildId,
+      `Create competition: League ${competition.leagueNumber}, Week ${competition.weekNumber}`,
+      (client, writerKey) =>
+        client.mutation(api.writes.competitions.createCompetition, {
+          writerKey,
+          leagueTier: competition.leagueNumber,
+          weekNumber: competition.weekNumber,
+          maxTimeLimitMs: competition.maxTimeLimitMs,
+          startingTime: competition.startedAt.getTime(),
+        })
+    );
     try {
       await updateRegistrationMessages(channel, competition.id);
     } catch (error) {
@@ -69,11 +86,13 @@ export const nmCommand = {
       await interaction.editReply(
         `League ${leagueNumber}, Week ${weekNumber} was created, but I could not post its registration message in <#${league.infoChannelId}>. /toggle_registration will retry the message when changing registration status.`
       );
+      await reportPublicationResults(interaction, publicationResults);
       return;
     }
 
     await interaction.editReply(
       `Started League ${leagueNumber}, Week ${weekNumber} in <#${league.infoChannelId}>.`
     );
+    await reportPublicationResults(interaction, publicationResults);
   },
 } satisfies BotCommand;

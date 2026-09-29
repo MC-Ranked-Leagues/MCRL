@@ -23,6 +23,8 @@
       "name": "@mcrl/bot",
       "version": "0.0.1",
       "dependencies": {
+        "@mcrl/backend": "workspace:*",
+        "convex": "catalog:",
         "discord.js": "^14.27.0",
         "drizzle-orm": "^0.45.2",
         "mcsrranked-sdk": "catalog:",

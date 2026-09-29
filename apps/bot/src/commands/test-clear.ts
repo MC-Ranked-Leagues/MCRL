@@ -1,3 +1,5 @@
+import { getAllMatchSnapshots } from "../db/publication-snapshots";
+import { api } from "@mcrl/backend/api";
 import {
   ActionRowBuilder,
   ApplicationIntegrationType,
@@ -19,6 +21,10 @@ import {
   requireCommandGuild,
 } from "../lib/command-context";
 import type { BotCommand } from "./command";
+import {
+  publishToWebsite,
+  reportPublicationResults,
+} from "../lib/backend-publisher";
 
 export const testClearCommand = {
   data: new SlashCommandBuilder()
@@ -112,6 +118,33 @@ export const testClearCommand = {
       );
       return;
     }
+    const publicationResults = result.removed
+      ? publishToWebsite(
+          interaction.guildId,
+          `Test clear: League ${competition.leagueNumber}, Week ${competition.weekNumber}`,
+          (client, writerKey) => {
+            const snapshots = result.removed
+              ? getAllMatchSnapshots(competition)
+              : [];
+            return [
+              ...result.uuids.map((uuid) =>
+                client.mutation(api.writes.players.unregisterPlayer, {
+                  writerKey,
+                  leagueTier: competition.leagueNumber,
+                  weekNumber: competition.weekNumber,
+                  uuid,
+                })
+              ),
+              ...snapshots.map((snapshot) =>
+                client.mutation(api.writes.matches.importMatchData, {
+                  writerKey,
+                  ...snapshot,
+                })
+              ),
+            ];
+          }
+        )
+      : [];
     const content = `Removed ${result.removed} test registrations and their associated results, and cleared this league’s persistent test players and retained percentages.`;
     // Include imported matches so a retry can recreate a failed leaderboard send.
     const standings = getCompetitionStandings(competition.id)!;
@@ -141,8 +174,10 @@ export const testClearCommand = {
       await interaction.editReply(
         `${content} I could not refresh all messages. The deletion is saved; run /test-clear again to retry the refresh.`
       );
+      await reportPublicationResults(interaction, publicationResults);
       return;
     }
     await interaction.editReply(content);
+    await reportPublicationResults(interaction, publicationResults);
   },
 } satisfies BotCommand;

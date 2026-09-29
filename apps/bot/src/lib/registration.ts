@@ -1,9 +1,11 @@
+import { getAllMatchSnapshots } from "../db/publication-snapshots";
+import { api } from "@mcrl/backend/api";
 import {
   escapeMarkdown,
   type ChatInputCommandInteraction,
   type User,
 } from "discord.js";
-import { ranked, rankedLookupErrorMessage } from "./ranked";
+import { normalizeUuid, ranked, rankedLookupErrorMessage } from "./ranked";
 import { getMemberLeagues } from "./league-roles";
 import {
   guildConfiguration,
@@ -15,6 +17,10 @@ import { getImportedMatches } from "../db/matches";
 import { getPlayer } from "../db/players";
 import { replyWithCompetitionUpdate } from "./competition-messages";
 import { addCurrentWeekRole } from "./current-week-role";
+import {
+  publishToWebsite,
+  reportPublicationResults,
+} from "./backend-publisher";
 
 export async function registerCompetitionPlayer(
   interaction: ChatInputCommandInteraction<"cached">,
@@ -131,6 +137,30 @@ export async function registerCompetitionPlayer(
     return;
   }
 
+  const publicationResults = publishToWebsite(
+    interaction.guildId,
+    `Register player: League ${leagueNumber}, Week ${competition.weekNumber}`,
+    (client, writerKey) => {
+      const snapshots = getAllMatchSnapshots(competition);
+      return [
+        client.mutation(api.writes.players.registerPlayer, {
+          writerKey,
+          leagueTier: leagueNumber,
+          weekNumber: competition.weekNumber,
+          uuid: normalizeUuid(profile.uuid),
+          ign: profile.nickname,
+          ...(profile.eloRate === null ? {} : { elo: profile.eloRate }),
+        }),
+        ...snapshots.map((snapshot) =>
+          client.mutation(api.writes.matches.importMatchData, {
+            writerKey,
+            ...snapshot,
+          })
+        ),
+      ];
+    }
+  );
+
   let content = `Registered **${escapeMarkdown(profile.nickname)}** for League ${leagueNumber}, Week ${competition.weekNumber}.`;
   if (config.currentWeekRoleId) {
     try {
@@ -147,4 +177,5 @@ export async function registerCompetitionPlayer(
     league.infoChannelId,
     content
   );
+  await reportPublicationResults(interaction, publicationResults);
 }

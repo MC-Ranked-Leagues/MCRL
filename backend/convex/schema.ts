@@ -10,6 +10,15 @@ export default defineSchema({
     elo: v.optional(v.number()),
     currentLeagueNumber: v.number(),
     fastestTimeMs: v.optional(v.number()),
+    percentageHistory: v.optional(
+      v.array(
+        v.object({
+          week: v.number(),
+          league: v.number(),
+          percentage: v.number(),
+        })
+      )
+    ),
   })
     .index("by_uuid", ["uuid"])
     .index("by_league", ["currentLeagueNumber"])
@@ -38,6 +47,7 @@ export default defineSchema({
     status: v.union(v.literal("active"), v.literal("ended")),
     maxTimeLimitMs: v.number(),
     startingTime: v.optional(v.number()),
+    movementPhase: v.optional(v.union(v.literal("pending"), v.literal("done"))),
   })
     .index("by_status", ["status"])
     .index("by_week_number", ["weekNumber"])
@@ -57,6 +67,8 @@ export default defineSchema({
     movementStatus: v.optional(
       v.union(v.literal("promoted"), v.literal("demoted"), v.literal("none"))
     ),
+    currentPercentage: v.optional(v.union(v.number(), v.null())),
+    averagePercentage: v.optional(v.union(v.number(), v.null())),
   })
     .index("by_competition", ["competitionId"])
     .index("by_player", ["playerId"])

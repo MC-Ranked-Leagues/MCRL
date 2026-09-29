@@ -1,3 +1,4 @@
+import { mockWebsite } from "../testing/website";
 import { getPlayer } from "../db/players";
 import { guildConfiguration } from "../../config/guilds";
 import { beforeEach, expect, spyOn, test } from "bun:test";
@@ -11,6 +12,8 @@ import {
   input,
   endedMovementCompetition,
 } from "../testing/competition";
+
+mockWebsite();
 
 beforeEach(resetDatabase);
 
