@@ -9,10 +9,10 @@ and a role above that role in Discord's role order.
 Set `DEV_CONVEX_URL` and `DEV_CONVEX_WRITER_KEY` for the development guild, and
 `PROD_CONVEX_URL` and `PROD_CONVEX_WRITER_KEY` for the production guild. The bot
 selects the pair using each guild's `dev` setting. Configure the matching
-`WRITER_API_KEY` in each Convex deployment. Website failures leave local and Discord
-changes intact and produce a private notice plus a short log entry. Calls are
-not stored or retried. The owner can copy SQLite before `/advance_week` if manual
-website repair is needed.
+`WRITER_API_KEY` in each Convex deployment. See
+[website publication decisions](../../docs/bot/decisions.md#website-publication)
+for failure behavior.
+
 From the repository root:
 
 ```sh

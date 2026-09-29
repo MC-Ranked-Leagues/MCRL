@@ -29,9 +29,8 @@ The first successful import closes self-service registration. Hosts cannot reope
 registration while imported matches remain; late additions use `/admin_reg`.
 Clearing all imported matches allows a host to reopen registration manually.
 
-Each competition stores its own host Minecraft UUID. When an import omits the
-match ID, use the newest private game in that account's Ranked history. An
-explicit match ID remains available when the host played an unrelated game.
+Each competition has its own host account. Explicit match selection remains
+available because the host may have played an unrelated game more recently.
 
 Late host registration fetches every earlier imported Ranked match before saving
 anything. Registration and all match replacements then commit together; if a
@@ -64,28 +63,23 @@ and can register after registration closes. Existing saved membership must match
 the role and league. It has no force option. Use `/assign` to resolve league
 mismatches before registering.
 
-When configured, successful `/reg` and `/admin_reg` registrations add the current
-week role. `/unreg` and `/admin_unreg` remove it when the player has no other
-registration. `/em` removes it from that competition's registered players;
-`/unend` does not reapply it. Discord role
-failures do not undo saved changes. Hosts can retry `/em` removals or correct roles
-manually.
+The optional current week role tracks registration until the competition ends.
+Unregistering keeps it if another registration remains. `/em` removes it;
+`/unend` deliberately does not restore it. Role failures do not undo saved changes.
 
 Manual assignment preserves the account but clears percentage history when the
 league changes, unless the host explicitly chooses to preserve it. Assignments
-are blocked while the current account has participated in a competition that has not used `/relegate`, including played DNFs. Registration
-alone does not block assignment. Same-league assignments preserve history.
+are blocked while the current account has participated in a competition that has
+not used `/relegate`, including played DNFs. Registration alone does not block
+assignment. Same-league assignments preserve history.
 Stale signup reviews must not overwrite membership activated through registration
 or assignment.
 
 `/admin_unreg` removes one registration from an active competition, even after
 matches have been imported. Remove that player's match results and recalculate
 each imported match's placements and points as if they had never registered.
-Refresh the registration list and leaderboard. An ended competition must be
-reopened with `/unend` first; a relegated competition cannot be changed.
-The command does not ban the player from registering again. Test-player
-cleanup must preserve regular players and registration snapshots in other
-competitions.
+The command does not ban the player from registering again. Test-player cleanup
+must preserve regular players and registration snapshots in other competitions.
 
 ## Account migration
 
@@ -101,9 +95,8 @@ published results never transfer. Account versions keep those histories separate
 even when a player returns to an earlier UUID; weekly finalization must retain
 percentages only for the current version.
 
-Migration review shows prior request and approval counts and the last approved
-migration date. Keep the audit history through later migrations and history
-resets. Rejected requests are not completed account changes.
+Keep migration audit history through later migrations and history resets so
+hosts can see repeated switches. Rejected requests are not completed changes.
 
 ## Weekly finalization
 
@@ -142,10 +135,8 @@ Saved movement is authoritative even if Discord role updates fail. Hosts correct
 failed roles manually; repeating finalization must not reapply movement. Test
 players do not receive Discord role updates.
 
-Role updates remove the previous league role before adding the new one, naming
-only league roles in single-role updates so unrelated roles are never touched.
-A failed addition therefore leaves no role instead of a wrong one; members
-without a league role re-apply through `/signup`.
+Role updates touch only league roles and remove the previous role before adding
+the new one. A failed addition therefore leaves no role instead of a wrong one.
 
 ## League movement
 
@@ -187,12 +178,10 @@ decisions.
 
 ## Website publication
 
-SQLite owns live operations. After a successful local save, start typed Convex
-mutation calls in the same order as those saves, before awaiting Discord work.
-Finish roles, messages, and the command reply without waiting for the website;
-then report any website failure in a separate private notice and one short log
-summary. Use one Convex client per deployment and a 60-second timeout per HTTP
-request. A timeout can leave the remote outcome unknown.
+After a successful local save, start website writes in save order before waiting
+for Discord work. Finish roles, messages, and the command reply without waiting
+for the website, then report failures privately and in the log. A timeout can
+leave the remote outcome unknown.
 
 Do not store backend calls, pause publication, or retry failed or unsent calls.
 A failed update can cause later updates to fail or leave the website incomplete.
@@ -201,16 +190,13 @@ and use it for manual repair; hosts do not need a recovery workflow. Website
 availability must not block week advancement. Development and production guilds
 publish to separate Convex deployments.
 
-Keep each registration's final `currentPercentage` in SQLite so manual repairs
-can use the saved weekly value. Keep rolling percentage history in Convex for
-the future player statistics page. Its average can differ from the average used
-to decide a completed week's movement, particularly after a promotion resets
-history or a demotion appends 85%.
+Keep each registration's final percentage in SQLite for manual repairs, and
+rolling percentage history in Convex for player statistics. Its average can
+differ from the average used to decide a completed week's movement, particularly
+after a promotion resets history or a demotion appends 85%.
 
-Normal match imports compare new valid times with the saved personal best.
-Only corrections or deletions that affect that best need to recheck the player's
-remaining history. At this event's scale, use straightforward queries without
-arbitrary row-count cutoffs or separate large-roster paths.
+At this event's scale, use straightforward queries without arbitrary row-count
+cutoffs or separate large-roster paths.
 
 The website treats Minecraft accounts independently of Discord identity.
 Migration creates or updates the destination account and clears rolling
@@ -218,8 +204,5 @@ percentage history for both accounts. Published match results and historical
 registration percentages remain intact; the old account keeps its last known
 league. A return to that account updates its league without a promotion record.
 
-`/em` ends the competition and publishes each registration's current and average
-percentages with its expected movement in one Convex transaction. `/unend` removes that preview. `/relegate` publishes final
-movement and marks the competition done. Convex sorts website standings from
-the submitted match points and times for now. The implementation plan is in
-[website publishing](plans/website-publishing.md).
+Ending publishes a percentage and movement preview; reopening removes it.
+Relegation publishes final movement and marks the competition done.

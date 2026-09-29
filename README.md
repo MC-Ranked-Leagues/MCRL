@@ -1,13 +1,13 @@
 # MCRL
 
-MCRL contains the League public website and its shared Convex backend for
-Minecraft Speedrunning Ranked Leagues. The admin website and tournament bot can
-join the workspace when they are implemented.
+MCRL contains the public website, Discord tournament bot, and shared Convex
+backend for Minecraft Speedrunning Ranked Leagues.
 
 ## Structure
 
 ```text
 apps/web/       Astro and React public website
+apps/bot/       Discord bot with local SQLite tournament state
 backend/convex/ League schema, functions, and HTTP interface
 scripts/        Repository maintenance tools
 ```
@@ -29,6 +29,7 @@ bun run dev
 ```
 
 Run `bun run dev:web` or `bun run dev:backend` to start one process.
+See the [bot README](apps/bot/README.md) for bot setup and maintenance.
 
 `READER_API_KEY` and `WRITER_API_KEY` are Convex deployment environment
 variables used by the backend HTTP interface.
@@ -42,7 +43,7 @@ bun run build
 bun run lint
 ```
 
-Use the `:web`, `:backend`, and `:scripts` commands in `package.json` to check a
+Use the `:web`, `:bot`, `:backend`, and `:scripts` commands in `package.json` to check a
 smaller area. `bun run format:check` checks formatting.
 
 The frontend hosting build runs from the repository root with
