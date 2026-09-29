@@ -293,6 +293,7 @@ function WeekContent() {
               </TabsList>
               <TabsContent value="standings" className="mt-0">
                 <StandingsTable
+                  key={`${effectiveSelectedWeekNumber}-${effectiveSelectedLeagueTier}`}
                   standings={standings}
                   selectedPlayerId={selectedPlayerId}
                   onPlayerClick={handlePlayerClick}
@@ -334,6 +335,7 @@ function WeekContent() {
             <div className="flex flex-1 flex-row items-start gap-8 lg:gap-16">
               <div className="flex w-[320px] shrink-0 flex-col gap-4">
                 <StandingsTable
+                  key={`${effectiveSelectedWeekNumber}-${effectiveSelectedLeagueTier}`}
                   standings={standings}
                   selectedPlayerId={selectedPlayerId}
                   onPlayerClick={handlePlayerClick}

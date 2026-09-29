@@ -62,6 +62,22 @@ export const getWeekStandings = query({
     weekNumber: v.number(),
     leagueTier: v.number(),
   },
+  returns: v.array(
+    v.object({
+      rank: v.union(v.number(), v.null()),
+      playerId: v.id("players"),
+      name: v.string(),
+      totalPoints: v.number(),
+      movement: v.union(
+        v.literal("promoted"),
+        v.literal("demoted"),
+        v.literal("none"),
+        v.null()
+      ),
+      currentPercentage: v.union(v.number(), v.null()),
+      averagePercentage: v.union(v.number(), v.null()),
+    })
+  ),
   handler: async (ctx, args) => {
     const competition = await getCompetitionByWeekAndLeague(
       ctx,
@@ -85,6 +101,8 @@ export const getWeekStandings = query({
       name: registration.playerIgn,
       totalPoints: registration.totalPoints,
       movement: registration.movementStatus ?? null,
+      currentPercentage: registration.currentPercentage ?? null,
+      averagePercentage: registration.averagePercentage ?? null,
     }));
   },
 });
