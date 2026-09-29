@@ -8,8 +8,6 @@ before reporting their outcome. The write mutations are grouped under
 
 ## Remaining work
 
-- Use retained Convex percentage history on the player statistics page. Label
-  its current average separately from the average recorded for a completed week.
 - Connect the existing internal empty-match, point-adjustment, and league-update
   mutations when their corresponding commands are implemented. Make a mutation
   public with writer-key checks only when a bot command needs it.

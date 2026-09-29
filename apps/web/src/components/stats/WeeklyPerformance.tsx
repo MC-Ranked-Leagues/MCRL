@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import {
   formatDuration,
+  formatPercentage,
   movementLabel,
   type MatchDetail,
   type Movement,
@@ -150,7 +151,7 @@ export function WeeklyPerformance({
                     </span>
                     <MovementBadge movement={week.movement} />
                   </div>
-                  <dl className="mt-3 grid grid-cols-3 gap-4 sm:max-w-xl">
+                  <dl className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-5">
                     <div>
                       <dt className="text-[9px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
                         Points
@@ -161,7 +162,23 @@ export function WeeklyPerformance({
                     </div>
                     <div>
                       <dt className="text-[9px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
-                        Average
+                        Week percentage
+                      </dt>
+                      <dd className="mt-0.5 text-sm font-semibold text-primary tabular-nums">
+                        {formatPercentage(week.currentPercentage)}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-[9px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
+                        Movement average
+                      </dt>
+                      <dd className="mt-0.5 text-sm tabular-nums">
+                        {formatPercentage(week.averagePercentage)}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-[9px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
+                        Average time
                       </dt>
                       <dd className="mt-0.5 text-sm tabular-nums">
                         {formatDuration(week.averageTimeMs)}

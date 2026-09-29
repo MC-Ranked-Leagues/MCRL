@@ -6,6 +6,60 @@ export const getPlayerStats = query({
   args: {
     playerId: v.id("players"),
   },
+  returns: v.union(
+    v.null(),
+    v.object({
+      name: v.string(),
+      elo: v.number(),
+      currentLeague: v.string(),
+      currentTier: v.number(),
+      percentageHistory: v.array(
+        v.object({
+          week: v.number(),
+          league: v.number(),
+          percentage: v.number(),
+        })
+      ),
+      leagueHistory: v.array(
+        v.object({
+          weekNumber: v.number(),
+          leagueNumber: v.number(),
+          movement: v.union(
+            v.literal("promoted"),
+            v.literal("demoted"),
+            v.literal("none")
+          ),
+        })
+      ),
+      weeklyBreakdown: v.array(
+        v.object({
+          weekNumber: v.number(),
+          leagueNumber: v.number(),
+          matches: v.number(),
+          totalPoints: v.number(),
+          averageTimeMs: v.union(v.number(), v.null()),
+          currentPercentage: v.union(v.number(), v.null()),
+          averagePercentage: v.union(v.number(), v.null()),
+          matchDetails: v.array(
+            v.object({
+              matchId: v.id("matches"),
+              matchNumber: v.number(),
+              placement: v.union(v.number(), v.null()),
+              pointsWon: v.number(),
+              timeMs: v.union(v.number(), v.null()),
+              dnf: v.boolean(),
+              missed: v.boolean(),
+            })
+          ),
+        })
+      ),
+      summary: v.object({
+        totalMatches: v.number(),
+        avgTimeMs: v.number(),
+        bestTimeMs: v.number(),
+      }),
+    })
+  ),
   handler: async (ctx, args) => {
     const player = await ctx.db.get("players", args.playerId);
     if (!player) return null;
@@ -60,6 +114,8 @@ export const getPlayerStats = query({
             0
           ),
           averageTimeMs: registration.averageTimeMs,
+          currentPercentage: registration.currentPercentage ?? null,
+          averagePercentage: registration.averagePercentage ?? null,
           matchDetails,
         };
       })
@@ -86,6 +142,7 @@ export const getPlayerStats = query({
       elo: player.elo ?? 0,
       currentLeague: `League ${player.currentLeagueNumber}`,
       currentTier: player.currentLeagueNumber,
+      percentageHistory: player.percentageHistory ?? [],
       leagueHistory,
       weeklyBreakdown: weeklyBreakdown.sort(
         (a, b) => a.weekNumber - b.weekNumber
