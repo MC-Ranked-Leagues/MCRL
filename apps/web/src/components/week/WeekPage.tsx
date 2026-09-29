@@ -236,6 +236,7 @@ function WeekContent() {
             name: selectedPlayer.name,
             totalPoints: selectedPlayer.totalPoints,
             rank: selectedPlayer.rank,
+            averagePercentage: selectedPlayer.averagePercentage,
           }
         : null,
     }),
