@@ -12,7 +12,7 @@ export interface GuildConfiguration {
   signup?: { channelId: string; reviewerId: string };
   logChannelId: string;
   commandRoleId: string;
-  // Set this to give registered players a role until /advance_week.
+  // Set this to give registered players a role until /unreg or /em.
   currentWeekRoleId?: string;
   leagues: Readonly<Record<number, LeagueConfiguration>>;
 }

@@ -18,6 +18,7 @@ import {
 } from "../lib/command-context";
 import { updateLeaderboardMessages } from "../lib/leaderboard-messages";
 import { updateRegistrationMessages } from "../lib/registration-messages";
+import { clearCurrentWeekRole } from "../lib/current-week-role";
 import type { BotCommand } from "./command";
 import {
   publishToWebsite,
@@ -89,7 +90,28 @@ export const emCommand = {
               });
             }
           );
-    const content = `League ${competition.leagueNumber}, Week ${competition.weekNumber} ${result.status === "already_ended" ? "is already ended" : "has ended"}.`;
+    let content = `League ${competition.leagueNumber}, Week ${competition.weekNumber} ${result.status === "already_ended" ? "is already ended" : "has ended"}.`;
+    if (guild.currentWeekRoleId) {
+      try {
+        const playerIds = getCompetitionRegistration(competition.id)!
+          .players.filter((player) => !player.discordUserId.startsWith("test:"))
+          .map((player) => player.discordUserId);
+        const { failures } = await clearCurrentWeekRole(
+          interaction.guild,
+          guild,
+          playerIds
+        );
+        if (failures.length)
+          content += `\nCould not remove the current week role from ${failures.length} player${failures.length === 1 ? "" : "s"}. Run /em again to retry.`;
+      } catch (error) {
+        console.error(
+          "Competition ended, but the current week role could not be cleared.",
+          error
+        );
+        content +=
+          "\nCould not clear the current week role. Check the role configuration and permissions, then run /em again to retry.";
+      }
+    }
     try {
       const channel = await interaction.guild.channels.fetch(
         context.league.infoChannelId

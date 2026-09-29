@@ -81,12 +81,7 @@ export async function clearCurrentWeekRole(
       userIds.slice(index, index + 5).map(async (userId) => {
         try {
           if (
-            await removeRoleFromMember(
-              guild,
-              role,
-              userId,
-              "Advanced to the next week"
-            )
+            await removeRoleFromMember(guild, role, userId, "Competition ended")
           )
             removed++;
         } catch (error) {

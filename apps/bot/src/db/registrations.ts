@@ -31,28 +31,6 @@ export interface ImportedMatchReplay {
   data: RankedMatchInput;
 }
 
-export function getGuildRegistrationDiscordIds(guildId: string): string[] {
-  return getDatabase()
-    .selectDistinct({ discordUserId: registrations.discordUserId })
-    .from(registrations)
-    .innerJoin(competitions, eq(competitions.id, registrations.competitionId))
-    .innerJoin(
-      persistentPlayers,
-      and(
-        eq(persistentPlayers.guildId, guildId),
-        eq(persistentPlayers.discordUserId, registrations.discordUserId)
-      )
-    )
-    .where(
-      and(
-        eq(competitions.guildId, guildId),
-        eq(persistentPlayers.isTest, false)
-      )
-    )
-    .all()
-    .map((registration) => registration.discordUserId);
-}
-
 export function hasGuildRegistration(guildId: string, discordUserId: string) {
   return (
     getDatabase()

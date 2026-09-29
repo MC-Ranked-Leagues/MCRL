@@ -22,7 +22,7 @@ const configuration: GuildConfiguration = {
   },
 };
 
-test("registration adds the role and week advancement clears only members who hold it", async () => {
+test("registration adds the role and ending clears only members who hold it", async () => {
   const roleId = "current-week";
   const holders = new Set(["carol"]);
   const added: string[] = [];

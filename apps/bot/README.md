@@ -4,7 +4,7 @@ Copy `apps/bot/.env.example` to `apps/bot/.env` and set `DISCORD_TOKEN` and
 `DB_FILE_NAME`. Configure your server IDs in `apps/bot/config/guilds.ts`,
 including `developerId` for the account allowed to run `/dev_change_week`.
 Set `currentWeekRoleId` in a guild's configuration to give registered players
-a current week role until `/unreg` or `/advance_week`. The bot needs Manage Roles
+a current week role until `/unreg` or `/em`. The bot needs Manage Roles
 and a role above that role in Discord's role order.
 Set `DEV_CONVEX_URL` and `DEV_CONVEX_WRITER_KEY` for the development guild, and
 `PROD_CONVEX_URL` and `PROD_CONVEX_WRITER_KEY` for the production guild. The bot

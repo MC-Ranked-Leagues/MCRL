@@ -66,9 +66,10 @@ mismatches before registering.
 
 When configured, successful `/reg` and `/admin_reg` registrations add the current
 week role. `/unreg` and `/admin_unreg` remove it when the player has no other
-registration, and
-`/advance_week` clears it from the remaining registered players. Discord role
-failures do not undo saved changes and must be corrected manually.
+registration. `/em` removes it from that competition's registered players;
+`/unend` does not reapply it. Discord role
+failures do not undo saved changes. Hosts can retry `/em` removals or correct roles
+manually.
 
 Manual assignment preserves the account but clears percentage history when the
 league changes, unless the host explicitly chooses to preserve it. Assignments

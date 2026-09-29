@@ -5,7 +5,6 @@ import {
   toggleRegistration,
 } from "./competitions";
 import {
-  getGuildRegistrationDiscordIds,
   hasGuildRegistration,
   registerPlayer,
   unregisterPlayer,
@@ -14,7 +13,7 @@ import { input, resetDatabase } from "../testing/competition";
 
 beforeEach(resetDatabase);
 
-test("week role cleanup uses remaining real registrations in this guild", () => {
+test("unregistration checks remaining registrations only in this guild", () => {
   startCompetition(input);
   startCompetition({ ...input, leagueNumber: 6 });
   startCompetition({ ...input, guildId: "other-guild" });
@@ -47,13 +46,10 @@ test("week role cleanup uses remaining real registrations in this guild", () => 
     ).toBe("registered");
   }
 
-  expect(getGuildRegistrationDiscordIds(input.guildId).sort()).toEqual([
-    "multi",
-    "solo",
-  ]);
+  expect(hasGuildRegistration(input.guildId, "solo")).toBe(true);
+  expect(hasGuildRegistration(input.guildId, "elsewhere")).toBe(false);
   expect(unregisterPlayer(first.id, "multi").status).toBe("unregistered");
   expect(hasGuildRegistration(input.guildId, "multi")).toBe(true);
   expect(unregisterPlayer(second.id, "multi").status).toBe("unregistered");
   expect(hasGuildRegistration(input.guildId, "multi")).toBe(false);
-  expect(getGuildRegistrationDiscordIds(input.guildId)).toEqual(["solo"]);
 });

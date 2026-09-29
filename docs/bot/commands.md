@@ -148,6 +148,9 @@ at least one imported match. Preserves registrations and results. Standings
 include played DNFs, movement averages and markers, and a separate list of players
 who missed the entire competition.
 
+If configured, removes the current week role from this competition's registered
+players. Repeat `/em` to retry failed role removals.
+
 Movement is a preview until relegation, then uses saved decisions. If a message
 update fails, repeat before starting another competition. With no active
 competition, refreshes the most recently ended competition's messages.
@@ -158,6 +161,7 @@ Reopen the most recently ended competition with registration closed and refresh
 its messages. Preserves registrations, matches, results, and message IDs. Normal
 result editing and host registration resume. Unavailable after relegation or
 while another competition is active in the league.
+Does not reapply the current week role.
 
 ### `/relegate [force]`
 
@@ -184,9 +188,7 @@ After confirmation, delete every competition in the server, including
 registrations, matches, and results, and advance the stored week. Preserves
 players, retained percentages, and Discord messages.
 
-If configured, removes the current week role from remaining registered players
-who hold it. Failed role removals are reported for manual correction and do not
-undo week advancement.
+Does not change the current week role; `/em` removes it when a competition ends.
 
 Every competition must have used `/relegate` unless `force:true` is set. Rechecks
 this at confirmation and cancels if the stored week changed in the meantime.
