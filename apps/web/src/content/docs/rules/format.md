@@ -13,7 +13,8 @@ Points for each placement are calculated using this formula, rounded down:
 
 Where `Players` is the total number of players who signed up for the week, and `Placement` is your placement for the seed (1st = 1, 2nd = 2, etc). However you will always receive at least 1 point for completing a seed.
 
-Additionally, the first three to finish a seed will get bonus points: 
+Additionally, the first three to finish a seed will get bonus points, provided their placement is in the top half of registered players, rounded down:
+
 > 1st +5 \
 > 2nd +3 \
 > 3rd +1
@@ -30,8 +31,4 @@ For example, if there are 25 players in a match:
 
 ## Ranking
 
-The ranking for each week is just the total number of points. \
-In case of ties, the player with a faster average completion time ranks higher. \
-Not completing or not playing a seed counts as time limit for the average time. \
-If you didn't complete any seed, you are effectively unranked. \
-The ranking is used to calculate a performance score, which is used for relegations.
+The ranking for each week is just the total number of points. In case of ties, the player with a faster average completion time ranks higher. If points and average time are both tied, Minecraft names determine the order alphabetically. Not completing or not playing a seed counts as time limit for the average time. If you didn't complete any seed, you are effectively unranked. The ranking is used to calculate a performance score, which is used for relegations.

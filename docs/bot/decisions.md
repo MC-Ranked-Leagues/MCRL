@@ -102,8 +102,8 @@ hosts can see repeated switches. Rejected requests are not completed changes.
 
 Only `/relegate` appends percentage history. Keep at most three entries, each with
 its week and league. Staying appends the actual current percentage. Promotion
-clears all history. Automatic demotion preserves prior entries and appends 85%
-instead of the current percentage. This bonus gives no immunity or cooldown, and
+clears all history. Automatic demotion replaces all history with one 85% entry
+for the current week and league. This bonus gives no immunity or cooldown, and
 manual assignment does not grant it.
 
 Missing the entire competition leaves history unchanged. Skipped weeks neither
@@ -193,7 +193,7 @@ publish to separate Convex deployments.
 Keep each registration's final percentage in SQLite for manual repairs, and
 rolling percentage history in Convex for player statistics. Its average can
 differ from the average used to decide a completed week's movement, particularly
-after a promotion resets history or a demotion appends 85%.
+after a promotion clears history or a demotion replaces it with one 85% entry.
 
 At this event's scale, use straightforward queries without arbitrary row-count
 cutoffs or separate large-roster paths.

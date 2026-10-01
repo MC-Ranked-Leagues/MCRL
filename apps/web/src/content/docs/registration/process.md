@@ -3,16 +3,37 @@ title: Registration Process
 description: How to register for the Ranked Leagues Event.
 ---
 
-This page details the process of registering for the event, and how to play in a week.
+You join the leagues through [Discord](https://discord.gg/zzptZsec42). Signing up
+gives you a league, then you register separately for each week you want to play.
+You don't need to participate every week.
 
-## Registration
+## Join a league
 
-The registration process is handled through [Discord](https://discord.gg/zzptZsec42). Upon joining, get the ranked role in `#roles-react`, head to the `#league-signups` channel and use the /signup command.
+1. Join the Discord server and get the ranked role in `#roles-react`.
+2. Link Discord to your Minecraft account in the MCSR Ranked client. Use `/link`
+   for instructions, then `/ranked` to check that the bot finds the right account.
+3. Head to `#league-signups` and use `/signup`. Wait for the reviewer to approve
+   your placement. You'll get a league role and access to that league's channels,
+   where the hosts announce when and how to play.
 
-After that, wait for the admins to verify your registration. Once verified, you are assigned to a league and you'll get access to the league-specific channels, where you get the information on how to participate. You are not required to participate every week, however if you never show up you may be removed in the future.
+## Play in a week
 
-## Playing in a week
+Registration opens about an hour before the event, and you'll be pinged when it
+opens. Check the announced time, then:
 
-First, make sure you've linked your Discord to your MCSR Ranked account. Then show up before the scheduled time and do `/reg` in your league channel. Include your twitch username if you intend to stream. Registration opens about an hour before the event. You will be pinged when it opens. If you register but don't play a seed, the leaderboard lists you below the ranked players as missed.
+1. Use `/reg` in your league's chat channel. If you're streaming, use
+   `/reg streaming:true`. Save your Twitch username with `/twitch` first if it
+   isn't connected on Ranked.
+2. Check the bot's reply to make sure you're registered.
+3. Join the room with the code provided in your league channel and speedrun the game.
 
-After registering, simply join the room with the provided code in your league channel at the scheduled time and speedrun the game.
+Registration closes when the host closes it or imports the first match. While
+we don't recommend late registrations, ask a host if you need to join after that.
+
+If you can't make it, use `/unreg` to drop out while registration is open. If registration has already
+closed, don't worry. If you don't play any seeds, you'll be listed as missed
+below the standings and your performance history won't change. Playing a seed
+without completing it still counts as participation.
+
+See [Using the League Bot](/bot/players/) for the command list and help with
+account changes.

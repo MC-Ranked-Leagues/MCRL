@@ -82,14 +82,10 @@ export default defineConfig({
           ],
         },
         {
-          label: "Using the League Bot",
-          collapsed: false,
-          items: [{ label: "Command List", slug: "bot/commands" }],
-        },
-        {
           label: "Extra Information",
           collapsed: false,
           items: [
+            { label: "Using the League Bot", slug: "bot/players" },
             { label: "Share your stream", slug: "info/share-stream" },
             { label: "Contributions", slug: "info/contributions" },
           ],
