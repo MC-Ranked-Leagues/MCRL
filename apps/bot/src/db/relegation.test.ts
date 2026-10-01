@@ -55,7 +55,7 @@ test("assignment waits for participating competitions to be processed", () => {
   expect(getPlayer(input.guildId, "league5player0")?.leagueNumber).toBe(2);
 });
 
-test("relegation uses preview values, retains demotion history, trims oldest, and skips absent players", async () => {
+test("relegation preserves preview values, resets demotion history to 85%, trims staying history, and skips absent players", async () => {
   const competition = endedMovementCompetition();
   const history = [20, 30, 40].map((percentage, index) => ({
     week: index + 1,
@@ -83,9 +83,24 @@ test("relegation uses preview values, retains demotion history, trims oldest, an
         (player) => player.movement === null && player.averageUsed === null
       )
   ).toBe(true);
-  expect(relegateGuild(input.guildId, [5])).toMatchObject({
+  const result = relegateGuild(input.guildId, [5]);
+  expect(result).toMatchObject({
     status: "processed",
     processed: [{ leagueNumber: 5, promoted: 1, demoted: 1 }],
+  });
+  if (result.status !== "processed") throw new Error("Relegation was blocked.");
+  const demoted = getPlayer(input.guildId, "league5player6")!;
+  // Website publication gets the reset history and the original movement average.
+  expect(
+    result.processed[0]!.movements.find(
+      ({ uuid }) => uuid === demoted.minecraftUuid
+    )
+  ).toMatchObject({
+    averagePercentage: 70 / 3,
+    playerUpdate: {
+      leagueTier: 6,
+      percentageHistory: [{ week: 1, league: 5, percentage: 85 }],
+    },
   });
   expect(getPlayer(input.guildId, "league5player0")).toMatchObject({
     leagueNumber: 4,
@@ -93,11 +108,7 @@ test("relegation uses preview values, retains demotion history, trims oldest, an
   });
   expect(getPlayer(input.guildId, "league5player6")).toMatchObject({
     leagueNumber: 6,
-    percentageHistory: [
-      history[1],
-      history[2],
-      { week: 1, league: 5, percentage: 85 },
-    ],
+    percentageHistory: [{ week: 1, league: 5, percentage: 85 }],
   });
   expect(getPlayer(input.guildId, "league5player7")).toMatchObject({
     leagueNumber: 5,

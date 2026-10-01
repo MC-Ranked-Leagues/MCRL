@@ -185,9 +185,8 @@ export function relegateGuild(
             update.leagueNumber = competition.leagueNumber - 1;
           } else if (decision.movement === "demote") {
             update.percentageHistory = [
-              ...history,
               { week, league: competition.leagueNumber, percentage: 85 },
-            ].slice(-3);
+            ];
             update.leagueNumber = competition.leagueNumber + 1;
           } else if (decision.percentage !== null) {
             update.percentageHistory = [
