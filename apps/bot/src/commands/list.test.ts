@@ -22,7 +22,7 @@ test("only hosts can export registrations", async () => {
   ]);
 });
 
-test("ranked exports include Twitch usernames only for streaming registrations", () => {
+test("ranked exports include retained percentages and Twitch usernames only for streaming registrations", () => {
   expect(
     JSON.parse(
       formatRankedRegistrationExport([
@@ -30,13 +30,24 @@ test("ranked exports include Twitch usernames only for streaming registrations",
           ign: "Streamer",
           streaming: true,
           twitch: "streamer_live",
+          percentageHistory: [
+            { week: 1, league: 5, percentage: 0 },
+            { week: 3, league: 5, percentage: 60.125 },
+            { week: 4, league: 5, percentage: 90 },
+          ],
         },
         {
           ign: "PrivatePlayer",
           streaming: false,
           twitch: "private_channel",
+          percentageHistory: [],
         },
-        { ign: "NoTwitch", streaming: false, twitch: null },
+        {
+          ign: "NoTwitch",
+          streaming: false,
+          twitch: null,
+          percentageHistory: null,
+        },
       ])
     )
   ).toEqual([
@@ -44,16 +55,19 @@ test("ranked exports include Twitch usernames only for streaming registrations",
       ign: "Streamer",
       twitch_username: "streamer_live",
       display_name: "Streamer",
+      history: [0, 60.125, 90],
     },
     {
       ign: "PrivatePlayer",
       twitch_username: "",
       display_name: "PrivatePlayer",
+      history: [],
     },
     {
       ign: "NoTwitch",
       twitch_username: "",
       display_name: "NoTwitch",
+      history: [],
     },
   ]);
 });

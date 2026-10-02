@@ -21,6 +21,7 @@ export function formatRankedRegistrationExport(players: ExportPlayer[]) {
       ign: player.ign,
       twitch_username: player.streaming ? player.twitch! : "",
       display_name: player.ign,
+      history: (player.percentageHistory ?? []).map((entry) => entry.percentage),
     })),
     null,
     2

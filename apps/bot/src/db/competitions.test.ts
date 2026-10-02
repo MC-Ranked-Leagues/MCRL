@@ -18,7 +18,7 @@ import {
   unendCompetition,
 } from "./competitions";
 import { getCurrentWeek, setCurrentWeek } from "./guilds";
-import { competitions, matchResults } from "./schema";
+import { competitions, matchResults, players } from "./schema";
 import {
   resetDatabase,
   database,
@@ -138,7 +138,7 @@ test("a stale week blocks forced and repeated advancement", () => {
   expect(getCurrentWeek(input.guildId)).toBe(5);
 });
 
-test("competition exports read the current Twitch username for streaming registrations", () => {
+test("competition exports read the current Twitch username and retained percentages", () => {
   startCompetition(input);
   toggleRegistration(input.guildId, 5);
   const active = getActiveCompetition(input.guildId, 5)!;
@@ -177,22 +177,35 @@ test("competition exports read the current Twitch username for streaming registr
     ).toBe(true);
   }
 
+  const percentageHistory = [
+    { week: 1, league: 5, percentage: 0 },
+    { week: 2, league: 5, percentage: 60.125 },
+  ];
+  database
+    .update(players)
+    .set({ percentageHistory })
+    .where(eq(players.discordUserId, "streamer"))
+    .run();
+
   expect(
     getCompetitionExport(active.id)!.players.map((player) => ({
       ign: player.ign,
       streaming: player.streaming,
       twitch: player.twitch,
+      percentageHistory: player.percentageHistory,
     }))
   ).toEqual([
     {
       ign: "PrivatePlayer",
       streaming: false,
       twitch: "private_live",
+      percentageHistory: [],
     },
     {
       ign: "Streamer",
       streaming: true,
       twitch: "streamer_live",
+      percentageHistory,
     },
   ]);
   expect(

@@ -285,6 +285,7 @@ export function getCompetitionExport(competitionId: number) {
       ign: registrations.ign,
       streaming: registrations.streaming,
       twitch: persistentPlayers.twitch,
+      percentageHistory: persistentPlayers.percentageHistory,
     })
     .from(registrations)
     .leftJoin(
