@@ -18,8 +18,10 @@ additional movement rules from the old bot.
 
 ## Participation
 
-Order registrations by current-season peak Elo captured at registration, falling
-back to saved current Elo when peak Elo is unavailable.
+Order registration messages by the unrounded average of the latest two saved
+percentages, highest first, with no history last. Break ties by current-season
+peak Elo captured at registration, falling back to saved current Elo when peak
+Elo is unavailable, then Minecraft name.
 
 A played DNF counts as participation; a missed match does not. Players who have
 not played remain registered so they can join later rounds. Imports and

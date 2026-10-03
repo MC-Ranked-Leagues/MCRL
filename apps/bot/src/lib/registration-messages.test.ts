@@ -174,7 +174,7 @@ test("registration messages show Twitch usernames only for streaming registratio
   ).toContain("Twitch: new\\_name");
 });
 
-test("registration history display keeps existing Elo order and distinguishes 0% from no history", () => {
+test("registration history display distinguishes 0% from no history without changing input order", () => {
   const competition = setupMatchPlayers();
   database
     .update(players)
@@ -186,6 +186,7 @@ test("registration history display keeps existing Elo order and distinguishes 0%
   const content = formatRegistrationMessages(data).join("\n");
   expect(content).toContain("PreAvg: No history");
   expect(content).toContain("PreAvg: 0% (0%)");
+  expect(data.players.map((player) => player.id)).toEqual(before);
   data.players[0]!.percentageHistory = [
     { week: 1, league: 5, percentage: 99 },
     { week: 2, league: 5, percentage: 50 },
@@ -194,9 +195,69 @@ test("registration history display keeps existing Elo order and distinguishes 0%
   expect(formatRegistrationMessages(data).join("\n")).toContain(
     "PreAvg: 35% (50%, 20%)"
   );
+  expect(data.players.map((player) => player.id)).toEqual(before);
   expect(
     getCompetitionRegistration(competition.id)!.players.map(
       (player) => player.id
     )
   ).toEqual(before);
+});
+
+test("registration messages sort unrounded latest-two averages before Elo with no history last", async () => {
+  startCompetition(input);
+  toggleRegistration(input.guildId, 5);
+  const competition = getActiveCompetition(input.guildId, 5)!;
+  const registeredPlayers = [
+    { ign: "NoHistory", elo: 3000, peakElo: 3000, history: [] },
+    { ign: "Zero", elo: null, peakElo: null, history: [0] },
+    { ign: "RecentOnly", elo: 900, peakElo: 1000, history: [99, 50, 20] },
+    { ign: "CurrentLeader", elo: 1700, peakElo: 1800, history: [60, 100] },
+    { ign: "PeakLeader", elo: 1200, peakElo: 2000, history: [80] },
+    { ign: "AnotherPeak", elo: 1500, peakElo: 2000, history: [80] },
+    { ign: "Fallback", elo: 1900, peakElo: null, history: [80] },
+    { ign: "PrecisionLower", elo: 3000, peakElo: 4000, history: [80.001] },
+    { ign: "PrecisionHigher", elo: 800, peakElo: 900, history: [80.002] },
+  ];
+  for (const { history, ...player } of registeredPlayers) {
+    expect(
+      registerPlayer({
+        ...player,
+        competitionId: competition.id,
+        discordUserId: player.ign,
+        discordUsername: player.ign,
+        minecraftUuid: player.ign,
+        registeredAt: new Date(),
+      })
+    ).toBe("registered");
+    database
+      .update(players)
+      .set({
+        percentageHistory: history.map((percentage, index) => ({
+          week: index + 1,
+          league: 5,
+          percentage,
+        })),
+      })
+      .where(eq(players.discordUserId, player.ign))
+      .run();
+  }
+
+  const { channel, messages } = registrationChannel();
+  await updateRegistrationMessages(channel, competition.id);
+  const lines = [...messages.values()]
+    .join("\n")
+    .split("\n")
+    .filter((line) => /^\d+\./.test(line));
+  expect(lines.map((line) => line.split(" - ")[0])).toEqual([
+    "1. PrecisionHigher",
+    "2. PrecisionLower",
+    "3. AnotherPeak",
+    "4. PeakLeader",
+    "5. Fallback",
+    "6. CurrentLeader",
+    "7. RecentOnly",
+    "8. Zero",
+    "9. NoHistory",
+  ]);
+  expect(lines[6]).toContain("PreAvg: 35% (50%, 20%)");
 });

@@ -19,23 +19,33 @@ export function formatRegistrationMessages({
   competition,
   players,
 }: Registration): string[] {
+  const orderedPlayers = players
+    .map((player) => {
+      const history = (player.percentageHistory ?? []).slice(-2);
+      const average = averagePercentage(
+        history.map((entry) => entry.percentage),
+        2
+      );
+      return { player, history, average };
+    })
+    .sort((a, b) => {
+      if (a.average === null) return b.average === null ? 0 : 1;
+      if (b.average === null) return -1;
+      // Stable sorting keeps the database's Elo/name order for equal averages.
+      return b.average - a.average;
+    });
   const lines = [
     `**League ${competition.leagueNumber} Week ${competition.weekNumber} Registration**`,
     `Registration: **${competition.registrationOpen ? "ON" : "OFF"}**`,
     `Time limit: **${formatDuration(competition.maxTimeLimitMs)}**`,
     "",
-    ...players.map((player, index) => {
+    ...orderedPlayers.map(({ player, history, average }, index) => {
       const rating =
         player.peakElo !== null
           ? `Peak Elo: ${player.peakElo}`
           : player.elo !== null
             ? `Elo: ${player.elo}`
             : "unrated";
-      const history = (player.percentageHistory ?? []).slice(-2);
-      const average = averagePercentage(
-        history.map((entry) => entry.percentage),
-        2
-      );
       const preAverage =
         average === null
           ? "No history"
