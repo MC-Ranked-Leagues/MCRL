@@ -5,6 +5,10 @@ description: Information regarding championships for non league 1 leagues.
 
 The Championships are events for Leagues 2 to 6, with a smaller cash prize aimed at players not in the top 0.1%, so anyone of any skill level can win money!
 
+:::caution
+This document describes an old championship format. The rules will most likely change the next time championships are held.
+:::
+
 The current prize pool is $100 USD meaning $15 for first and $5 for second (per league)
 
 Each league runs its own separate Championship using the same overall structure but with different numbers of seeds, to fit a ~2 hour time limit per league.

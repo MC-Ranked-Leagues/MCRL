@@ -5,6 +5,10 @@ description: An overview on how the league 1 championships will work.
 
 **League 1 Championships** is a tournament that aims to crown the best league one player of the next 5 weeks. With a total price pool of $400 USD, we aim to increase our reach to more players, and make Ranked Leagues an integral part of the MCSR community.
 
+:::caution
+This document describes an old championship format. The rules will most likely change the next time championships are held.
+:::
+
 ## Format
 
 The **League 1 Championships** will be held over the next 6 weeks, 5 of which are the qualification stage. In short, the first 4 weeks will be the normal Ranked Leagues matches. Then we will replace the Ranked Leagues event for a last chance qualifiers, and finally the championships will be held.
