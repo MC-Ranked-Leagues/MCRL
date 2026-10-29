@@ -1,6 +1,9 @@
 import { v } from "convex/values";
 import { query, type QueryCtx } from "./_generated/server";
-import { compareWeekStandingRegistrations } from "./lib/weekStandings";
+import {
+  compareWeekStandingRegistrations,
+  projectWeekMovement,
+} from "./lib/weekStandings";
 
 async function getCompetitionByWeekAndLeague(
   ctx: QueryCtx,
@@ -76,6 +79,8 @@ export const getWeekStandings = query({
       ),
       currentPercentage: v.union(v.number(), v.null()),
       averagePercentage: v.union(v.number(), v.null()),
+      // Live weeks show expected values until the bot publishes `/em` results.
+      projected: v.boolean(),
     })
   ),
   handler: async (ctx, args) => {
@@ -94,16 +99,50 @@ export const getWeekStandings = query({
       .collect();
 
     registrations.sort(compareWeekStandingRegistrations);
+    const participants = registrations.filter(
+      (registration) => registration.averageTimeMs !== null
+    );
 
-    return registrations.map((registration, index) => ({
-      rank: registration.averageTimeMs === null ? null : index + 1,
-      playerId: registration.playerId,
-      name: registration.playerIgn,
-      totalPoints: registration.totalPoints,
-      movement: registration.movementStatus ?? null,
-      currentPercentage: registration.currentPercentage ?? null,
-      averagePercentage: registration.averagePercentage ?? null,
-    }));
+    // League 7 moves by time rather than percentages, so it has no projection.
+    const projections =
+      competition.status === "active" && competition.leagueTier !== 7
+        ? projectWeekMovement(
+            competition.leagueTier,
+            await Promise.all(
+              participants.map(async (registration) => ({
+                totalPoints: registration.totalPoints,
+                history: (
+                  (await ctx.db.get("players", registration.playerId))
+                    ?.percentageHistory ?? []
+                ).map((entry) => entry.percentage),
+              }))
+            )
+          )
+        : null;
+
+    // Ranked registrations sort first, so their indexes match `participants`.
+    return registrations.map((registration, index) => {
+      const projection =
+        projections && registration.averageTimeMs !== null
+          ? projections[index]!
+          : null;
+      return {
+        rank: registration.averageTimeMs === null ? null : index + 1,
+        playerId: registration.playerId,
+        name: registration.playerIgn,
+        totalPoints: registration.totalPoints,
+        movement: projection
+          ? projection.movement
+          : (registration.movementStatus ?? null),
+        currentPercentage: projection
+          ? projection.currentPercentage
+          : (registration.currentPercentage ?? null),
+        averagePercentage: projection
+          ? projection.averagePercentage
+          : (registration.averagePercentage ?? null),
+        projected: projection !== null,
+      };
+    });
   },
 });
 

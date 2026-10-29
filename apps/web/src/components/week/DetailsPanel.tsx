@@ -11,6 +11,7 @@ interface PlayerWeekStats {
   totalPoints: number;
   rank: number | null;
   averagePercentage: number | null;
+  projected: boolean;
 }
 
 const LazyMatchData = lazy(async () => {
@@ -135,7 +136,11 @@ function PlayerDetails({
         </div>
         {stats.averagePercentage !== null && (
           <dl className="shrink-0 text-right">
-            <dt className="text-xs text-muted-foreground">Movement average</dt>
+            <dt className="text-xs text-muted-foreground">
+              {stats.projected
+                ? "Projected movement average"
+                : "Movement average"}
+            </dt>
             <dd className="mt-1 text-3xl font-bold text-primary tabular-nums">
               {formatPercentage(stats.averagePercentage)}
             </dd>

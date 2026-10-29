@@ -1,5 +1,8 @@
 import { describe, expect, test } from "vitest";
-import { compareWeekStandingRegistrations } from "./weekStandings";
+import {
+  compareWeekStandingRegistrations,
+  projectWeekMovement,
+} from "./weekStandings";
 
 describe("weekly standings ordering", () => {
   test("orders by points and uses average time as the tiebreaker", () => {
@@ -28,5 +31,53 @@ describe("weekly standings ordering", () => {
       { playerIgn: "Alex", totalPoints: 20, averageTimeMs: null },
       { playerIgn: "Zed", totalPoints: 20, averageTimeMs: null },
     ]);
+  });
+});
+
+describe("projected weekly movement", () => {
+  // Seven players give a quota of one, so only the winner promotes.
+  const field = (histories: number[][]) =>
+    histories.map((history, index) => ({
+      totalPoints: index === histories.length - 1 ? 0 : 10 - index,
+      history,
+    }));
+
+  test("promotes the weekly winner even with a lower average", () => {
+    const projections = projectWeekMovement(
+      3,
+      field([[0, 0], [100, 100], [], [], [], [], []])
+    );
+
+    expect(projections[0]).toMatchObject({
+      currentPercentage: 100,
+      averagePercentage: 100 / 3,
+      movement: "promoted",
+    });
+    expect(projections[1]!.movement).toBe("none");
+  });
+
+  test("demotes every zero average even past the quota", () => {
+    const projections = projectWeekMovement(3, [
+      ...field([[], [], [], [], [], []]).slice(0, 5),
+      { totalPoints: 0, history: [] },
+      { totalPoints: 0, history: [] },
+    ]);
+
+    expect(projections.map((projection) => projection.movement)).toEqual([
+      "promoted",
+      "none",
+      "none",
+      "none",
+      "none",
+      "demoted",
+      "demoted",
+    ]);
+  });
+
+  test("skips promotion in league 1 and demotion in league 6", () => {
+    const histories = field([[], [], [], [], [], [], []]);
+
+    expect(projectWeekMovement(1, histories)[0]!.movement).toBe("none");
+    expect(projectWeekMovement(6, histories).at(-1)!.movement).toBe("none");
   });
 });

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import type { Id } from "@mcrl/backend/data-model";
-import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
+import { ArrowDownIcon, ArrowUpIcon, CrownIcon } from "lucide-react";
 import { formatPercentage } from "../stats/stats-utils";
 
 interface StandingRow {
@@ -14,6 +14,7 @@ interface StandingRow {
   movement?: "promoted" | "demoted" | "none" | null;
   currentPercentage: number | null;
   averagePercentage: number | null;
+  projected: boolean;
 }
 
 interface StandingsTableProps {
@@ -47,8 +48,13 @@ export function StandingsTable({
 
   const hasAverages = standings.some((row) => row.averagePercentage !== null);
   const sortByAverage = hasAverages && sortBy === "average";
+  // The weekly winner takes the first promotion slot regardless of average.
+  const isPromotedWinner = (row: StandingRow) =>
+    row.rank === 1 && row.movement === "promoted";
   const sortedStandings = sortByAverage
     ? [...standings].sort((a, b) => {
+        if (isPromotedWinner(a)) return -1;
+        if (isPromotedWinner(b)) return 1;
         if (a.averagePercentage === null)
           return b.averagePercentage === null ? 0 : 1;
         if (b.averagePercentage === null) return -1;
@@ -137,17 +143,44 @@ export function StandingsTable({
                   <span
                     className={cn(
                       "flex min-w-0 items-center gap-1 font-medium",
-                      row.movement === "promoted" && "text-green-400",
-                      row.movement === "demoted" && "text-destructive"
+                      !row.projected &&
+                        row.movement === "promoted" &&
+                        "text-green-400",
+                      !row.projected &&
+                        row.movement === "demoted" &&
+                        "text-destructive"
                     )}
                   >
+                    {/* Projected arrows stay faint and leave the name uncolored. */}
                     {row.movement === "promoted" && (
-                      <ArrowUpIcon className="size-4 shrink-0" />
+                      <ArrowUpIcon
+                        aria-label={
+                          row.projected ? "Expected promotion" : "Promoted"
+                        }
+                        className={cn(
+                          "size-4 shrink-0",
+                          row.projected && "text-green-400/60"
+                        )}
+                      />
                     )}
                     {row.movement === "demoted" && (
-                      <ArrowDownIcon className="size-4 shrink-0" />
+                      <ArrowDownIcon
+                        aria-label={
+                          row.projected ? "Expected demotion" : "Demoted"
+                        }
+                        className={cn(
+                          "size-4 shrink-0",
+                          row.projected && "text-destructive/60"
+                        )}
+                      />
                     )}
                     <span className="truncate">{row.name}</span>
+                    {row.rank === 1 && (
+                      <CrownIcon
+                        aria-label="Weekly winner"
+                        className="size-4 shrink-0 text-yellow-400"
+                      />
+                    )}
                   </span>
                 </div>
                 <span className="shrink-0 text-muted-foreground tabular-nums">
@@ -161,7 +194,10 @@ export function StandingsTable({
                     <span>Week {formatPercentage(row.currentPercentage)}</span>
                   )}
                   {row.averagePercentage !== null && (
-                    <span>Avg {formatPercentage(row.averagePercentage)}</span>
+                    <span>
+                      {row.projected ? "Projected avg" : "Avg"}{" "}
+                      {formatPercentage(row.averagePercentage)}
+                    </span>
                   )}
                 </div>
               )}
