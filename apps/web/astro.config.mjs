@@ -41,6 +41,7 @@ export default defineConfig({
     react(),
     starlight({
       title: "Ranked Leagues",
+      favicon: "/MCRL.png",
       customCss: ["./src/starlight.css"],
       markdown: {
         headingLinks: false,

@@ -32,42 +32,8 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* The site is dark only. Keep the dark class*/
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.148 0.004 228.8);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.148 0.004 228.8);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.148 0.004 228.8);
-  --primary: oklch(0.508 0.118 165.612);
-  --primary-foreground: oklch(0.979 0.021 166.113);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.963 0.002 197.1);
-  --muted-foreground: oklch(0.56 0.021 213.5);
-  --accent: oklch(0.963 0.002 197.1);
-  --accent-foreground: oklch(0.218 0.008 223.9);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.925 0.005 214.3);
-  --input: oklch(0.925 0.005 214.3);
-  --ring: oklch(0.723 0.014 214.4);
-  --chart-1: oklch(0.845 0.143 164.978);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.596 0.145 163.225);
-  --chart-4: oklch(0.508 0.118 165.612);
-  --chart-5: oklch(0.432 0.095 166.913);
-  --radius: 0.45rem;
-  --sidebar: oklch(0.987 0.002 197.1);
-  --sidebar-foreground: oklch(0.148 0.004 228.8);
-  --sidebar-primary: oklch(0.596 0.145 163.225);
-  --sidebar-primary-foreground: oklch(0.979 0.021 166.113);
-  --sidebar-accent: oklch(0.963 0.002 197.1);
-  --sidebar-accent-foreground: oklch(0.218 0.008 223.9);
-  --sidebar-border: oklch(0.925 0.005 214.3);
-  --sidebar-ring: oklch(0.723 0.014 214.4);
-}
-
-.dark {
   --background: oklch(0.148 0.004 228.8);
   --foreground: oklch(0.987 0.002 197.1);
   --card: oklch(0.218 0.008 223.9);
@@ -86,38 +52,26 @@
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.56 0.021 213.5);
-  --chart-1: oklch(0.845 0.143 164.978);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.596 0.145 163.225);
-  --chart-4: oklch(0.508 0.118 165.612);
-  --chart-5: oklch(0.432 0.095 166.913);
-  --sidebar: oklch(0.218 0.008 223.9);
-  --sidebar-foreground: oklch(0.987 0.002 197.1);
-  --sidebar-primary: oklch(0.696 0.17 162.48);
-  --sidebar-primary-foreground: oklch(0.262 0.051 172.552);
-  --sidebar-accent: oklch(0.275 0.011 216.9);
-  --sidebar-accent-foreground: oklch(0.987 0.002 197.1);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.56 0.021 213.5);
+  --radius: 0.45rem;
 }
 
 @theme inline {
   --font-sans: "Inter Variable", sans-serif;
   --font-minecraft: "Minecraft", sans-serif;
+  --font-display: "Archivo Variable", sans-serif;
 
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
+  /* Home page palette. */
+  --color-obsidian: #1a1325;
+  --color-obsidian-raised: #241a33;
+  --color-obsidian-deep: #120c1a;
+  --color-obsidian-line: #3a2d4c;
+  --color-lava: #f05a1a;
+  --color-lava-hover: #ff7a3d;
+  --color-lava-ink: #1d0b03;
+  --color-home-gold: #ffc24a;
+  --color-home-text: #f7f1ea;
+  --color-home-muted: #b8aec4;
+
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -192,15 +146,6 @@
   }
 
   /* Animations */
-  @keyframes fade-in {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-
   @keyframes slide-up {
     from {
       opacity: 0;
@@ -223,18 +168,68 @@
     }
   }
 
-  @keyframes float {
-    0%,
-    100% {
-      transform: translateY(0);
+  @keyframes gain {
+    from {
+      opacity: 1;
+      transform: translateY(6px);
     }
-    50% {
-      transform: translateY(5px);
+    to {
+      opacity: 0;
+      transform: translateY(-6px);
     }
   }
 
-  .animate-fade-in {
-    animation: fade-in 0.8s ease-out forwards;
+  .animate-gain {
+    animation: gain 1.2s steps(8) forwards;
+  }
+
+  @keyframes league-pop {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+
+  .animate-league-pop {
+    animation: league-pop 0.24s steps(4);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-league-pop {
+      animation: none;
+    }
+  }
+
+  /* An inventory slot: sunk into the page, lit from the bottom right. */
+  .stat-slot {
+    background: var(--color-obsidian-deep);
+    box-shadow:
+      inset 3px 3px 0 #05030a,
+      inset -3px -3px 0 var(--color-obsidian-line);
+  }
+
+  .stat-slot:focus {
+    box-shadow:
+      inset 3px 3px 0 #05030a,
+      inset -3px -3px 0 var(--color-home-gold);
+  }
+
+  .stat-slot[aria-invalid="true"] {
+    box-shadow:
+      inset 3px 3px 0 #05030a,
+      inset -3px -3px 0 var(--color-lava-hover);
+  }
+
+  /* A Minecraft item tooltip. a closed purple frame inside a near-black edge.
+     The offset shadows leave the outer corners empty, which makes the notches. */
+  .league-tooltip {
+    background: #0f0916;
+    border: 3px solid #5a2bd8;
+    box-shadow:
+      0 -3px 0 #0f0916,
+      0 3px 0 #0f0916,
+      -3px 0 0 #0f0916,
+      3px 0 0 #0f0916;
   }
 
   .animate-slide-up {
@@ -243,9 +238,5 @@
 
   .animate-slide-down {
     animation: slide-down 0.8s ease-out forwards;
-  }
-
-  .animate-float {
-    animation: float 2s ease-in-out infinite;
   }
 }

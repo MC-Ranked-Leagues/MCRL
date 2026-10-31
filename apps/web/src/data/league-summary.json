@@ -1,0 +1,140 @@
+{
+  "source": "after_w30.zip",
+  "fromWeek": 21,
+  "toWeek": 30,
+  "leagues": [
+    {
+      "league": 1,
+      "players": 93,
+      "elo": {
+        "low": 1613,
+        "median": 1785,
+        "high": 1989
+      },
+      "average": {
+        "low": 624,
+        "median": 648,
+        "high": 696
+      },
+      "best": {
+        "low": 474,
+        "median": 508,
+        "high": 538
+      }
+    },
+    {
+      "league": 2,
+      "players": 101,
+      "elo": {
+        "low": 1440,
+        "median": 1520,
+        "high": 1611
+      },
+      "average": {
+        "low": 688,
+        "median": 738,
+        "high": 762
+      },
+      "best": {
+        "low": 556,
+        "median": 580,
+        "high": 627
+      }
+    },
+    {
+      "league": 3,
+      "players": 122,
+      "elo": {
+        "low": 1271,
+        "median": 1351,
+        "high": 1472
+      },
+      "average": {
+        "low": 764,
+        "median": 816,
+        "high": 865
+      },
+      "best": {
+        "low": 602,
+        "median": 654,
+        "high": 704
+      }
+    },
+    {
+      "league": 4,
+      "players": 137,
+      "elo": {
+        "low": 1173,
+        "median": 1243,
+        "high": 1303
+      },
+      "average": {
+        "low": 879,
+        "median": 946,
+        "high": 1004
+      },
+      "best": {
+        "low": 709,
+        "median": 760,
+        "high": 824
+      }
+    },
+    {
+      "league": 5,
+      "players": 100,
+      "elo": {
+        "low": 1038,
+        "median": 1129,
+        "high": 1205
+      },
+      "average": {
+        "low": 972,
+        "median": 1048,
+        "high": 1123
+      },
+      "best": {
+        "low": 730,
+        "median": 838,
+        "high": 907
+      }
+    },
+    {
+      "league": 6,
+      "players": 80,
+      "elo": {
+        "low": 827,
+        "median": 967,
+        "high": 1089
+      },
+      "average": {
+        "low": 1129,
+        "median": 1222,
+        "high": 1324
+      },
+      "best": {
+        "low": 919,
+        "median": 1019,
+        "high": 1125
+      }
+    },
+    {
+      "league": 7,
+      "players": 4,
+      "elo": {
+        "low": 538,
+        "median": 707,
+        "high": 707
+      },
+      "average": {
+        "low": 2613,
+        "median": 3508,
+        "high": 3508
+      },
+      "best": {
+        "low": 2475,
+        "median": 3508,
+        "high": 3508
+      }
+    }
+  ]
+}

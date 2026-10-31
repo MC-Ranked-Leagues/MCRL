@@ -1,14 +1,207 @@
 ---
+import "@fontsource-variable/archivo/wdth.css";
 import Layout from "@/layouts/main.astro";
-import Hero from "@/components/home/Hero.astro";
-import WhyJoin from "@/components/home/WhyJoin.astro";
-import FooterCTA from "@/components/home/FooterCTA.astro";
 import Footer from "@/layouts/Footer.astro";
+import { LatestWinners } from "@/components/home/LatestWinners";
+import { LeagueFinder } from "@/components/home/LeagueFinder";
+import { LeagueSim } from "@/components/home/LeagueSim";
+import { DISCORD_URL } from "@/consts";
+import { cn } from "@/lib/utils";
+
+const TWITCH_URL = "https://www.twitch.tv/mcrankedleagues";
+const YOUTUBE_URL = "https://www.youtube.com/@MCRankedLeagues";
+
+const JOIN_STEPS = [
+  "Join the Discord",
+  "Sign up and get placed in a league",
+  "Show up at the given time and speedrun the game",
+];
+
+const FAQ = [
+  {
+    question: "Do I have to play every week?",
+    answer: "No. You register for the weeks you want to play.",
+  },
+  {
+    question: "What if I can't make it after registering?",
+    answer:
+      "You can unregister anytime before the matches start. Either way, if you don't play any seeds, you're just listed as missed and you won't be counted.",
+  },
+  {
+    question: "Which league will I start in?",
+    answer: "A reviewer looks at your Ranked stats and places you.",
+  },
+];
+
+const heading = "font-minecraft font-bold leading-none text-3xl md:text-5xl";
+const primaryButton =
+  "inline-block bg-lava px-6 py-3.5 font-minecraft text-lg font-bold text-lava-ink transition-colors hover:bg-lava-hover";
+const outlineButton =
+  "inline-block border-2 border-current px-5 py-3 font-bold transition-colors hover:bg-white/10";
 ---
 
-<Layout>
-  <Hero />
-  <WhyJoin />
-  <FooterCTA />
-  <Footer />
+<Layout
+  description="Weekly Minecraft speedrun races against players at your level, for beginners and top runners alike."
+>
+  <div
+    class="bg-obsidian font-display text-[17px] leading-relaxed text-home-text [--home-focus:var(--color-home-gold)] [&_a:focus-visible]:outline-2 [&_a:focus-visible]:outline-offset-3 [&_a:focus-visible]:outline-(--home-focus)"
+  >
+    <section
+      class="relative flex min-h-160 flex-col overflow-hidden lg:min-h-[calc(100svh-4rem)]"
+    >
+      <img
+        src="/images/4.webp"
+        alt=""
+        fetchpriority="high"
+        class="absolute inset-0 size-full object-cover"
+      />
+      <div
+        class="absolute inset-0 bg-linear-to-t from-obsidian/70 via-obsidian/60 to-obsidian/30 lg:bg-linear-to-r lg:from-obsidian/90 lg:via-obsidian/60 lg:to-obsidian/40"
+      >
+      </div>
+      <div
+        class="absolute inset-0 bg-radial from-transparent from-25% to-obsidian"
+      >
+      </div>
+      <div
+        class="relative z-10 mx-auto grid w-full max-w-304 flex-1 grid-cols-[minmax(0,1fr)] items-center gap-10 px-6 pt-24 pb-10 lg:grid-cols-[1fr_minmax(0,34rem)]"
+      >
+        <div>
+          <h1
+            class="max-w-[14ch] font-minecraft text-4xl leading-none font-bold md:text-6xl lg:text-7xl"
+          >
+            Ranked Leagues
+          </h1>
+          <p class="mt-5 mb-7 max-w-[42ch] text-lg md:text-xl">
+            Play against people at your level and climb seven leagues. Beginners
+            welcome.
+          </p>
+          <div class="flex flex-wrap gap-3">
+            <a
+              href={DISCORD_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              class={primaryButton}
+            >
+              Join on Discord
+            </a>
+            <a
+              href={TWITCH_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              class={outlineButton}
+            >
+              Watch on Twitch
+            </a>
+          </div>
+        </div>
+        <LeagueSim client:load />
+      </div>
+      <div class="relative">
+        <LatestWinners client:load />
+      </div>
+    </section>
+
+    <section class="py-6">
+      <div class="mx-auto max-w-304 px-6">
+        <LeagueFinder client:load />
+      </div>
+    </section>
+
+    <section
+      class="grid items-center bg-obsidian-raised lg:grid-cols-[1.3fr_1fr]"
+    >
+      <img
+        src="/images/1.webp"
+        alt="Players gathered in a nether fortress"
+        loading="lazy"
+        class="size-full min-h-64 object-cover lg:min-h-88"
+      />
+      <div class="px-6 py-10 lg:p-12">
+        <h2 class={heading}>Watch it Live</h2>
+        <p class="mt-5 mb-6 max-w-[38ch] text-home-muted">
+          Follow ranked leagues live on Twitch every weekend.
+        </p>
+        <div class="flex flex-wrap gap-3">
+          <a
+            href={TWITCH_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            class={cn(outlineButton, "border-purple-400")}
+          >
+            Twitch
+          </a>
+          <a
+            href={YOUTUBE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            class={cn(outlineButton, "border-red-400")}
+          >
+            YouTube
+          </a>
+        </div>
+        <a
+          href="/info/share-stream"
+          class="mt-5 inline-block font-semibold text-home-gold underline underline-offset-4"
+        >
+          Playing yourself? Share your stream
+        </a>
+      </div>
+    </section>
+
+    <section class="bg-obsidian-deep py-14 md:py-20">
+      <div class="mx-auto flex max-w-304 flex-col gap-12 px-6 md:flex-row lg:gap-16">
+        <div class="flex-3">
+          <h2 class={heading}>
+            Ready to <span class="italic">SPEEDRUN</span>?
+          </h2>
+          <ol class="mt-7 mb-7">
+            {
+              JOIN_STEPS.map((step, i) => (
+                <li class="grid grid-cols-[2.5rem_1fr] items-baseline border-t border-obsidian-line py-3">
+                  <span class="font-minecraft text-2xl leading-none text-lava">
+                    {i + 1}
+                  </span>
+                  <span class="font-semibold">{step}</span>
+                </li>
+              ))
+            }
+          </ol>
+          <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
+            <a
+              href={DISCORD_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              class={primaryButton}
+            >
+              Join on Discord
+            </a>
+            <a
+              href="/registration/process"
+              class="font-semibold text-home-gold underline underline-offset-4"
+            >
+              Full sign-up guide
+            </a>
+          </div>
+        </div>
+        <div class="flex-2">
+          <h2 class="font-minecraft text-2xl font-bold md:text-3xl">
+            Questions
+          </h2>
+          <div class="mt-5">
+            {
+              FAQ.map((item) => (
+                <div class="border-t border-obsidian-line py-4">
+                  <h3 class="font-display font-bold">{item.question}</h3>
+                  <p class="mt-2 text-home-muted">{item.answer}</p>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <Footer />
+  </div>
 </Layout>

@@ -20,14 +20,20 @@ const canonicalUrl =
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
-    <link rel="icon" type="image/svg+xml" href="/MCRL.webp" />
+    <link rel="icon" type="image/webp" href="/MCRL.webp" />
     <title>{title || SITE_TITLE}</title>
     <meta name="description" content={description || SITE_DESCRIPTION} />
     {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
   </head>
   <body class="dark">
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-60 focus:bg-background focus:px-4 focus:py-2"
+    >
+      Skip to content
+    </a>
     <Navbar />
-    <main>
+    <main id="main">
       <slot />
     </main>
   </body>
