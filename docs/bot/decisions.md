@@ -48,6 +48,14 @@ Identity is the guild and Discord ID together. Each Minecraft UUID belongs to
 only one player per guild. A challenge account requires a separate Discord
 account; Minecraft name changes never change identity.
 
+A player locked out of Discord recovers their membership by linking a new Discord
+account to their Minecraft account on Ranked and using `/signup`. This moves the
+player automatically, without host review, because Ranked's link proves account
+ownership and history is unchanged. It is blocked while the old account has a
+registration in an active or not-yet-relegated current-week competition, and
+rejected players stay rejected. Banned players can also use this; hosts accept
+that and handle it manually. Earlier registration snapshots keep the old Discord ID.
+
 No bulk role import or legacy player-data backfill is required; the rewrite targets
 fresh databases.
 

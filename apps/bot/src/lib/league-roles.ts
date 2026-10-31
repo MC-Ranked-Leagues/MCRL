@@ -1,4 +1,4 @@
-import type { Guild } from "discord.js";
+import { DiscordAPIError, type Guild } from "discord.js";
 import type { GuildConfiguration } from "../../config/guilds";
 
 export class LeagueRoleUpdateError extends Error {
@@ -48,6 +48,28 @@ export async function syncLeagueRole(
     await member.roles.add(role, reason);
   } catch {
     throw new LeagueRoleUpdateError("add", `the League ${leagueNumber} role`);
+  }
+}
+
+export async function removeLeagueRoles(
+  guild: Guild,
+  config: GuildConfiguration,
+  userId: string,
+  reason: string
+) {
+  const leagueIds = Object.values(config.leagues).map(
+    (entry) => entry.leagueRoleId
+  );
+  let member;
+  try {
+    member = await guild.members.fetch({ user: userId, force: true });
+  } catch (error) {
+    // A player who left the server cannot still hold its roles.
+    if (error instanceof DiscordAPIError && error.code === 10007) return;
+    throw error;
+  }
+  for (const role of member.roles.cache.values()) {
+    if (leagueIds.includes(role.id)) await member.roles.remove(role, reason);
   }
 }
 

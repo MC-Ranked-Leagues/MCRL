@@ -1,5 +1,6 @@
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, or } from "drizzle-orm";
 import { getDatabase } from ".";
+import { getCurrentWeek } from "./guilds";
 import {
   competitions,
   matches,
@@ -176,6 +177,61 @@ export function createSignup(
       })
       .returning()
       .get();
+  });
+}
+
+// Moves a saved player to the Discord account Ranked now links to their Minecraft
+// account, for players locked out of their old Discord. Unfinished competitions
+// block this because they still find the player through the old Discord ID.
+export function transferPlayerDiscord(
+  input: Pick<
+    typeof players.$inferInsert,
+    "guildId" | "discordUserId" | "discordUsername" | "minecraftUuid"
+  >
+) {
+  return getDatabase().transaction((tx) => {
+    const owner = getAccountOwner(input.guildId, input.minecraftUuid);
+    if (!owner || owner.isTest || getPlayer(input.guildId, input.discordUserId))
+      return { status: "not_applicable" } as const;
+    if (owner.status === "rejected") return { status: "rejected" } as const;
+    const unfinished = tx
+      .select({ id: registrations.id })
+      .from(registrations)
+      .innerJoin(
+        competitions,
+        eq(competitions.id, registrations.competitionId)
+      )
+      .where(
+        and(
+          eq(competitions.guildId, input.guildId),
+          eq(registrations.discordUserId, owner.discordUserId),
+          or(
+            eq(competitions.status, "active"),
+            // /relegate only processes the current week, so older skipped
+            // competitions can never finish and must not block a transfer.
+            and(
+              eq(competitions.hasUsedRelegate, false),
+              eq(competitions.weekNumber, getCurrentWeek(input.guildId))
+            )
+          )
+        )
+      )
+      .get();
+    if (unfinished) return { status: "unfinished_competition" } as const;
+    const player = tx
+      .update(players)
+      .set({
+        discordUserId: input.discordUserId,
+        discordUsername: input.discordUsername,
+      })
+      .where(eq(players.id, owner.id))
+      .returning()
+      .get();
+    return {
+      status: "transferred",
+      player,
+      previousDiscordUserId: owner.discordUserId,
+    } as const;
   });
 }
 

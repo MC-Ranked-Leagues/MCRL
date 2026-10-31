@@ -4,8 +4,8 @@ import {
   SlashCommandBuilder,
 } from "discord.js";
 import { guildConfiguration } from "../../config/guilds";
-import { createSignup, getPlayer } from "../db/players";
-import { syncLeagueRole } from "../lib/league-roles";
+import { createSignup, getPlayer, transferPlayerDiscord } from "../db/players";
+import { removeLeagueRoles, syncLeagueRole } from "../lib/league-roles";
 import { getOrCreatePlayerFromRole } from "../lib/player-from-role";
 import { ranked, rankedLookupErrorMessage } from "../lib/ranked";
 import { sendSignupReview } from "../lib/signup-review";
@@ -23,6 +23,9 @@ const leagueTargets = [
   [2, 1588.2],
   [1, 1967.7],
 ] as const;
+
+const rejectedMessage =
+  "Your signup was declined. If you believe this was a mistake, contact a host to reconsider your placement.";
 
 export const signupCommand = {
   data: new SlashCommandBuilder()
@@ -47,27 +50,112 @@ export const signupCommand = {
       return;
     }
     let player = getPlayer(interaction.guildId, interaction.user.id);
+    let transferred = false;
+    let oldRoleNotice = "";
     if (!player) {
-      const result = await getOrCreatePlayerFromRole(interaction);
-      if (result.status === "error") {
-        await interaction.editReply(result.message);
+      let profile;
+      try {
+        profile = await ranked.users.get(`discord.${interaction.user.id}`);
+      } catch (error) {
+        await interaction.editReply(rankedLookupErrorMessage(error));
         return;
       }
-      if (result.status === "found") {
-        player = result.player;
-        if (result.created) {
-          await interaction.editReply(
-            `Saved your League ${player.leagueNumber} account from your league role.`
+      // Runs before the role path so the saved league wins over any role this
+      // Discord account already has.
+      const transfer = transferPlayerDiscord({
+        guildId: interaction.guildId,
+        discordUserId: interaction.user.id,
+        discordUsername: interaction.user.username,
+        minecraftUuid: profile.uuid,
+      });
+      if (transfer.status === "rejected") {
+        await interaction.editReply(rejectedMessage);
+        return;
+      }
+      if (transfer.status === "unfinished_competition") {
+        await interaction.editReply(
+          "This Minecraft account is registered in an unfinished competition on another Discord account. Run /signup again after that competition has been relegated."
+        );
+        return;
+      }
+      if (transfer.status === "transferred") {
+        player = transfer.player;
+        transferred = true;
+        try {
+          await removeLeagueRoles(
+            interaction.guild,
+            config,
+            transfer.previousDiscordUserId,
+            `Player moved to Discord account ${interaction.user.id}`
           );
-          await reportPublicationResults(interaction, result.publication);
+        } catch (error) {
+          console.error("Could not remove the old league role.", error);
+          oldRoleNotice =
+            " I could not remove the league role from your old Discord account, so ask a host to remove it.";
+        }
+      } else {
+        const result = await getOrCreatePlayerFromRole(interaction);
+        if (result.status === "error") {
+          await interaction.editReply(result.message);
+          return;
+        }
+        if (result.status === "found") {
+          player = result.player;
+          if (result.created) {
+            await interaction.editReply(
+              `Saved your League ${player.leagueNumber} account from your league role.`
+            );
+            await reportPublicationResults(interaction, result.publication);
+            return;
+          }
+        }
+      }
+      if (!player) {
+        const peak = profile.seasonResult.highest;
+        const targets = leagueTargets.filter(
+          ([league]) => config.leagues[league]
+        );
+        const suggested =
+          peak === null || targets.length === 0
+            ? undefined
+            : targets.reduce((best, candidate) =>
+                Math.abs(candidate[1] - peak) < Math.abs(best[1] - peak)
+                  ? candidate
+                  : best
+              )[0];
+        const season = profile.statistics.season;
+        const completions = season.completions.ranked ?? 0;
+        const average =
+          completions > 0 && season.completionTime.ranked !== null
+            ? season.completionTime.ranked / completions
+            : null;
+        const details = `Current Elo: ${profile.eloRate ?? "n/a"}\nPeak Elo: ${peak ?? "n/a"}\nSuggested league: ${suggested ?? "n/a"}\nRanked average: ${average === null ? "n/a" : formatDuration(average)}\nRanked PB: ${season.bestTime.ranked == null ? "n/a" : formatDuration(season.bestTime.ranked)}\nProfile: <https://mcsrranked.com/profile/${profile.uuid}>`;
+        player = createSignup({
+          guildId: interaction.guildId,
+          discordUserId: interaction.user.id,
+          discordUsername: interaction.user.username,
+          minecraftUuid: profile.uuid,
+          ign: profile.nickname,
+          signupDetails: details,
+        });
+        if (!player) {
+          await interaction.editReply(
+            "This Minecraft account already belongs to another player."
+          );
+          return;
+        }
+        if (player.status !== "pending") {
+          await interaction.editReply(
+            "Your membership status changed. Try running /signup again."
+          );
           return;
         }
       }
     }
-    if (player?.status === "active") {
+    if (player.status === "active") {
       if (player.leagueNumber === null) {
         await interaction.editReply(
-          "Something went wrong! Ask a host to assign your league with /assign."
+          `Something went wrong! Ask a host to assign your league with /assign.${oldRoleNotice}`
         );
         return;
       }
@@ -80,79 +168,32 @@ export const signupCommand = {
           "Restoring saved league"
         );
         await interaction.editReply(
-          `Restored your League ${player.leagueNumber} role.`
+          (transferred
+            ? `Moved your League ${player.leagueNumber} membership to this Discord account.`
+            : `Restored your League ${player.leagueNumber} role.`) +
+            oldRoleNotice
         );
       } catch (error) {
         console.error("Could not restore league role.", error);
         await interaction.editReply(
-          "Your membership is saved, but the role could not be restored. Ask a host to check role permissions, then retry."
+          `Your membership is saved, but the role could not be restored. Ask a host to check role permissions, then retry.${oldRoleNotice}`
         );
       }
       return;
     }
-    if (player?.status === "rejected") {
-      await interaction.editReply(
-        "Your signup was declined. If you believe this was a mistake, contact a host to reconsider your placement."
-      );
+    if (player.status === "rejected") {
+      await interaction.editReply(rejectedMessage);
       return;
-    }
-    if (!player) {
-      let profile;
-      try {
-        profile = await ranked.users.get(`discord.${interaction.user.id}`);
-      } catch (error) {
-        await interaction.editReply(rankedLookupErrorMessage(error));
-        return;
-      }
-      const peak = profile.seasonResult.highest;
-      const targets = leagueTargets.filter(
-        ([league]) => config.leagues[league]
-      );
-      const suggested =
-        peak === null || targets.length === 0
-          ? undefined
-          : targets.reduce((best, candidate) =>
-              Math.abs(candidate[1] - peak) < Math.abs(best[1] - peak)
-                ? candidate
-                : best
-            )[0];
-      const season = profile.statistics.season;
-      const completions = season.completions.ranked ?? 0;
-      const average =
-        completions > 0 && season.completionTime.ranked !== null
-          ? season.completionTime.ranked / completions
-          : null;
-      const details = `Current Elo: ${profile.eloRate ?? "n/a"}\nPeak Elo: ${peak ?? "n/a"}\nSuggested league: ${suggested ?? "n/a"}\nRanked average: ${average === null ? "n/a" : formatDuration(average)}\nRanked PB: ${season.bestTime.ranked == null ? "n/a" : formatDuration(season.bestTime.ranked)}\nProfile: <https://mcsrranked.com/profile/${profile.uuid}>`;
-      player = createSignup({
-        guildId: interaction.guildId,
-        discordUserId: interaction.user.id,
-        discordUsername: interaction.user.username,
-        minecraftUuid: profile.uuid,
-        ign: profile.nickname,
-        signupDetails: details,
-      });
-      if (!player) {
-        await interaction.editReply(
-          "This Minecraft account already belongs to another player."
-        );
-        return;
-      }
-      if (player.status !== "pending") {
-        await interaction.editReply(
-          "Your membership status changed. Try running /signup again."
-        );
-        return;
-      }
     }
     try {
       await sendSignupReview(interaction.client, player);
       await interaction.editReply(
-        "Your signup is pending review. The reviewer has your request."
+        `Your signup is pending review. The reviewer has your request.${oldRoleNotice}`
       );
     } catch (error) {
       console.error("Could not deliver signup review.", error);
       await interaction.editReply(
-        "Your signup is saved, but the reviewer could not be reached. Notify a host or admin."
+        `Your signup is saved, but the reviewer could not be reached. Notify a host or admin.${oldRoleNotice}`
       );
     }
   },

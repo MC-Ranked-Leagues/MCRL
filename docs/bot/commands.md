@@ -23,6 +23,10 @@ If you have exactly one league role but no saved account, `/signup`, `/me`, and
 Request reviewed league placement. Repeat to retry review delivery or restore an
 assigned league role. A host can reconsider a rejected signup through `/assign`.
 
+If you lost access to your Discord account, link a new one to your Minecraft
+account on MCSR Ranked and use `/signup` there. This moves your membership and
+league role to the new account, unless you're in an unfinished competition.
+
 ### `/me`
 
 Show your saved account, league, and percentage history.

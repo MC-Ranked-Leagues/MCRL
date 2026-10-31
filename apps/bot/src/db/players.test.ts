@@ -3,8 +3,11 @@ import {
   createSignup,
   decideSignup,
   getPlayer,
+  transferPlayerDiscord,
 } from "./players";
 import { createMigration } from "./account-migrations";
+import { setCurrentWeek } from "./guilds";
+import { relegateGuild } from "./relegation";
 import { registerPlayer } from "./registrations";
 import { beforeEach, expect, test } from "bun:test";
 import { eq } from "drizzle-orm";
@@ -18,12 +21,29 @@ import { players } from "./schema";
 import {
   resetDatabase,
   database,
+  endedMovementCompetition,
   input,
   registerMember,
   migrationInput,
 } from "../testing/competition";
 
 beforeEach(resetDatabase);
+
+const transferInput = {
+  guildId: input.guildId,
+  discordUserId: "new-discord",
+  discordUsername: "new-name",
+  minecraftUuid: "AB-CD",
+};
+
+function assignSavedPlayer() {
+  assignPlayerLeague(input.guildId, "member", 5, {
+    discordUsername: "member",
+    minecraftUuid: "AB-CD",
+    ign: "OldName",
+  });
+  return getPlayer(input.guildId, "member")!;
+}
 
 test("signup lives on the player row and cannot overwrite later assignment", () => {
   const signup = {
@@ -48,6 +68,93 @@ test("signup lives on the player row and cannot overwrite later assignment", () 
   expect(createSignup({ ...signup, guildId: "other-guild" })?.status).toBe(
     "pending"
   );
+});
+
+test("a Discord transfer moves the saved player and keeps their history", () => {
+  const player = assignSavedPlayer();
+  database
+    .update(players)
+    .set({ percentageHistory: [{ week: 1, league: 5, percentage: 50 }] })
+    .where(eq(players.id, player.id))
+    .run();
+
+  expect(transferPlayerDiscord(transferInput)).toMatchObject({
+    status: "transferred",
+    previousDiscordUserId: "member",
+  });
+  expect(getPlayer(input.guildId, "member")).toBeUndefined();
+  expect(getPlayer(input.guildId, "new-discord")).toMatchObject({
+    id: player.id,
+    discordUsername: "new-name",
+    leagueNumber: 5,
+    percentageHistory: [{ week: 1, league: 5, percentage: 50 }],
+  });
+});
+
+test("a Discord transfer skips unowned accounts, test players, and existing players", () => {
+  expect(transferPlayerDiscord(transferInput).status).toBe("not_applicable");
+
+  const player = assignSavedPlayer();
+  expect(
+    transferPlayerDiscord({ ...transferInput, discordUserId: "member" }).status
+  ).toBe("not_applicable");
+  assignPlayerLeague(input.guildId, "new-discord", 5, {
+    discordUsername: "new-name",
+    minecraftUuid: "other-uuid",
+    ign: "Other",
+  });
+  expect(transferPlayerDiscord(transferInput).status).toBe("not_applicable");
+
+  database.delete(players).where(eq(players.discordUserId, "new-discord")).run();
+  database
+    .update(players)
+    .set({ isTest: true })
+    .where(eq(players.id, player.id))
+    .run();
+  expect(transferPlayerDiscord(transferInput).status).toBe("not_applicable");
+});
+
+test("a Discord transfer keeps rejected players blocked", () => {
+  const player = createSignup({
+    guildId: input.guildId,
+    discordUserId: "member",
+    discordUsername: "member",
+    minecraftUuid: "ab-cd",
+    ign: "OldName",
+  })!;
+  decideSignup(player.id);
+
+  expect(transferPlayerDiscord(transferInput).status).toBe("rejected");
+  expect(getPlayer(input.guildId, "new-discord")).toBeUndefined();
+});
+
+test("a Discord transfer waits for active and unrelegated competitions", () => {
+  registerMember();
+  expect(transferPlayerDiscord(transferInput).status).toBe(
+    "unfinished_competition"
+  );
+  expect(getPlayer(input.guildId, "member")).toBeDefined();
+});
+
+test("a Discord transfer waits for the current week's relegation", () => {
+  endedMovementCompetition();
+  const ended = { ...transferInput, minecraftUuid: "league5player0" };
+  expect(transferPlayerDiscord(ended).status).toBe("unfinished_competition");
+
+  expect(relegateGuild(input.guildId, [5]).status).toBe("processed");
+  expect(transferPlayerDiscord(ended).status).toBe("transferred");
+});
+
+test("a Discord transfer ignores a skipped competition from an earlier week", () => {
+  endedMovementCompetition();
+  setCurrentWeek(input.guildId, 2);
+
+  expect(
+    transferPlayerDiscord({
+      ...transferInput,
+      minecraftUuid: "league5player0",
+    }).status
+  ).toBe("transferred");
 });
 
 test("role-authorized registration activates pending signup on the same player row", () => {
