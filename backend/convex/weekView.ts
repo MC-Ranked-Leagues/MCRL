@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { query, type QueryCtx } from "./_generated/server";
-import { getWeekSummary } from "./lib/readModels";
+import { getLeagueName, getWeekSummary } from "./lib/readModels";
 import {
   compareWeekStandingRegistrations,
   projectWeekMovement,
@@ -28,6 +28,56 @@ export const getAllWeeks = query({
         isActive: week.activeCompetitionCount > 0,
       }))
       .sort((a, b) => b.weekNumber - a.weekNumber),
+});
+
+export const getLatestWinners = query({
+  args: {},
+  handler: async (ctx) => {
+    const week = await ctx.db
+      .query("weeks")
+      .withIndex("by_week_number")
+      .order("desc")
+      .first();
+    if (!week) return null;
+
+    const competitions = await ctx.db
+      .query("competitions")
+      .withIndex("by_week_number", (q) => q.eq("weekNumber", week.weekNumber))
+      .collect();
+    const leagues = await ctx.db.query("leagues").collect();
+
+    const winners = await Promise.all(
+      competitions.map(async (competition) => {
+        const registrations = await ctx.db
+          .query("registrations")
+          .withIndex("by_competition", (q) =>
+            q.eq("competitionId", competition._id)
+          )
+          .collect();
+        const winner = registrations
+          .filter((registration) => registration.averageTimeMs !== null)
+          .sort(compareWeekStandingRegistrations)[0];
+        if (!winner) return [];
+
+        return [
+          {
+            leagueTier: competition.leagueTier,
+            leagueName:
+              leagues.find(
+                (league) => league.leagueTier === competition.leagueTier
+              )?.name ?? getLeagueName(competition.leagueTier),
+            winnerName: winner.playerIgn,
+          },
+        ];
+      })
+    );
+
+    return {
+      weekNumber: week.weekNumber,
+      isActive: week.activeCompetitionCount > 0,
+      winners: winners.flat().sort((a, b) => a.leagueTier - b.leagueTier),
+    };
+  },
 });
 
 const weekLeagueArgs = {

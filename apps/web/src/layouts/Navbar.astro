@@ -1,6 +1,6 @@
 ---
-import { CustomButton } from "@/components/ui-custom/Button";
 import { Menu, X } from "lucide-react";
+import { DISCORD_URL } from "@/consts";
 
 const NAV_LINKS = [
   { name: "Home", href: "/" },
@@ -8,53 +8,56 @@ const NAV_LINKS = [
   { name: "Leaderboard", href: "/week" },
   { name: "Championship", href: "/championship" },
   { name: "Info", href: "/info" },
-  { name: "Discord", href: "https://discord.gg/KDsv2AaMyZ", external: true },
 ];
 ---
 
 <nav
   id="navbar"
-  class="animate-slide-down fixed top-0 right-0 left-0 z-50 bg-transparent px-6 py-4 opacity-0 transition-all duration-300"
+  class="animate-slide-down fixed top-0 right-0 left-0 z-50 border-b border-transparent text-home-text opacity-0 transition-colors duration-300"
 >
-  <div class="mx-auto flex max-w-7xl items-center justify-between">
-    <a href="/" class="group flex items-center gap-2">
-      <span
-        class="font-minecraft text-2xl font-bold tracking-tighter text-primary transition-transform group-hover:scale-110"
-      >
-        RL
-      </span>
+  <div
+    class="mx-auto flex max-w-304 items-center justify-between gap-6 px-6 py-3"
+  >
+    <a href="/" class="flex items-center gap-2.5">
+      <img
+        src="/MCRL.webp"
+        alt=""
+        width="32"
+        height="32"
+        class="size-8 [image-rendering:pixelated]"
+      />
+      <span class="font-minecraft text-lg font-bold">Ranked Leagues</span>
     </a>
 
     {/* Desktop Links */}
-    <div class="hidden items-center gap-8 md:flex">
+    <div class="hidden items-center gap-7 md:flex">
       {
         NAV_LINKS.map((link) => (
           <a
             href={link.href}
-            target={link.external ? "_blank" : undefined}
-            rel={link.external ? "noopener noreferrer" : undefined}
-            class="group relative flex flex-col items-center justify-center text-sm font-medium transition-colors hover:text-primary"
+            class="font-minecraft text-sm transition-colors hover:text-home-gold"
           >
-            <span class="transition-all group-hover:font-minecraft">
-              {link.name}
-            </span>
-            <span
-              class="invisible h-0 font-minecraft select-none"
-              aria-hidden="true"
-            >
-              {link.name}
-            </span>
+            {link.name}
           </a>
         ))
       }
+      <a
+        href={DISCORD_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="bg-lava px-4 py-2 font-minecraft text-sm font-bold text-lava-ink transition-colors hover:bg-lava-hover"
+      >
+        Discord
+      </a>
     </div>
 
     {/* Mobile Toggle */}
     <div class="md:hidden">
       <button
         id="menu-toggle"
-        class="rounded-md p-2 text-foreground transition-colors hover:bg-muted"
+        class="p-2 transition-colors hover:text-home-gold"
         aria-label="Toggle Menu"
+        aria-expanded="false"
       >
         <Menu className="h-6 w-6" id="icon-menu" />
         <X className="hidden h-6 w-6" id="icon-close" />
@@ -66,25 +69,28 @@ const NAV_LINKS = [
 {/* Mobile Menu Overlay */}
 <div
   id="mobile-menu"
-  class="fixed inset-0 z-40 hidden flex-col bg-background px-6 pt-24 md:hidden"
+  class="fixed inset-0 z-40 hidden flex-col bg-obsidian px-6 pt-24 text-home-text md:hidden"
 >
   <div class="flex flex-col gap-6">
     {
       NAV_LINKS.map((link) => (
         <a
           href={link.href}
-          target={link.external ? "_blank" : undefined}
-          rel={link.external ? "noopener noreferrer" : undefined}
-          class="font-minecraft text-3xl transition-colors hover:text-primary"
+          class="font-minecraft text-3xl transition-colors hover:text-home-gold"
         >
           {link.name}
         </a>
       ))
     }
-    <div class="mt-8 border-t pt-8">
-      <CustomButton className="w-full py-6 text-center text-xl">
-        Join The League
-      </CustomButton>
+    <div class="mt-8 border-t border-obsidian-line pt-8">
+      <a
+        href={DISCORD_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="block bg-lava px-6 py-4 text-center font-minecraft text-xl font-bold text-lava-ink transition-colors hover:bg-lava-hover"
+      >
+        Join on Discord
+      </a>
     </div>
   </div>
 </div>
@@ -96,40 +102,35 @@ const NAV_LINKS = [
   const iconMenu = document.getElementById("icon-menu");
   const iconClose = document.getElementById("icon-close");
 
+  function setNavbarSolid(isSolid: boolean) {
+    navbar?.classList.toggle("bg-obsidian", isSolid);
+    navbar?.classList.toggle("border-obsidian-line", isSolid);
+    navbar?.classList.toggle("border-transparent", !isSolid);
+  }
+
   // Handle scroll
   window.addEventListener("scroll", () => {
-    if (window.scrollY > 20) {
-      navbar?.classList.add("border-b", "bg-background/80", "backdrop-blur-md");
-      navbar?.classList.remove("bg-transparent");
-    } else {
-      navbar?.classList.remove(
-        "border-b",
-        "bg-background/80",
-        "backdrop-blur-md"
-      );
-      navbar?.classList.add("bg-transparent");
-    }
+    setNavbarSolid(window.scrollY > 20);
   });
+
+  function setMenuOpen(isOpen: boolean) {
+    mobileMenu?.classList.toggle("hidden", !isOpen);
+    mobileMenu?.classList.toggle("flex", isOpen);
+    iconMenu?.classList.toggle("hidden", isOpen);
+    iconClose?.classList.toggle("hidden", !isOpen);
+    menuToggle?.setAttribute("aria-expanded", String(isOpen));
+    document.body.style.overflow = isOpen ? "hidden" : "unset";
+    setNavbarSolid(isOpen || window.scrollY > 20);
+  }
 
   // Handle menu toggle
   menuToggle?.addEventListener("click", () => {
-    const isOpen = mobileMenu?.classList.contains("hidden");
-    if (isOpen) {
-      mobileMenu?.classList.remove("hidden");
-      mobileMenu?.classList.add("flex");
-      iconMenu?.classList.add("hidden");
-      iconClose?.classList.remove("hidden");
-      document.body.style.overflow = "hidden";
-      navbar?.classList.add("bg-background/80", "backdrop-blur-md");
-    } else {
-      mobileMenu?.classList.add("hidden");
-      mobileMenu?.classList.remove("flex");
-      iconMenu?.classList.remove("hidden");
-      iconClose?.classList.add("hidden");
-      document.body.style.overflow = "unset";
-      if (window.scrollY <= 20) {
-        navbar?.classList.remove("bg-background/80", "backdrop-blur-md");
-      }
+    setMenuOpen(mobileMenu?.classList.contains("hidden") ?? false);
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !mobileMenu?.classList.contains("hidden")) {
+      setMenuOpen(false);
     }
   });
 </script>
