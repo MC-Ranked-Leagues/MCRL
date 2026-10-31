@@ -1,6 +1,6 @@
 import { RankedClient, RankedError } from "mcsrranked-sdk";
 
-export const ranked = new RankedClient({ validation: "error" });
+export const ranked = new RankedClient({ validation: "warn" });
 
 export const normalizeUuid = (uuid: string) =>
   uuid.replaceAll("-", "").toLowerCase();
