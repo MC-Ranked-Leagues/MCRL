@@ -12,6 +12,7 @@ export default defineConfig([
     "**/dist/**",
     "**/dist-ssr/**",
     "**/.astro/**",
+    "**/.wrangler/**",
     "**/coverage/**",
     "**/convex/_generated/**",
     ".tmp/**",

@@ -6,30 +6,23 @@ import { WeekSelector } from "./WeekSelector";
 import { LeagueSelector } from "./LeagueSelector";
 import { StandingsTable } from "./StandingsTable";
 import { MatchesList } from "./MatchesList";
+import { useHttpQuery } from "@/hooks/use-http-query";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Drawer,
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import { getWeekHref, readWeekSelection } from "@/lib/weekRoutes";
+import { cn } from "@/lib/utils";
 import SeedList from "./SeedList";
 
 const LazyDetailsPanel = lazy(async () => {
   const module = await import("./DetailsPanel");
   return { default: module.DetailsPanel };
 });
-
-function readUrlNumber(name: "week" | "league") {
-  if (typeof window === "undefined") return null;
-
-  const value = new URL(window.location.href).searchParams.get(name);
-  if (!value || value === "latest") return null;
-
-  const parsedValue = Number.parseInt(value, 10);
-  return Number.isFinite(parsedValue) ? parsedValue : null;
-}
 
 function DetailsPanelFallback({ showBorder = true }: { showBorder?: boolean }) {
   return (
@@ -44,63 +37,57 @@ function DetailsPanelFallback({ showBorder = true }: { showBorder?: boolean }) {
   );
 }
 
+// Every week shares one HTML file, so each URL's details are set here.
+function updatePageHead(weekNumber: number) {
+  document.title = `Week ${weekNumber} Results | Ranked Leagues`;
+  document
+    .querySelector('meta[name="description"]')
+    ?.setAttribute(
+      "content",
+      `Standings and matches for Week ${weekNumber} of Ranked Leagues.`
+    );
+
+  // Left out when `SITE_URL` isn't set, such as on preview deployments.
+  if (!import.meta.env.SITE) return;
+  let canonical = document.querySelector<HTMLLinkElement>(
+    'link[rel="canonical"]'
+  );
+  if (!canonical) {
+    canonical = document.createElement("link");
+    canonical.rel = "canonical";
+    document.head.append(canonical);
+  }
+  canonical.href = new URL(`/week/${weekNumber}`, import.meta.env.SITE).href;
+}
+
 function WeekContent() {
   const isMobile = useIsMobile();
-  const weeks = useQuery(api.weekView.getAllWeeks);
-  const leagues = useQuery(api.leagues.listLeagues);
+  const { data: weeks, failed: weeksFailed } = useHttpQuery(
+    api.weekView.getAllWeeks,
+    {}
+  );
+  const { data: leagues, failed: leaguesFailed } = useHttpQuery(
+    api.leagues.listLeagues,
+    {}
+  );
 
-  const [selectedWeekNumber, setSelectedWeekNumber] = useState<number | null>(
-    () => readUrlNumber("week")
-  );
-  const [selectedLeagueTier, setSelectedLeagueTier] = useState<number | null>(
-    () => readUrlNumber("league")
-  );
+  const [selection, setSelection] = useState(readWeekSelection);
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const weekNumbers = useMemo(
-    () => new Set((weeks ?? []).map((week) => week.weekNumber)),
-    [weeks]
-  );
-  const leagueTiers = useMemo(
-    () => new Set((leagues ?? []).map((league) => league.leagueTier)),
-    [leagues]
-  );
+  const [mobileTab, setMobileTab] = useState("standings");
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-
     const handlePopState = () => {
-      if (!weeks || !leagues) return;
-
-      const searchParams = new URL(window.location.href).searchParams;
-      const urlWeek = searchParams.get("week");
-      const urlLeague = searchParams.get("league");
-
-      const parsedWeek =
-        urlWeek && urlWeek !== "latest"
-          ? Number.parseInt(urlWeek, 10)
-          : Number.NaN;
-      const parsedLeague = urlLeague
-        ? Number.parseInt(urlLeague, 10)
-        : Number.NaN;
-
-      setSelectedWeekNumber(
-        Number.isFinite(parsedWeek) && weekNumbers.has(parsedWeek)
-          ? parsedWeek
-          : null
-      );
-
-      setSelectedLeagueTier(
-        Number.isFinite(parsedLeague) && leagueTiers.has(parsedLeague)
-          ? parsedLeague
-          : null
-      );
+      setSelection(readWeekSelection());
+      setSelectedPlayerId(null);
+      setSelectedMatchId(null);
+      setIsDrawerOpen(false);
     };
 
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
-  }, [weeks, leagues, weekNumbers, leagueTiers]);
+  }, []);
 
   const onDrawerChange = (open: boolean) => {
     setIsDrawerOpen(open);
@@ -110,47 +97,67 @@ function WeekContent() {
     }
   };
 
-  const effectiveSelectedWeekNumber = useMemo(
-    () =>
-      (selectedWeekNumber !== null && weekNumbers.has(selectedWeekNumber)
-        ? selectedWeekNumber
-        : null) ??
-      weeks?.find((week) => week.isActive)?.weekNumber ??
-      weeks?.[0]?.weekNumber ??
+  // Weeks are sorted newest first.
+  const newestWeekNumber = weeks?.[0]?.weekNumber ?? null;
+  // Null until the lists load, so unknown weeks and leagues never get shown.
+  const weekNumber = !weeks
+    ? null
+    : weeks.some((week) => week.weekNumber === selection.weekNumber)
+      ? selection.weekNumber
+      : newestWeekNumber;
+  const leagueTier = !leagues
+    ? null
+    : leagues.some((league) => league.leagueTier === selection.leagueTier)
+      ? selection.leagueTier
+      : ((leagues.find((league) => league.leagueTier === 1) ?? leagues[0])
+          ?.leagueTier ?? null);
+
+  // Trusts the URL until the lists load, so an archived week's results don't
+  // wait for them.
+  const requestedWeek = weeks ? weekNumber : selection.weekNumber;
+  const requestedLeague = leagues ? leagueTier : (selection.leagueTier ?? 1);
+  const isNewestWeek = requestedWeek === newestWeekNumber;
+  const { data: archivedResults, failed: archivedResultsFailed } = useHttpQuery(
+    api.weekView.getArchivedResults,
+    requestedWeek !== null && requestedLeague !== null && !isNewestWeek
+      ? { weekNumber: requestedWeek, leagueTier: requestedLeague }
+      : "skip",
+    { cache: true }
+  );
+
+  const liveArgs =
+    weekNumber !== null &&
+    leagueTier !== null &&
+    (isNewestWeek || archivedResults === null)
+      ? { weekNumber, leagueTier }
+      : "skip";
+  const liveStandings = useQuery(api.weekView.getWeekStandings, liveArgs);
+  const liveMatches = useQuery(api.weekView.getWeekMatches, liveArgs);
+  const standings = archivedResults?.standings ?? liveStandings;
+  const matches = archivedResults?.matches ?? liveMatches;
+
+  useEffect(() => {
+    if (weekNumber === null || leagueTier === null) return;
+
+    // Moves unknown weeks and leagues, and old links, onto the real URL.
+    const href = getWeekHref(weekNumber, leagueTier);
+    if (href !== window.location.pathname + window.location.search) {
+      window.history.replaceState(null, "", href);
+    }
+    updatePageHead(weekNumber);
+  }, [weekNumber, leagueTier]);
+
+  function onSelect(nextWeekNumber: number, nextLeagueTier: number) {
+    setSelection({ weekNumber: nextWeekNumber, leagueTier: nextLeagueTier });
+    setSelectedPlayerId(null);
+    setSelectedMatchId(null);
+    setIsDrawerOpen(false);
+    window.history.pushState(
       null,
-    [selectedWeekNumber, weekNumbers, weeks]
-  );
-
-  const effectiveSelectedLeagueTier = useMemo(
-    () =>
-      (selectedLeagueTier !== null && leagueTiers.has(selectedLeagueTier)
-        ? selectedLeagueTier
-        : null) ??
-      leagues?.find((league) => league.leagueTier === 1)?.leagueTier ??
-      leagues?.[0]?.leagueTier ??
-      null,
-    [selectedLeagueTier, leagueTiers, leagues]
-  );
-
-  const standings = useQuery(
-    api.weekView.getWeekStandings,
-    effectiveSelectedWeekNumber !== null && effectiveSelectedLeagueTier !== null
-      ? {
-          weekNumber: effectiveSelectedWeekNumber,
-          leagueTier: effectiveSelectedLeagueTier,
-        }
-      : "skip"
-  );
-
-  const matches = useQuery(
-    api.weekView.getWeekMatches,
-    effectiveSelectedWeekNumber !== null && effectiveSelectedLeagueTier !== null
-      ? {
-          weekNumber: effectiveSelectedWeekNumber,
-          leagueTier: effectiveSelectedLeagueTier,
-        }
-      : "skip"
-  );
+      "",
+      getWeekHref(nextWeekNumber, nextLeagueTier)
+    );
+  }
 
   function handlePlayerClick(playerId: string) {
     if (selectedPlayerId === playerId) {
@@ -171,35 +178,6 @@ function WeekContent() {
       setSelectedMatchId(matchId);
       setSelectedPlayerId(null);
       if (isMobile) setIsDrawerOpen(true);
-    }
-  }
-
-  function pushSelectionToUrl(weekNumber: number, leagueTier: number) {
-    const newUrl = new URL(window.location.href);
-    newUrl.searchParams.set("week", String(weekNumber));
-    newUrl.searchParams.set("league", String(leagueTier));
-    window.history.pushState({}, "", newUrl.toString());
-  }
-
-  function onWeekChange(weekNumber: number) {
-    setSelectedWeekNumber(weekNumber);
-    setSelectedPlayerId(null);
-    setSelectedMatchId(null);
-    setIsDrawerOpen(false);
-
-    if (effectiveSelectedLeagueTier !== null) {
-      pushSelectionToUrl(weekNumber, effectiveSelectedLeagueTier);
-    }
-  }
-
-  function onLeagueChange(leagueTier: number) {
-    setSelectedLeagueTier(leagueTier);
-    setSelectedPlayerId(null);
-    setSelectedMatchId(null);
-    setIsDrawerOpen(false);
-
-    if (effectiveSelectedWeekNumber !== null) {
-      pushSelectionToUrl(effectiveSelectedWeekNumber, leagueTier);
     }
   }
 
@@ -224,10 +202,12 @@ function WeekContent() {
   const selectedMatch =
     selectedMatchId !== null ? matchesById.get(selectedMatchId) : null;
 
+  const isArchived = archivedResults != null;
   const detailsPanelProps = useMemo(
     () => ({
-      weekNumber: effectiveSelectedWeekNumber,
-      leagueTier: effectiveSelectedLeagueTier,
+      weekNumber,
+      leagueTier,
+      isArchived,
       playerId: selectedPlayerId,
       matchId: selectedMatchId,
       rankedMatchId: selectedMatch?.rankedMatchId ?? null,
@@ -242,8 +222,9 @@ function WeekContent() {
         : null,
     }),
     [
-      effectiveSelectedLeagueTier,
-      effectiveSelectedWeekNumber,
+      isArchived,
+      leagueTier,
+      weekNumber,
       selectedMatch,
       selectedMatchId,
       selectedPlayer,
@@ -262,24 +243,35 @@ function WeekContent() {
           </h1>
           <WeekSelector
             weeks={weeks}
-            selectedWeekNumber={effectiveSelectedWeekNumber}
-            onSelect={onWeekChange}
+            selectedWeekNumber={weekNumber}
+            leagueTier={leagueTier}
+            onSelect={onSelect}
           />
         </div>
 
         <div className="mb-8">
           <LeagueSelector
             leagues={leagues}
-            selectedLeagueTier={effectiveSelectedLeagueTier}
-            onSelect={onLeagueChange}
-            isMobile={isMobile}
+            selectedLeagueTier={leagueTier}
+            weekNumber={weekNumber}
+            onSelect={onSelect}
           />
         </div>
 
-        {isMobile ? (
-          <div className="mt-4 flex flex-col gap-6">
-            <Tabs defaultValue="standings" className="w-full">
-              <TabsList className="mb-4 w-full justify-start rounded-none border-b bg-transparent p-0">
+        {weeksFailed || leaguesFailed || archivedResultsFailed ? (
+          <p className="text-sm text-muted-foreground">
+            Couldn't load this week. Reload to try again.
+          </p>
+        ) : (
+          <>
+            {/* One copy of each list, laid out with CSS so the page's HTML is
+                right on every screen size before hydration. */}
+            <Tabs
+              value={mobileTab}
+              onValueChange={setMobileTab}
+              className="w-full md:hidden"
+            >
+              <TabsList className="mt-4 mb-4 w-full justify-start rounded-none border-b bg-transparent p-0">
                 <TabsTrigger
                   value="standings"
                   className="rounded-none border-b-2 border-transparent px-4 py-2 data-[state=active]:border-primary data-[state=active]:bg-transparent"
@@ -293,79 +285,74 @@ function WeekContent() {
                   Matches
                 </TabsTrigger>
               </TabsList>
-              <TabsContent value="standings" className="mt-0">
-                <StandingsTable
-                  key={`${effectiveSelectedWeekNumber}-${effectiveSelectedLeagueTier}`}
-                  standings={standings}
-                  selectedPlayerId={selectedPlayerId}
-                  onPlayerClick={handlePlayerClick}
-                />
-              </TabsContent>
-              <TabsContent value="matches" className="mt-0">
-                <MatchesList
-                  matches={matches}
-                  selectedMatchId={selectedMatchId}
-                  onMatchClick={handleMatchClick}
-                />
-              </TabsContent>
             </Tabs>
 
-            <Drawer open={isDrawerOpen} onOpenChange={onDrawerChange}>
-              <DrawerContent>
-                <DrawerHeader className="border-b border-border/40 px-6 pb-4">
-                  <DrawerTitle className="font-minecraft text-xl">
-                    {selectedPlayerId ? "Player Details" : "Match Details"}
-                  </DrawerTitle>
-                </DrawerHeader>
-                <div className="h-full overflow-y-auto px-6 py-4 pb-12">
-                  {hasDetailsSelection ? (
-                    <Suspense
-                      fallback={<DetailsPanelFallback showBorder={false} />}
-                    >
-                      <LazyDetailsPanel
-                        {...detailsPanelProps}
-                        showBorder={false}
-                      />
-                    </Suspense>
-                  ) : null}
+            <div className="md:mt-4 md:flex md:min-h-150 md:items-start md:gap-8 lg:gap-16">
+              <div className="md:flex md:flex-1 md:flex-row md:items-start md:gap-8 lg:gap-16">
+                <div
+                  className={cn(
+                    "max-md:text-sm md:flex md:w-[320px] md:shrink-0 md:flex-col md:gap-4",
+                    mobileTab !== "standings" && "max-md:hidden"
+                  )}
+                >
+                  <StandingsTable
+                    standings={standings}
+                    selectedPlayerId={selectedPlayerId}
+                    onPlayerClick={handlePlayerClick}
+                  />
                 </div>
-              </DrawerContent>
-            </Drawer>
-          </div>
-        ) : (
-          <div className="mt-4 flex min-h-150 items-start gap-8 lg:gap-16">
-            <div className="flex flex-1 flex-row items-start gap-8 lg:gap-16">
-              <div className="flex w-[320px] shrink-0 flex-col gap-4">
-                <StandingsTable
-                  key={`${effectiveSelectedWeekNumber}-${effectiveSelectedLeagueTier}`}
-                  standings={standings}
-                  selectedPlayerId={selectedPlayerId}
-                  onPlayerClick={handlePlayerClick}
-                />
+
+                <div
+                  className={cn(
+                    "max-md:text-sm md:flex md:w-75 md:shrink-0 md:flex-col md:gap-2",
+                    mobileTab !== "matches" && "max-md:hidden"
+                  )}
+                >
+                  <MatchesList
+                    matches={matches}
+                    selectedMatchId={selectedMatchId}
+                    onMatchClick={handleMatchClick}
+                  />
+                </div>
               </div>
 
-              <div className="flex w-75 shrink-0 flex-col gap-2">
-                <MatchesList
-                  matches={matches}
-                  selectedMatchId={selectedMatchId}
-                  onMatchClick={handleMatchClick}
-                />
+              <div className="sticky top-24 w-125 shrink-0 max-md:hidden">
+                {/* Hidden on phones, so skip its requests there too. */}
+                {!isMobile &&
+                  (hasDetailsSelection ? (
+                    <Suspense fallback={<DetailsPanelFallback />}>
+                      <LazyDetailsPanel {...detailsPanelProps} />
+                    </Suspense>
+                  ) : (
+                    <SeedList weekNumber={weekNumber} leagueTier={leagueTier} />
+                  ))}
               </div>
             </div>
+          </>
+        )}
 
-            <div className="sticky top-24 w-125 shrink-0">
-              {hasDetailsSelection ? (
-                <Suspense fallback={<DetailsPanelFallback />}>
-                  <LazyDetailsPanel {...detailsPanelProps} />
-                </Suspense>
-              ) : (
-                <SeedList
-                  weekNumber={effectiveSelectedWeekNumber}
-                  leagueTier={effectiveSelectedLeagueTier}
-                />
-              )}
-            </div>
-          </div>
+        {isMobile && (
+          <Drawer open={isDrawerOpen} onOpenChange={onDrawerChange}>
+            <DrawerContent>
+              <DrawerHeader className="border-b border-border/40 px-6 pb-4">
+                <DrawerTitle className="font-minecraft text-xl">
+                  {selectedPlayerId ? "Player Details" : "Match Details"}
+                </DrawerTitle>
+              </DrawerHeader>
+              <div className="h-full overflow-y-auto px-6 py-4 pb-12">
+                {hasDetailsSelection ? (
+                  <Suspense
+                    fallback={<DetailsPanelFallback showBorder={false} />}
+                  >
+                    <LazyDetailsPanel
+                      {...detailsPanelProps}
+                      showBorder={false}
+                    />
+                  </Suspense>
+                ) : null}
+              </div>
+            </DrawerContent>
+          </Drawer>
         )}
       </div>
     </div>

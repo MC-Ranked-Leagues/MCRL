@@ -48,7 +48,9 @@ smaller area. `bun run format:check` checks formatting.
 
 The frontend hosting build runs from the repository root with
 `bun run build:cloudflare:league` and produces `apps/web/dist`. The backend
-deployment workflow lives in `.github/workflows/deploy-league-convex.yml`.
+deployment workflow lives in `.github/workflows/deploy-league-convex.yml`. Set
+`SITE_URL` in the production hosting environment to enable canonical links and
+the sitemap.
 
 Read [SPEC.md](SPEC.md) before product-facing League changes. [AGENTS.md](AGENTS.md)
 contains repository instructions, and [TODO.md](TODO.md) contains the backlog.

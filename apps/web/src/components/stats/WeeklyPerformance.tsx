@@ -8,6 +8,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { getWeekHref } from "@/lib/weekRoutes";
 import {
   formatDuration,
   formatPercentage,
@@ -139,7 +140,7 @@ export function WeeklyPerformance({
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2.5">
                     <a
-                      href={`/week/?week=${week.weekNumber}&league=${week.leagueNumber}`}
+                      href={getWeekHref(week.weekNumber, week.leagueNumber)}
                       className="hover:underline focus-visible:underline"
                     >
                       <h4 className="font-minecraft text-sm tracking-[0.08em] uppercase">
