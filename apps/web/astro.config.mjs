@@ -7,8 +7,24 @@ import starlight from "@astrojs/starlight";
 
 // https://astro.build/config
 export default defineConfig({
+  site: process.env.SITE_URL,
   vite: {
-    plugins: [tailwindcss()],
+    plugins: [
+      tailwindcss(),
+      {
+        // Matches `public/_redirects`, which only applies on Cloudflare.
+        name: "week-routes",
+        configureServer(server) {
+          server.middlewares.use((request, _response, next) => {
+            request.url = request.url?.replace(
+              /^\/week\/[^/?]+\/?(?=\?|$)/,
+              "/week/"
+            );
+            next();
+          });
+        },
+      },
+    ],
     resolve: {
       alias: [
         {

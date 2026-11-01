@@ -6,9 +6,14 @@ import { SITE_TITLE, SITE_DESCRIPTION } from "@/consts";
 interface Props {
   title?: string;
   description?: string;
+  // For pages that set their own canonical link in the browser.
+  noCanonical?: boolean;
 }
 
-const { title, description } = Astro.props;
+const { title, description, noCanonical } = Astro.props;
+// Left out when `SITE_URL` isn't set, such as on preview deployments.
+const canonicalUrl =
+  !noCanonical && Astro.site && new URL(Astro.url.pathname, Astro.site);
 ---
 
 <html lang="en">
@@ -18,6 +23,7 @@ const { title, description } = Astro.props;
     <link rel="icon" type="image/svg+xml" href="/MCRL.webp" />
     <title>{title || SITE_TITLE}</title>
     <meta name="description" content={description || SITE_DESCRIPTION} />
+    {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
   </head>
   <body class="dark">
     <Navbar />

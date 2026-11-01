@@ -3,6 +3,7 @@ import { useQuery } from "convex/react";
 import { api } from "@mcrl/backend/api";
 import type { Id } from "@mcrl/backend/data-model";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useHttpQuery } from "@/hooks/use-http-query";
 import { cn } from "@/lib/utils";
 import { formatPercentage } from "../stats/stats-utils";
 
@@ -22,6 +23,7 @@ const LazyMatchData = lazy(async () => {
 export function DetailsPanel({
   weekNumber,
   leagueTier,
+  isArchived,
   playerId,
   matchId,
   rankedMatchId,
@@ -30,6 +32,7 @@ export function DetailsPanel({
 }: {
   weekNumber: number | null;
   leagueTier: number | null;
+  isArchived: boolean;
   playerId: string | null;
   matchId: string | null;
   rankedMatchId: string | null;
@@ -47,6 +50,7 @@ export function DetailsPanel({
         <PlayerDetails
           weekNumber={weekNumber}
           leagueTier={leagueTier}
+          isArchived={isArchived}
           playerId={playerId as Id<"players">}
           stats={playerStats}
         />
@@ -81,19 +85,35 @@ export function DetailsPanel({
 function PlayerDetails({
   weekNumber,
   leagueTier,
+  isArchived,
   playerId,
   stats,
 }: {
   weekNumber: number;
   leagueTier: number;
+  isArchived: boolean;
   playerId: Id<"players">;
   stats: PlayerWeekStats;
 }) {
-  const placements = useQuery(api.weekView.getPlayerWeekPlacements, {
-    weekNumber,
-    leagueTier,
-    playerId,
-  });
+  const args = { weekNumber, leagueTier, playerId };
+  const livePlacements = useQuery(
+    api.weekView.getPlayerWeekPlacements,
+    isArchived ? "skip" : args
+  );
+  const { data: archivedPlacements, failed } = useHttpQuery(
+    api.weekView.getPlayerWeekPlacements,
+    isArchived ? args : "skip",
+    { cache: true }
+  );
+  const placements = isArchived ? archivedPlacements : livePlacements;
+
+  if (failed) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        Couldn't load this player. Reload to try again.
+      </p>
+    );
+  }
 
   if (placements === undefined) {
     return (

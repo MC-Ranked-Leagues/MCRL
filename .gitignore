@@ -42,3 +42,4 @@ scripts/data/
 *.report.md
 *.report.html
 research/
+.wrangler/

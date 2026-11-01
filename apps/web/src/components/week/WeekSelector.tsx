@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { CustomButton } from "@/components/ui-custom/Button";
+import { getWeekHref, isPlainClick } from "@/lib/weekRoutes";
 
 interface Week {
   weekNumber: number;
@@ -9,15 +10,24 @@ interface Week {
 interface WeekSelectorProps {
   weeks: Week[] | undefined;
   selectedWeekNumber: number | null;
-  onSelect: (weekNumber: number) => void;
+  leagueTier: number | null;
+  onSelect: (weekNumber: number, leagueTier: number) => void;
 }
+
+const ARROW_CLASS = "text-muted-foreground hover:text-foreground";
 
 export function WeekSelector({
   weeks,
   selectedWeekNumber,
+  leagueTier,
   onSelect,
 }: WeekSelectorProps) {
-  if (!weeks || weeks.length === 0 || selectedWeekNumber === null) {
+  if (
+    !weeks ||
+    weeks.length === 0 ||
+    selectedWeekNumber === null ||
+    leagueTier === null
+  ) {
     return <div className="h-10 w-48 animate-pulse rounded bg-muted"></div>;
   }
 
@@ -32,25 +42,50 @@ export function WeekSelector({
   const nextWeek = weeks[currentIndex - 1];
   const previousWeek = weeks[currentIndex + 1];
 
-  const handlePrev = () => {
-    if (previousWeek) onSelect(previousWeek.weekNumber);
-  };
+  const renderWeekLink = (
+    week: Week | undefined,
+    label: string,
+    icon: React.ReactNode
+  ) => {
+    if (!week) {
+      return (
+        <CustomButton
+          variant="ghost"
+          size="icon"
+          disabled
+          aria-label={label}
+          className={ARROW_CLASS}
+        >
+          {icon}
+        </CustomButton>
+      );
+    }
 
-  const handleNext = () => {
-    if (nextWeek) onSelect(nextWeek.weekNumber);
+    return (
+      <CustomButton
+        variant="ghost"
+        size="icon"
+        href={getWeekHref(week.weekNumber, leagueTier)}
+        aria-label={label}
+        className={ARROW_CLASS}
+        onClick={(event: React.MouseEvent) => {
+          if (!isPlainClick(event)) return;
+          event.preventDefault();
+          onSelect(week.weekNumber, leagueTier);
+        }}
+      >
+        {icon}
+      </CustomButton>
+    );
   };
 
   return (
     <div className="flex items-center gap-4">
-      <CustomButton
-        variant="ghost"
-        size="icon"
-        onClick={handlePrev}
-        disabled={!previousWeek}
-        className="text-muted-foreground hover:text-foreground"
-      >
+      {renderWeekLink(
+        previousWeek,
+        "Previous week",
         <ChevronLeft className="h-5 w-5" />
-      </CustomButton>
+      )}
 
       <div className="min-w-30 text-center">
         <h3 className="text-lg font-medium tracking-tight text-foreground">
@@ -58,15 +93,11 @@ export function WeekSelector({
         </h3>
       </div>
 
-      <CustomButton
-        variant="ghost"
-        size="icon"
-        onClick={handleNext}
-        disabled={!nextWeek}
-        className="text-muted-foreground hover:text-foreground"
-      >
+      {renderWeekLink(
+        nextWeek,
+        "Next week",
         <ChevronRight className="h-5 w-5" />
-      </CustomButton>
+      )}
     </div>
   );
 }

@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getWeekHref, isPlainClick } from "@/lib/weekRoutes";
 
 interface League {
   leagueTier: number;
@@ -16,17 +17,17 @@ interface League {
 interface LeagueSelectorProps {
   leagues: League[] | undefined;
   selectedLeagueTier: number | null;
-  onSelect: (leagueTier: number) => void;
-  isMobile?: boolean;
+  weekNumber: number | null;
+  onSelect: (weekNumber: number, leagueTier: number) => void;
 }
 
 export function LeagueSelector({
   leagues,
   selectedLeagueTier,
+  weekNumber,
   onSelect,
-  isMobile,
 }: LeagueSelectorProps) {
-  if (!leagues || selectedLeagueTier === null) {
+  if (!leagues || selectedLeagueTier === null || weekNumber === null) {
     return (
       <div className="flex gap-2">
         <Skeleton className="h-10 w-45 rounded-md" />
@@ -44,12 +45,12 @@ export function LeagueSelector({
     (league) => league.leagueTier === selectedLeagueTier
   );
 
-  if (isMobile) {
-    return (
-      <div className="w-full">
+  return (
+    <>
+      <div className="w-full md:hidden">
         <Select
           value={String(selectedLeagueTier)}
-          onValueChange={(value) => onSelect(Number(value))}
+          onValueChange={(value) => onSelect(weekNumber, Number(value))}
         >
           <SelectTrigger className="mx-auto w-full font-minecraft text-xs tracking-wider uppercase">
             <SelectValue placeholder="Select League">
@@ -69,25 +70,31 @@ export function LeagueSelector({
           </SelectContent>
         </Select>
       </div>
-    );
-  }
 
-  return (
-    <Tabs
-      value={String(selectedLeagueTier)}
-      onValueChange={(value) => onSelect(Number(value))}
-    >
-      <TabsList variant="line" className="flex-wrap bg-transparent">
-        {leagues.map((league) => (
-          <TabsTrigger
-            key={league.leagueTier}
-            value={String(league.leagueTier)}
-            className="font-minecraft text-xs tracking-wider uppercase"
-          >
-            {league.name}
-          </TabsTrigger>
-        ))}
-      </TabsList>
-    </Tabs>
+      <Tabs value={String(selectedLeagueTier)} className="max-md:hidden">
+        <TabsList variant="line" className="flex-wrap bg-transparent">
+          {leagues.map((league) => (
+            <TabsTrigger
+              key={league.leagueTier}
+              value={String(league.leagueTier)}
+              className="font-minecraft text-xs tracking-wider uppercase"
+              nativeButton={false}
+              render={
+                <a
+                  href={getWeekHref(weekNumber, league.leagueTier)}
+                  onClick={(event) => {
+                    if (!isPlainClick(event)) return;
+                    event.preventDefault();
+                    onSelect(weekNumber, league.leagueTier);
+                  }}
+                />
+              }
+            >
+              {league.name}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
+    </>
   );
 }
