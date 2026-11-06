@@ -1,5 +1,7 @@
 ---
+import "@fontsource-variable/archivo/wdth.css";
 import Layout from "@/layouts/main.astro";
+import Footer from "@/layouts/Footer.astro";
 import { SITE_NAME } from "@/consts";
 import { StatsPage } from "@/components/stats/StatsPage";
 ---
@@ -8,5 +10,10 @@ import { StatsPage } from "@/components/stats/StatsPage";
   title={`Player Statistics | ${SITE_NAME}`}
   description="Explore player performance, weekly results, and speedrun trends across Ranked Leagues."
 >
-  <StatsPage client:load />
+  <div class="obsidian-page">
+    <div class="min-h-screen">
+      <StatsPage client:load />
+    </div>
+    <Footer />
+  </div>
 </Layout>

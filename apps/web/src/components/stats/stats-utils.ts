@@ -10,7 +10,7 @@ export type PlayerStats = NonNullable<
 // One player's run in a league match.
 export type Run =
   PlayerStats["weeklyBreakdown"][number]["matchDetails"][number];
-export type Movement = PlayerStats["leagueHistory"][number]["movement"];
+type Movement = PlayerStats["leagueHistory"][number]["movement"];
 
 export interface WeeklyPerformance {
   weekNumber: number;
