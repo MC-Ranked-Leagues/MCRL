@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   cleanTimeDigits,
   estimateLeague,
-  formatTime,
   formatTimeDigits,
   parseTimeDigits,
   timeToDigits,
@@ -88,15 +87,5 @@ describe("time digits", () => {
 
   it("converts looked up seconds", () => {
     expect(formatTimeDigits(timeToDigits(305))).toBe("05:05");
-  });
-});
-
-describe("formatTime", () => {
-  it("pads seconds", () => {
-    expect(formatTime(605)).toBe("10:05");
-  });
-
-  it("carries rounded seconds into the minute", () => {
-    expect(formatTime(119.6)).toBe("2:00");
   });
 });

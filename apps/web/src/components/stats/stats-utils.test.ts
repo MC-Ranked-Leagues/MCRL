@@ -2,8 +2,6 @@ import { describe, expect, test } from "vitest";
 import type { Id } from "@mcrl/backend/data-model";
 import {
   buildPlayerUrl,
-  formatDuration,
-  formatPercentage,
   getCurrentPercentageAverage,
   mergeWeeklyPerformance,
   type PlayerStats,
@@ -21,16 +19,7 @@ describe("stats player URL helper", () => {
 });
 
 describe("stats data formatting", () => {
-  test("formats durations and uses an em dash for missing values", () => {
-    expect(formatDuration(83_456)).toBe("1:23.456");
-    expect(formatDuration(0)).toBe("—");
-    expect(formatDuration(null)).toBe("—");
-  });
-
-  test("formats percentages and averages the latest two saved values", () => {
-    expect(formatPercentage(null)).toBe("—");
-    expect(formatPercentage(0)).toBe("0%");
-    expect(formatPercentage(86.6666)).toBe("86.67%");
+  test("averages the latest two saved values", () => {
     expect(getCurrentPercentageAverage([])).toBeNull();
     expect(
       getCurrentPercentageAverage([

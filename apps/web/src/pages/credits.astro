@@ -1,6 +1,7 @@
 ---
 import { TEAM } from "@/lib/credits-content";
 import Layout from "@/layouts/main.astro";
+import { SITE_NAME } from "@/consts";
 import FooterCTA from "@/layouts/Footer.astro";
 
 const TOTAL_PEOPLE = new Set(
@@ -9,7 +10,7 @@ const TOTAL_PEOPLE = new Set(
 ---
 
 <Layout
-  title="Credits | MCSR Ranked Leagues"
+  title={`Credits | ${SITE_NAME}`}
   description="The people who organize, produce, and build MCSR Ranked Leagues."
 >
   <div class="min-h-screen bg-background px-6 pt-32 pb-16 sm:pt-36">
@@ -18,7 +19,7 @@ const TOTAL_PEOPLE = new Set(
         class="animate-slide-up flex flex-col gap-5 border-b border-border pb-9 opacity-0 sm:flex-row sm:items-end sm:justify-between"
       >
         <h1
-          class="max-w-3xl font-minecraft text-4xl leading-none tracking-tight text-foreground sm:text-6xl"
+          class="max-w-3xl text-4xl leading-none tracking-tight text-foreground sm:text-6xl"
         >
           {TEAM.title}
         </h1>
@@ -48,7 +49,7 @@ const TOTAL_PEOPLE = new Set(
                 <div>
                   <h2
                     id={`role-${index}`}
-                    class="font-minecraft text-base leading-tight text-foreground"
+                    class="text-base leading-tight text-foreground"
                   >
                     {role.name}
                   </h2>

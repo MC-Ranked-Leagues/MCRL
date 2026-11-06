@@ -1,14 +1,6 @@
 ---
-import { DISCORD_URL } from "@/consts";
-import { STREAMS } from "@/lib/championship-content";
-
-const TWITCH_URL = STREAMS.find(
-  (stream) =>
-    stream.platform === "twitch" && stream.caster === "Official Broadcast"
-)?.url;
-const YOUTUBE_URL = STREAMS.find(
-  (stream) => stream.platform === "youtube"
-)?.url;
+import { SITE_NAME } from "@/consts";
+import { DISCORD_URL, TWITCH_URL, YOUTUBE_URL } from "@/links";
 
 const SOCIAL_LINKS = [
   {
@@ -39,30 +31,27 @@ const SOCIAL_LINKS = [
           href="/"
           class="font-minecraft text-lg text-foreground transition-colors hover:text-primary"
         >
-          Ranked Leagues
+          {SITE_NAME}
         </a>
         <div class="flex items-center gap-3 text-muted-foreground">
           {
-            SOCIAL_LINKS.map(
-              (link) =>
-                link.href && (
-                  <a
-                    href={link.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={link.name}
-                    class="transition-colors hover:text-primary"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                      class="size-5 fill-current"
-                    >
-                      <path d={link.path} />
-                    </svg>
-                  </a>
-                )
-            )
+            SOCIAL_LINKS.map((link) => (
+              <a
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={link.name}
+                class="transition-colors hover:text-primary"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                  class="size-5 fill-current"
+                >
+                  <path d={link.path} />
+                </svg>
+              </a>
+            ))
           }
         </div>
       </div>

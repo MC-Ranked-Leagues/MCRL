@@ -1,210 +1,312 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
-import type { Id } from "@mcrl/backend/data-model";
 import { ArrowDownIcon, ArrowUpIcon, CrownIcon } from "lucide-react";
-import { formatPercentage } from "../stats/stats-utils";
+import { useState } from "react";
+import { PlayerHead } from "@/components/PlayerHead";
+import { Skeleton } from "@/components/ui/skeleton";
+import { formatPercentage } from "@/lib/format";
+import { movementLabel, visibleMovement } from "@/lib/movement";
+import { cn } from "@/lib/utils";
+import type { WeekStanding } from "./weekData";
 
-interface StandingRow {
-  rank: number | null;
-  playerId: Id<"players">;
-  name: string;
-  totalPoints: number;
-  movement?: "promoted" | "demoted" | "none" | null;
-  currentPercentage: number | null;
-  averagePercentage: number | null;
-  projected: boolean;
-}
-
-interface StandingsTableProps {
-  standings: StandingRow[] | undefined;
-  selectedPlayerId: string | null;
-  onPlayerClick: (playerId: string) => void;
-}
-
+// Every row keeps its height and every column its width, so sorting, selecting
+// a player, or moving to a week with fewer columns never shifts what's on screen.
 export function StandingsTable({
   standings,
+  leagueTier,
+  isLive,
   selectedPlayerId,
-  onPlayerClick,
-}: StandingsTableProps) {
-  const [sortBy, setSortBy] = useState<"placement" | "average">("placement");
-
-  if (!standings) {
+  onPlayer,
+}: {
+  standings: WeekStanding[] | undefined;
+  leagueTier: number | null;
+  isLive: boolean;
+  selectedPlayerId: string | null;
+  onPlayer: (playerId: string) => void;
+}) {
+  const [chosenSort, setChosenSort] = useState<"points" | "average" | null>(
+    null
+  );
+  if (!standings || leagueTier === null) {
     return (
-      <div className="flex flex-col gap-2">
-        {Array.from({ length: 10 }).map((_, i) => (
-          <Skeleton key={i} className="h-10 w-full rounded-md" />
-        ))}
+      <div aria-busy="true">
+        <Skeleton className="h-9 w-48" />
+        <div className="mt-2 flex flex-col gap-1">
+          {Array.from({ length: 10 }, (_, index) => (
+            <Skeleton key={index} className="h-9" />
+          ))}
+        </div>
       </div>
     );
   }
 
   if (standings.length === 0) {
     return (
-      <div className="text-sm text-muted-foreground">No records found</div>
+      <p className="text-home-muted">
+        No results for League {leagueTier} this week.
+      </p>
     );
   }
 
-  const hasAverages = standings.some((row) => row.averagePercentage !== null);
-  const sortByAverage = hasAverages && sortBy === "average";
-  // The weekly winner takes the first promotion slot regardless of average.
-  const isPromotedWinner = (row: StandingRow) =>
-    row.rank === 1 && row.movement === "promoted";
-  const sortedStandings = sortByAverage
-    ? [...standings].sort((a, b) => {
-        if (isPromotedWinner(a)) return -1;
-        if (isPromotedWinner(b)) return 1;
-        if (a.averagePercentage === null)
-          return b.averagePercentage === null ? 0 : 1;
-        if (b.averagePercentage === null) return -1;
-
-        return (
-          b.averagePercentage - a.averagePercentage ||
-          (b.currentPercentage ?? -1) - (a.currentPercentage ?? -1) ||
-          (a.rank ?? Number.MAX_SAFE_INTEGER) -
-            (b.rank ?? Number.MAX_SAFE_INTEGER)
-        );
-      })
-    : standings;
-  const firstUnrankedIndex = sortedStandings.findIndex((row) =>
-    sortByAverage ? row.averagePercentage === null : row.rank === null
+  // Older weeks and League 7 have no percentages, and the oldest weeks have no
+  // recorded moves either.
+  const hasAverages = standings.some(
+    (standing) => standing.averagePercentage !== null
   );
+  // Finished weeks open sorted by average.
+  const sort = !hasAverages
+    ? "points"
+    : (chosenSort ?? (isLive ? "points" : "average"));
+  const rows = sortRows(standings, sort);
+  const headerCell = "px-2 py-2 font-normal whitespace-nowrap text-home-muted";
+  const renderRow = (standing: WeekStanding, index: number) => (
+    <StandingRow
+      key={standing.playerId}
+      // Numbers the rows in their shown order, whichever sort is active.
+      number={standing.rank === null ? null : index + 1}
+      standing={standing}
+      isLive={isLive}
+      hasAverages={hasAverages}
+      isSelected={selectedPlayerId === standing.playerId}
+      onPlayer={onPlayer}
+    />
+  );
+  // Players who didn't play get their own table below, under a caption.
+  const played = rows.filter((standing) => standing.rank !== null);
+  const missed = rows.filter((standing) => standing.rank === null);
 
   return (
-    <div className="flex flex-col font-minecraft">
-      {hasAverages && (
-        <div
-          role="group"
-          aria-label="Sort standings"
-          className="mb-2 flex items-center justify-between gap-2 px-4"
-        >
-          <span className="text-xs text-muted-foreground">Sort by</span>
-          <div className="flex gap-1">
-            <Button
-              type="button"
-              size="sm"
-              variant={sortByAverage ? "ghost" : "secondary"}
-              aria-pressed={!sortByAverage}
-              onClick={() => setSortBy("placement")}
-            >
-              Placement
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant={sortByAverage ? "secondary" : "ghost"}
-              aria-pressed={sortByAverage}
-              onClick={() => setSortBy("average")}
-            >
-              Average
-            </Button>
-          </div>
-        </div>
-      )}
-      {sortedStandings.map((row, index) => {
-        const isSelected = selectedPlayerId === row.playerId;
-        const displayedRank = sortByAverage
-          ? row.averagePercentage === null
-            ? null
-            : index + 1
-          : row.rank;
-
-        return (
-          <div key={row.playerId}>
-            {index === firstUnrankedIndex && firstUnrankedIndex > 0 && (
-              <div
-                role="separator"
-                className="mt-3 mb-1 flex items-center gap-3 px-4 text-[10px] tracking-wider text-muted-foreground/70 uppercase"
+    <div>
+      <div className="flex min-h-9 flex-wrap items-center justify-between gap-x-6 gap-y-2">
+        <h2 className="text-3xl leading-none font-bold md:text-4xl">
+          League {leagueTier}
+        </h2>
+        {hasAverages && (
+          <div
+            role="group"
+            aria-label="Sort table"
+            className="flex shrink-0 gap-1 text-sm"
+          >
+            {(
+              [
+                ["points", "Points"],
+                ["average", "3-week average"],
+              ] as const
+            ).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={sort === value}
+                onClick={() => setChosenSort(value)}
+                className={cn(
+                  "cursor-pointer px-2.5 py-1 font-minecraft transition-colors",
+                  sort === value
+                    ? "bg-lava font-bold text-lava-ink"
+                    : "bg-obsidian-raised text-home-muted hover:text-home-text"
+                )}
               >
-                <span className="h-px flex-1 bg-border" />
-                <span>{sortByAverage ? "No average" : "Didn't show up"}</span>
-                <span className="h-px flex-1 bg-border" />
-              </div>
-            )}
-            <button
-              type="button"
-              onClick={() => onPlayerClick(row.playerId)}
-              aria-pressed={isSelected}
-              className={cn(
-                "w-full rounded-xl px-4 py-2 text-left transition-colors hover:bg-muted/50",
-                displayedRank === null && "text-muted-foreground",
-                isSelected && "border border-border bg-muted/50"
-              )}
-            >
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex min-w-0 items-center gap-4">
-                  <span
-                    aria-hidden={displayedRank === null}
-                    className="w-6 shrink-0 text-center text-muted-foreground"
-                  >
-                    {displayedRank}
-                  </span>
-                  <span
-                    className={cn(
-                      "flex min-w-0 items-center gap-1 font-medium",
-                      !row.projected &&
-                        row.movement === "promoted" &&
-                        "text-green-400",
-                      !row.projected &&
-                        row.movement === "demoted" &&
-                        "text-destructive"
-                    )}
-                  >
-                    {/* Projected arrows stay faint and leave the name uncolored. */}
-                    {row.movement === "promoted" && (
-                      <ArrowUpIcon
-                        aria-label={
-                          row.projected ? "Expected promotion" : "Promoted"
-                        }
-                        className={cn(
-                          "size-4 shrink-0",
-                          row.projected && "text-green-400/60"
-                        )}
-                      />
-                    )}
-                    {row.movement === "demoted" && (
-                      <ArrowDownIcon
-                        aria-label={
-                          row.projected ? "Expected demotion" : "Demoted"
-                        }
-                        className={cn(
-                          "size-4 shrink-0",
-                          row.projected && "text-destructive/60"
-                        )}
-                      />
-                    )}
-                    <span className="truncate">{row.name}</span>
-                    {row.rank === 1 && (
-                      <CrownIcon
-                        aria-label="Weekly winner"
-                        className="size-4 shrink-0 text-yellow-400"
-                      />
-                    )}
-                  </span>
-                </div>
-                <span className="shrink-0 text-muted-foreground tabular-nums">
-                  {row.totalPoints} pts
-                </span>
-              </div>
-              {(row.currentPercentage !== null ||
-                row.averagePercentage !== null) && (
-                <div className="mt-1 ml-10 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground tabular-nums">
-                  {row.currentPercentage !== null && (
-                    <span>Week {formatPercentage(row.currentPercentage)}</span>
-                  )}
-                  {row.averagePercentage !== null && (
-                    <span>
-                      {row.projected ? "Projected avg" : "Avg"}{" "}
-                      {formatPercentage(row.averagePercentage)}
-                    </span>
-                  )}
-                </div>
-              )}
-            </button>
+                {label}
+              </button>
+            ))}
           </div>
-        );
-      })}
+        )}
+      </div>
+
+      <table className="mt-2 w-full table-fixed border-collapse text-left">
+        <thead className="border-b-3 border-obsidian-line text-sm">
+          <tr>
+            <th
+              scope="col"
+              className={cn(headerCell, COLUMN_WIDTHS.place, "text-right")}
+            >
+              <span className="sm:hidden">#</span>
+              <span className="max-sm:hidden">Place</span>
+            </th>
+            <th scope="col" className={headerCell}>
+              Player
+            </th>
+            <th
+              scope="col"
+              className={cn(headerCell, COLUMN_WIDTHS.points, "text-right")}
+            >
+              Points
+            </th>
+            {hasAverages && (
+              <>
+                <th
+                  scope="col"
+                  className={cn(
+                    headerCell,
+                    COLUMN_WIDTHS.week,
+                    "text-right max-lg:hidden"
+                  )}
+                >
+                  Week %
+                </th>
+                <th
+                  scope="col"
+                  className={cn(
+                    headerCell,
+                    COLUMN_WIDTHS.average,
+                    "text-right max-lg:hidden"
+                  )}
+                >
+                  3-wk avg %
+                </th>
+              </>
+            )}
+          </tr>
+        </thead>
+        <tbody>{played.map(renderRow)}</tbody>
+      </table>
+
+      {missed.length > 0 && (
+        <table className="mt-4 w-full table-fixed border-collapse text-left">
+          <caption className="px-2 pb-1 text-left text-sm font-semibold text-home-muted">
+            Didn't play
+          </caption>
+          <tbody>{missed.map(renderRow)}</tbody>
+        </table>
+      )}
     </div>
   );
 }
+
+// Both tables set the same widths on every cell, so their columns line up.
+const COLUMN_WIDTHS = {
+  place: "w-10 sm:w-12",
+  points: "w-16",
+  week: "w-24",
+  average: "w-32",
+};
+
+function StandingRow({
+  number,
+  standing,
+  isLive,
+  hasAverages,
+  isSelected,
+  onPlayer,
+}: {
+  number: number | null;
+  standing: WeekStanding;
+  isLive: boolean;
+  hasAverages: boolean;
+  isSelected: boolean;
+  onPlayer: (playerId: string) => void;
+}) {
+  const movement = visibleMovement(standing, isLive);
+  const move = movement === "none" ? null : movement;
+  return (
+    <tr
+      onClick={() => onPlayer(standing.playerId)}
+      className={cn(
+        "h-9 cursor-pointer border-b border-obsidian-line/60 transition-colors hover:bg-obsidian-raised",
+        move && !standing.projected && MOVE_TINTS[move],
+        standing.rank === null && "text-home-muted",
+        isSelected &&
+          "bg-obsidian-raised shadow-[inset_3px_0_0_var(--color-lava)]"
+      )}
+    >
+      <td
+        className={cn(
+          COLUMN_WIDTHS.place,
+          "px-2 text-right font-semibold tabular-nums"
+        )}
+      >
+        {number}
+      </td>
+      <th scope="row" className="px-2 font-normal max-sm:pl-1">
+        <button
+          type="button"
+          aria-pressed={isSelected}
+          className="flex max-w-full cursor-pointer items-center gap-2.5 py-1 text-left"
+        >
+          <PlayerHead player={standing.uuid} />
+          <span className="min-w-0">
+            <span className="flex items-center gap-1.5">
+              <span className="min-w-0 truncate font-minecraft leading-tight">
+                {standing.name}
+              </span>
+              {move && <span className="sr-only">, {movementLabel(move)}</span>}
+              {/* Projected moves show an arrow, final ones a tint. */}
+              {move === "promoted" && standing.projected && (
+                <ArrowUpIcon
+                  aria-hidden
+                  className="size-4 shrink-0 text-promoted"
+                />
+              )}
+              {move === "demoted" && standing.projected && (
+                <ArrowDownIcon
+                  aria-hidden
+                  className="size-4 shrink-0 text-demoted"
+                />
+              )}
+              {standing.rank === 1 && (
+                <CrownIcon
+                  aria-label={isLive ? "Leading" : "Winner"}
+                  className="size-4 shrink-0 text-home-gold"
+                />
+              )}
+            </span>
+            {/* Below `lg` the percentage columns move under the name, leaving room for the details panel. */}
+            {standing.averagePercentage !== null && (
+              <span className="block font-minecraft text-xs text-home-muted tabular-nums lg:hidden">
+                {standing.currentPercentage !== null &&
+                  `Week ${formatPercentage(standing.currentPercentage)} · `}
+                Avg {formatPercentage(standing.averagePercentage)}
+              </span>
+            )}
+          </span>
+        </button>
+      </th>
+      <td
+        className={cn(
+          COLUMN_WIDTHS.points,
+          "px-2 text-right font-minecraft text-lg font-bold tabular-nums"
+        )}
+      >
+        {standing.totalPoints}
+      </td>
+      {hasAverages && (
+        <>
+          <td
+            className={cn(
+              COLUMN_WIDTHS.week,
+              "px-2 text-right font-minecraft text-home-muted tabular-nums max-lg:hidden"
+            )}
+          >
+            {formatPercentage(standing.currentPercentage)}
+          </td>
+          <td
+            className={cn(
+              COLUMN_WIDTHS.average,
+              "px-2 text-right font-minecraft tabular-nums max-lg:hidden"
+            )}
+          >
+            {formatPercentage(standing.averagePercentage)}
+          </td>
+        </>
+      )}
+    </tr>
+  );
+}
+
+function movementGroup(standing: WeekStanding) {
+  if (standing.movement === "promoted") return 0;
+  if (standing.movement === "demoted") return 2;
+  return 1;
+}
+
+// Average decides who moves, so sorting by it puts each kind of move in a block.
+function sortRows(standings: WeekStanding[], sort: "points" | "average") {
+  if (sort === "points") return standings;
+  return [...standings].sort(
+    (a, b) =>
+      movementGroup(a) - movementGroup(b) ||
+      (b.averagePercentage ?? 0) - (a.averagePercentage ?? 0)
+  );
+}
+
+const MOVE_TINTS = {
+  promoted: "bg-promoted-tint",
+  demoted: "bg-demoted-tint",
+} as const;

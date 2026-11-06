@@ -4,6 +4,8 @@ import react from "@astrojs/react";
 import { fileURLToPath } from "node:url";
 
 import starlight from "@astrojs/starlight";
+import { SITE_NAME } from "./src/consts.ts";
+import { DISCORD_URL, GITHUB_URL } from "./src/links.ts";
 
 // https://astro.build/config
 export default defineConfig({
@@ -40,7 +42,7 @@ export default defineConfig({
   integrations: [
     react(),
     starlight({
-      title: "Ranked Leagues",
+      title: SITE_NAME,
       favicon: "/MCRL.png",
       customCss: ["./src/starlight.css"],
       markdown: {
@@ -53,12 +55,12 @@ export default defineConfig({
         {
           icon: "github",
           label: "GitHub",
-          href: "https://github.com/MC-Ranked-Leagues/MCRL",
+          href: GITHUB_URL,
         },
         {
           icon: "discord",
           label: "Discord",
-          href: "https://discord.gg/KDsv2AaMyZ",
+          href: DISCORD_URL,
         },
       ],
       sidebar: [

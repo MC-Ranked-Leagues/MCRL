@@ -20,7 +20,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { api } from "@mcrl/backend/api";
 import type { Id } from "@mcrl/backend/data-model";
-import { formatDuration, type PlayerListEntry } from "./stats-utils";
+import { formatRunTime } from "@/lib/format";
+import type { PlayerListEntry } from "./stats-utils";
 
 interface StatsPlayerBrowserProps {
   fastestPlayers: PlayerListEntry[];
@@ -110,7 +111,7 @@ function PlayerRows({
               </span>
             </span>
             <span className="text-right font-minecraft text-xs text-primary tabular-nums">
-              {formatDuration(player.fastestTimeMs)}
+              {formatRunTime(player.fastestTimeMs)}
             </span>
           </button>
         );
@@ -287,7 +288,7 @@ export const StatsPlayerBrowser = memo(function StatsPlayerBrowser({
                 </span>
                 {selectedPlayer ? (
                   <span className="shrink-0 font-minecraft text-xs text-primary tabular-nums">
-                    {formatDuration(selectedPlayer.fastestTimeMs)}
+                    {formatRunTime(selectedPlayer.fastestTimeMs)}
                   </span>
                 ) : null}
               </span>

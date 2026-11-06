@@ -1,15 +1,14 @@
 import { useState, type SubmitEvent } from "react";
-import { DISCORD_URL } from "@/consts";
+import { DISCORD_URL } from "@/links";
+import { formatRunTime } from "@/lib/format";
+import { headUrl, STEVE_HEAD } from "@/lib/playerHead";
 import {
   cleanTimeDigits,
   estimateLeague,
-  formatTime,
   formatTimeDigits,
-  headUrl,
   LEAGUES,
   lookUpRanked,
   parseTimeDigits,
-  STEVE_HEAD,
   timeToDigits,
   typicalRange,
   type Stats,
@@ -97,13 +96,13 @@ export function LeagueFinder() {
 
   return (
     <div>
-      <h2 className="mb-4 font-minecraft text-3xl leading-none font-bold md:text-4xl">
+      <h2 className="mb-4 text-3xl leading-none font-bold md:text-4xl">
         Find your league
       </h2>
 
       {/* Both panels stretch to the taller one, so their edges line up. */}
       <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1fr)_4rem_minmax(0,1fr)] lg:gap-6">
-        <div className="flex flex-col border-[3px] border-obsidian-line bg-obsidian-deep/50 p-5">
+        <div className="flex flex-col border-3 border-obsidian-line bg-obsidian-deep/50 p-5">
           <form
             onSubmit={(event) => void submit(event)}
             className="flex items-end gap-2"
@@ -304,7 +303,7 @@ function ResultPanel({
   // Every part keeps its place before any numbers are in, so the page holds
   // still when the result arrives.
   return (
-    <section aria-live="polite" className="league-tooltip flex flex-col p-5">
+    <section aria-live="polite" className="mc-tooltip flex flex-col p-5">
       <div className="flex items-center gap-5">
         <span className="stat-slot flex size-20 shrink-0 items-center justify-center">
           <img
@@ -432,7 +431,9 @@ function CompareRow({
 }) {
   const range = league === null ? null : typicalRange(league, stat);
   const show = (number: number) =>
-    stat === "elo" ? String(number) : formatTime(number);
+    stat === "elo"
+      ? String(number)
+      : formatRunTime(number * 1000, { hundredths: false });
 
   let verdict = "";
   if (value !== null && range) {

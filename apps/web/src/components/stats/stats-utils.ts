@@ -7,7 +7,8 @@ export type PlayerListEntry = FunctionReturnType<
 export type PlayerStats = NonNullable<
   FunctionReturnType<typeof api.playerStats.getPlayerStats>
 >;
-export type MatchDetail =
+// One player's run in a league match.
+export type Run =
   PlayerStats["weeklyBreakdown"][number]["matchDetails"][number];
 export type Movement = PlayerStats["leagueHistory"][number]["movement"];
 
@@ -20,11 +21,7 @@ export interface WeeklyPerformance {
   averageTimeMs: number | null;
   currentPercentage: number | null;
   averagePercentage: number | null;
-  matchDetails: MatchDetail[];
-}
-
-export function formatPercentage(value: number | null): string {
-  return value === null ? "—" : `${Number(value.toFixed(2))}%`;
+  matchDetails: Run[];
 }
 
 export function getCurrentPercentageAverage(
@@ -34,23 +31,6 @@ export function getCurrentPercentageAverage(
   return recent.length
     ? recent.reduce((sum, entry) => sum + entry.percentage, 0) / recent.length
     : null;
-}
-
-export function formatDuration(
-  ms: number | null | undefined,
-  includeMs = true
-): string {
-  if (ms === null || ms === undefined || !Number.isFinite(ms) || ms <= 0) {
-    return "—";
-  }
-
-  const roundedMs = Math.round(ms);
-  const totalSeconds = Math.floor(roundedMs / 1000);
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  const milliseconds = roundedMs % 1000;
-
-  return `${minutes}:${String(seconds).padStart(2, "0")}${includeMs ? `.${String(milliseconds).padStart(3, "0")}` : ""}`;
 }
 
 export function buildPlayerUrl(
@@ -92,15 +72,4 @@ export function mergeWeeklyPerformance(
       };
     })
     .sort((a, b) => a.weekNumber - b.weekNumber);
-}
-
-export function movementLabel(movement: Movement): string {
-  switch (movement) {
-    case "promoted":
-      return "Promoted";
-    case "demoted":
-      return "Demoted";
-    case "none":
-      return "Stayed";
-  }
 }

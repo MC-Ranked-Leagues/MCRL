@@ -1,3 +1,5 @@
+import { TWITCH_URL, YOUTUBE_URL } from "@/links";
+
 export const Z_SCORE_FORMULA = "(league_avg - player_avg) / league_std";
 
 export const SWISS_RULES = [
@@ -154,7 +156,7 @@ export const STREAMS: StreamCardData[] = [
     platform: "twitch",
     channelName: "mcrankedleagues",
     title: "MSRL Championship - Official Main Stream",
-    url: "https://www.twitch.tv/mcrankedleagues",
+    url: TWITCH_URL,
     isLive: true,
     viewers: 1420,
     caster: "Official Broadcast",
@@ -163,7 +165,7 @@ export const STREAMS: StreamCardData[] = [
     platform: "youtube",
     channelName: "MCRankedLeagues",
     title: "Ranked Leagues YouTube - Live & VODs",
-    url: "https://www.youtube.com/@MCRankedLeagues",
+    url: YOUTUBE_URL,
     isLive: false,
     caster: "Official VODs",
   },

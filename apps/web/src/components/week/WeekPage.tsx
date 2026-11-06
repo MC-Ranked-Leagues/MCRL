@@ -1,50 +1,32 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { useEffect, useEffectEvent, useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@mcrl/backend/api";
 import ConvexClientProvider from "@/components/ConvexClientProvider";
-import { WeekSelector } from "./WeekSelector";
-import { LeagueSelector } from "./LeagueSelector";
-import { StandingsTable } from "./StandingsTable";
-import { MatchesList } from "./MatchesList";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
+import { SITE_NAME } from "@/consts";
 import { useHttpQuery } from "@/hooks/use-http-query";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useSeedHistory } from "@/hooks/use-seed-history";
 import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
-import { getWeekHref, readWeekSelection } from "@/lib/weekRoutes";
-import { cn } from "@/lib/utils";
-import SeedList from "./SeedList";
-
-const LazyDetailsPanel = lazy(async () => {
-  const module = await import("./DetailsPanel");
-  return { default: module.DetailsPanel };
-});
-
-function DetailsPanelFallback({ showBorder = true }: { showBorder?: boolean }) {
-  return (
-    <div
-      className={[
-        "min-h-75 p-6 text-sm text-muted-foreground",
-        showBorder ? "rounded-3xl border border-border" : "",
-      ].join(" ")}
-    >
-      Loading details...
-    </div>
-  );
-}
+  DEFAULT_LEAGUE_TIER,
+  getWeekHref,
+  readWeekSelection,
+} from "@/lib/weekRoutes";
+import { MatchRace } from "./MatchRace";
+import { MatchStrip } from "./MatchStrip";
+import { PlayerRuns } from "./PlayerRuns";
+import { StandingsTable } from "./StandingsTable";
+import { WeekHero } from "./WeekHero";
 
 // Every week shares one HTML file, so each URL's details are set here.
 function updatePageHead(weekNumber: number) {
-  document.title = `Week ${weekNumber} Results | Ranked Leagues`;
+  document.title = `Week ${weekNumber} Results | ${SITE_NAME}`;
   document
     .querySelector('meta[name="description"]')
     ?.setAttribute(
       "content",
-      `Standings and matches for Week ${weekNumber} of Ranked Leagues.`
+      `Standings and matches for Week ${weekNumber} of ${SITE_NAME}.`
     );
 
   // Left out when `SITE_URL` isn't set, such as on preview deployments.
@@ -61,7 +43,6 @@ function updatePageHead(weekNumber: number) {
 }
 
 function WeekContent() {
-  const isMobile = useIsMobile();
   const { data: weeks, failed: weeksFailed } = useHttpQuery(
     api.weekView.getAllWeeks,
     {}
@@ -73,29 +54,30 @@ function WeekContent() {
 
   const [selection, setSelection] = useState(readWeekSelection);
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
-  const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [mobileTab, setMobileTab] = useState("standings");
+  const [chosenMatchNumber, setChosenMatchNumber] = useState<number | null>(
+    null
+  );
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  // Below the side column's breakpoint the details open in a sheet instead.
+  // Only one of them gets the details, so their requests aren't made twice.
+  // Widening the window past it hides the sheet.
+  const usesSheet = useIsMobile();
 
+  function clearDetails() {
+    setSelectedPlayerId(null);
+    setChosenMatchNumber(null);
+    setIsSheetOpen(false);
+  }
+
+  const onPopState = useEffectEvent(() => {
+    setSelection(readWeekSelection());
+    clearDetails();
+  });
   useEffect(() => {
-    const handlePopState = () => {
-      setSelection(readWeekSelection());
-      setSelectedPlayerId(null);
-      setSelectedMatchId(null);
-      setIsDrawerOpen(false);
-    };
-
+    const handlePopState = () => onPopState();
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
-
-  const onDrawerChange = (open: boolean) => {
-    setIsDrawerOpen(open);
-    if (!open) {
-      setSelectedPlayerId(null);
-      setSelectedMatchId(null);
-    }
-  };
 
   // Weeks are sorted newest first.
   const newestWeekNumber = weeks?.[0]?.weekNumber ?? null;
@@ -109,13 +91,17 @@ function WeekContent() {
     ? null
     : leagues.some((league) => league.leagueTier === selection.leagueTier)
       ? selection.leagueTier
-      : ((leagues.find((league) => league.leagueTier === 1) ?? leagues[0])
-          ?.leagueTier ?? null);
+      : ((
+          leagues.find((league) => league.leagueTier === DEFAULT_LEAGUE_TIER) ??
+          leagues[0]
+        )?.leagueTier ?? null);
 
   // Trusts the URL until the lists load, so an archived week's results don't
   // wait for them.
   const requestedWeek = weeks ? weekNumber : selection.weekNumber;
-  const requestedLeague = leagues ? leagueTier : (selection.leagueTier ?? 1);
+  const requestedLeague = leagues
+    ? leagueTier
+    : (selection.leagueTier ?? DEFAULT_LEAGUE_TIER);
   const isNewestWeek = requestedWeek === newestWeekNumber;
   const { data: archivedResults, failed: archivedResultsFailed } = useHttpQuery(
     api.weekView.getArchivedResults,
@@ -135,6 +121,11 @@ function WeekContent() {
   const liveMatches = useQuery(api.weekView.getWeekMatches, liveArgs);
   const standings = archivedResults?.standings ?? liveStandings;
   const matches = archivedResults?.matches ?? liveMatches;
+  const seeds = useSeedHistory(weekNumber, leagueTier);
+  const isArchived = archivedResults != null;
+  const isLive =
+    !isArchived &&
+    (weeks?.find((week) => week.weekNumber === weekNumber)?.isActive ?? false);
 
   useEffect(() => {
     if (weekNumber === null || leagueTier === null) return;
@@ -147,11 +138,9 @@ function WeekContent() {
     updatePageHead(weekNumber);
   }, [weekNumber, leagueTier]);
 
-  function onSelect(nextWeekNumber: number, nextLeagueTier: number) {
+  function navigate(nextWeekNumber: number, nextLeagueTier: number) {
     setSelection({ weekNumber: nextWeekNumber, leagueTier: nextLeagueTier });
-    setSelectedPlayerId(null);
-    setSelectedMatchId(null);
-    setIsDrawerOpen(false);
+    clearDetails();
     window.history.pushState(
       null,
       "",
@@ -159,203 +148,123 @@ function WeekContent() {
     );
   }
 
-  function handlePlayerClick(playerId: string) {
-    if (selectedPlayerId === playerId) {
-      setSelectedPlayerId(null);
-      if (isMobile) setIsDrawerOpen(false);
-    } else {
-      setSelectedPlayerId(playerId);
-      setSelectedMatchId(null);
-      if (isMobile) setIsDrawerOpen(true);
-    }
+  // Falls back to the first match
+  const match =
+    matches?.find((entry) => entry.matchNumber === chosenMatchNumber) ??
+    matches?.[0];
+  const player = standings?.find(
+    (standing) => standing.playerId === selectedPlayerId
+  );
+
+  function openSheet() {
+    if (usesSheet) setIsSheetOpen(true);
   }
 
-  function handleMatchClick(matchId: string) {
-    if (selectedMatchId === matchId) {
-      setSelectedMatchId(null);
-      if (isMobile) setIsDrawerOpen(false);
-    } else {
-      setSelectedMatchId(matchId);
-      setSelectedPlayerId(null);
-      if (isMobile) setIsDrawerOpen(true);
-    }
+  function togglePlayer(playerId: string) {
+    const isClosing = selectedPlayerId === playerId;
+    setSelectedPlayerId(isClosing ? null : playerId);
+    if (!isClosing) openSheet();
   }
 
-  const standingsByPlayerId = useMemo(
-    () =>
-      new Map(
-        (standings ?? []).map((standing) => [
-          String(standing.playerId),
-          standing,
-        ])
-      ),
-    [standings]
-  );
-  const matchesById = useMemo(
-    () => new Map((matches ?? []).map((match) => [String(match._id), match])),
-    [matches]
-  );
-  const selectedPlayer =
-    selectedPlayerId !== null
-      ? standingsByPlayerId.get(selectedPlayerId)
-      : null;
-  const selectedMatch =
-    selectedMatchId !== null ? matchesById.get(selectedMatchId) : null;
+  function showMatch(matchNumber: number) {
+    setChosenMatchNumber(matchNumber);
+    setSelectedPlayerId(null);
+    openSheet();
+  }
 
-  const isArchived = archivedResults != null;
-  const detailsPanelProps = useMemo(
-    () => ({
-      weekNumber,
-      leagueTier,
-      isArchived,
-      playerId: selectedPlayerId,
-      matchId: selectedMatchId,
-      rankedMatchId: selectedMatch?.rankedMatchId ?? null,
-      playerStats: selectedPlayer
-        ? {
-            name: selectedPlayer.name,
-            totalPoints: selectedPlayer.totalPoints,
-            rank: selectedPlayer.rank,
-            averagePercentage: selectedPlayer.averagePercentage,
-            projected: selectedPlayer.projected,
-          }
-        : null,
-    }),
-    [
-      isArchived,
-      leagueTier,
-      weekNumber,
-      selectedMatch,
-      selectedMatchId,
-      selectedPlayer,
-      selectedPlayerId,
-    ]
-  );
-  const hasDetailsSelection =
-    detailsPanelProps.playerId !== null || detailsPanelProps.matchId !== null;
+  const failed = weeksFailed || leaguesFailed || archivedResultsFailed;
+  const details =
+    player && weekNumber !== null && leagueTier !== null ? (
+      <PlayerRuns
+        standing={player}
+        weekNumber={weekNumber}
+        leagueTier={leagueTier}
+        isArchived={isArchived}
+        seeds={seeds}
+        onMatch={showMatch}
+      />
+    ) : match ? (
+      <MatchRace
+        key={match._id}
+        match={match}
+        seed={seeds.get(match.matchNumber)}
+        findPlayerId={(uuid) =>
+          standings?.find((standing) => standing.uuid === uuid)?.playerId
+        }
+        onPlayer={togglePlayer}
+      />
+    ) : matches === undefined ? (
+      <div aria-busy="true" className="flex flex-col gap-1">
+        <Skeleton className="mb-3 h-8 w-40" />
+        {Array.from({ length: 8 }, (_, index) => (
+          <Skeleton key={index} className="h-10" />
+        ))}
+      </div>
+    ) : null;
 
   return (
-    <div className="min-h-screen bg-background pt-20 pb-24 font-sans text-foreground md:pt-28">
-      <div className="container mx-auto max-w-7xl px-4 md:px-8">
-        <div className="mb-4 flex flex-col justify-between gap-4 border-b border-border/40 pb-4 md:flex-row md:items-center">
-          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
-            Weekly Leaderboards
-          </h1>
-          <WeekSelector
-            weeks={weeks}
-            selectedWeekNumber={weekNumber}
-            leagueTier={leagueTier}
-            onSelect={onSelect}
+    <>
+      <WeekHero
+        weeks={weeks}
+        leagues={leagues}
+        weekNumber={weekNumber}
+        leagueTier={leagueTier}
+        isLive={isLive}
+        standings={failed ? [] : standings}
+        onNavigate={navigate}
+        onPlayer={togglePlayer}
+      />
+
+      {failed ? (
+        <p className="mx-auto max-w-page px-6 py-8 text-home-muted">
+          Couldn't load this week. Reload to try again.
+        </p>
+      ) : (
+        <>
+          <MatchStrip
+            matches={matches}
+            activeMatchNumber={player ? null : (match?.matchNumber ?? null)}
+            onMatch={showMatch}
           />
-        </div>
 
-        <div className="mb-8">
-          <LeagueSelector
-            leagues={leagues}
-            selectedLeagueTier={leagueTier}
-            weekNumber={weekNumber}
-            onSelect={onSelect}
-          />
-        </div>
+          <div className="mx-auto grid max-w-page grid-cols-[minmax(0,1fr)] items-start gap-8 px-6 py-8 md:grid-cols-[minmax(0,1fr)_20rem] lg:grid-cols-[minmax(0,1fr)_27rem] lg:gap-20">
+            <section>
+              <StandingsTable
+                standings={standings}
+                leagueTier={leagueTier}
+                isLive={isLive}
+                selectedPlayerId={selectedPlayerId}
+                onPlayer={togglePlayer}
+              />
+            </section>
 
-        {weeksFailed || leaguesFailed || archivedResultsFailed ? (
-          <p className="text-sm text-muted-foreground">
-            Couldn't load this week. Reload to try again.
-          </p>
-        ) : (
-          <>
-            {/* One copy of each list, laid out with CSS so the page's HTML is
-                right on every screen size before hydration. */}
-            <Tabs
-              value={mobileTab}
-              onValueChange={setMobileTab}
-              className="w-full md:hidden"
-            >
-              <TabsList className="mt-4 mb-4 w-full justify-start rounded-none border-b bg-transparent p-0">
-                <TabsTrigger
-                  value="standings"
-                  className="rounded-none border-b-2 border-transparent px-4 py-2 data-[state=active]:border-primary data-[state=active]:bg-transparent"
-                >
-                  Standings
-                </TabsTrigger>
-                <TabsTrigger
-                  value="matches"
-                  className="rounded-none border-b-2 border-transparent px-4 py-2 data-[state=active]:border-primary data-[state=active]:bg-transparent"
-                >
-                  Matches
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
+            {/* Left out when there's no match to show. */}
+            {matches?.length !== 0 && (
+              <aside className="sticky top-20 border-3 border-obsidian-line bg-obsidian-deep p-4 max-md:hidden">
+                {!usesSheet && details}
+              </aside>
+            )}
+          </div>
+        </>
+      )}
 
-            <div className="md:mt-4 md:flex md:min-h-150 md:items-start md:gap-8 lg:gap-16">
-              <div className="md:flex md:flex-1 md:flex-row md:items-start md:gap-8 lg:gap-16">
-                <div
-                  className={cn(
-                    "max-md:text-sm md:flex md:w-[320px] md:shrink-0 md:flex-col md:gap-4",
-                    mobileTab !== "standings" && "max-md:hidden"
-                  )}
-                >
-                  <StandingsTable
-                    standings={standings}
-                    selectedPlayerId={selectedPlayerId}
-                    onPlayerClick={handlePlayerClick}
-                  />
-                </div>
-
-                <div
-                  className={cn(
-                    "max-md:text-sm md:flex md:w-75 md:shrink-0 md:flex-col md:gap-2",
-                    mobileTab !== "matches" && "max-md:hidden"
-                  )}
-                >
-                  <MatchesList
-                    matches={matches}
-                    selectedMatchId={selectedMatchId}
-                    onMatchClick={handleMatchClick}
-                  />
-                </div>
-              </div>
-
-              <div className="sticky top-24 w-125 shrink-0 max-md:hidden">
-                {/* Hidden on phones, so skip its requests there too. */}
-                {!isMobile &&
-                  (hasDetailsSelection ? (
-                    <Suspense fallback={<DetailsPanelFallback />}>
-                      <LazyDetailsPanel {...detailsPanelProps} />
-                    </Suspense>
-                  ) : (
-                    <SeedList weekNumber={weekNumber} leagueTier={leagueTier} />
-                  ))}
-              </div>
-            </div>
-          </>
-        )}
-
-        {isMobile && (
-          <Drawer open={isDrawerOpen} onOpenChange={onDrawerChange}>
-            <DrawerContent>
-              <DrawerHeader className="border-b border-border/40 px-6 pb-4">
-                <DrawerTitle className="font-minecraft text-xl">
-                  {selectedPlayerId ? "Player Details" : "Match Details"}
-                </DrawerTitle>
-              </DrawerHeader>
-              <div className="h-full overflow-y-auto px-6 py-4 pb-12">
-                {hasDetailsSelection ? (
-                  <Suspense
-                    fallback={<DetailsPanelFallback showBorder={false} />}
-                  >
-                    <LazyDetailsPanel
-                      {...detailsPanelProps}
-                      showBorder={false}
-                    />
-                  </Suspense>
-                ) : null}
-              </div>
-            </DrawerContent>
-          </Drawer>
-        )}
-      </div>
-    </div>
+      <Drawer
+        open={usesSheet && isSheetOpen}
+        onOpenChange={(open) => {
+          setIsSheetOpen(open);
+          if (!open) setSelectedPlayerId(null);
+        }}
+      >
+        <DrawerContent className="obsidian-page">
+          <DrawerTitle className="sr-only">
+            {player ? player.name : `Match ${match?.matchNumber}`}
+          </DrawerTitle>
+          <div className="overflow-y-auto px-4 pt-4 pb-6">
+            {usesSheet && details}
+          </div>
+        </DrawerContent>
+      </Drawer>
+    </>
   );
 }
 

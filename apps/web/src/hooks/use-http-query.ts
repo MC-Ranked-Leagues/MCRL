@@ -10,7 +10,7 @@ import {
 
 // Bump only when the shape of a cached result changes, so a deploy doesn't
 // throw away data that's still valid.
-const CACHE_VERSION = 1;
+const CACHE_VERSION = 2;
 const CACHE_LIFETIME_MS = 24 * 60 * 60 * 1000;
 
 const httpClient = new ConvexHttpClient(import.meta.env.PUBLIC_CONVEX_URL);

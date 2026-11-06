@@ -5,11 +5,8 @@ import Footer from "@/layouts/Footer.astro";
 import { LatestWinners } from "@/components/home/LatestWinners";
 import { LeagueFinder } from "@/components/home/LeagueFinder";
 import { LeagueSim } from "@/components/home/LeagueSim";
-import { DISCORD_URL } from "@/consts";
+import { DISCORD_URL, TWITCH_URL, YOUTUBE_URL } from "@/links";
 import { cn } from "@/lib/utils";
-
-const TWITCH_URL = "https://www.twitch.tv/mcrankedleagues";
-const YOUTUBE_URL = "https://www.youtube.com/@MCRankedLeagues";
 
 const JOIN_STEPS = [
   "Join the Discord",
@@ -33,19 +30,17 @@ const FAQ = [
   },
 ];
 
-const heading = "font-minecraft font-bold leading-none text-3xl md:text-5xl";
+const heading = "font-bold leading-none text-3xl md:text-4xl";
 const primaryButton =
   "inline-block bg-lava px-6 py-3.5 font-minecraft text-lg font-bold text-lava-ink transition-colors hover:bg-lava-hover";
 const outlineButton =
-  "inline-block border-2 border-current px-5 py-3 font-bold transition-colors hover:bg-white/10";
+  "inline-block border-3 border-current px-5 py-3 font-bold transition-colors hover:bg-obsidian-raised";
 ---
 
 <Layout
   description="Weekly Minecraft speedrun races against players at your level, for beginners and top runners alike."
 >
-  <div
-    class="bg-obsidian font-display text-[17px] leading-relaxed text-home-text [--home-focus:var(--color-home-gold)] [&_a:focus-visible]:outline-2 [&_a:focus-visible]:outline-offset-3 [&_a:focus-visible]:outline-(--home-focus)"
-  >
+  <div class="obsidian-page">
     <section
       class="relative flex min-h-160 flex-col overflow-hidden lg:min-h-[calc(100svh-4rem)]"
     >
@@ -64,12 +59,10 @@ const outlineButton =
       >
       </div>
       <div
-        class="relative z-10 mx-auto grid w-full max-w-304 flex-1 grid-cols-[minmax(0,1fr)] items-center gap-10 px-6 pt-24 pb-10 lg:grid-cols-[1fr_minmax(0,34rem)]"
+        class="relative z-10 mx-auto grid w-full max-w-page flex-1 grid-cols-[minmax(0,1fr)] items-center gap-10 px-6 pt-24 pb-10 lg:grid-cols-[1fr_minmax(0,34rem)]"
       >
         <div>
-          <h1
-            class="max-w-[14ch] font-minecraft text-4xl leading-none font-bold md:text-6xl lg:text-7xl"
-          >
+          <h1 class="max-w-[14ch] text-4xl leading-none font-bold md:text-6xl">
             Ranked Leagues
           </h1>
           <p class="mt-5 mb-7 max-w-[42ch] text-lg md:text-xl">
@@ -103,7 +96,7 @@ const outlineButton =
     </section>
 
     <section class="py-6">
-      <div class="mx-auto max-w-304 px-6">
+      <div class="mx-auto max-w-page px-6">
         <LeagueFinder client:load />
       </div>
     </section>
@@ -150,7 +143,9 @@ const outlineButton =
     </section>
 
     <section class="bg-obsidian-deep py-14 md:py-20">
-      <div class="mx-auto flex max-w-304 flex-col gap-12 px-6 md:flex-row lg:gap-16">
+      <div
+        class="mx-auto flex max-w-page flex-col gap-12 px-6 md:flex-row lg:gap-16"
+      >
         <div class="flex-3">
           <h2 class={heading}>
             Ready to <span class="italic">SPEEDRUN</span>?
@@ -185,9 +180,7 @@ const outlineButton =
           </div>
         </div>
         <div class="flex-2">
-          <h2 class="font-minecraft text-2xl font-bold md:text-3xl">
-            Questions
-          </h2>
+          <h2 class="text-2xl font-bold">Questions</h2>
           <div class="mt-5">
             {
               FAQ.map((item) => (

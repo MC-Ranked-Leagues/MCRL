@@ -1,12 +1,20 @@
 ---
+import "@fontsource-variable/archivo/wdth.css";
 import Layout from "@/layouts/main.astro";
+import { SITE_NAME } from "@/consts";
+import Footer from "@/layouts/Footer.astro";
 import { WeekPage } from "@/components/week/WeekPage";
 ---
 
 <Layout
   noCanonical
-  title="Ranked Leagues Leaderboards"
-  description="View the current and past leaderboards for Ranked Leagues."
+  title={`Leaderboards | ${SITE_NAME}`}
+  description={`View the current and past leaderboards for ${SITE_NAME}.`}
 >
-  <WeekPage client:load />
+  <div class="obsidian-page">
+    <div class="min-h-screen">
+      <WeekPage client:load />
+    </div>
+    <Footer />
+  </div>
 </Layout>

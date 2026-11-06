@@ -67,6 +67,8 @@ export const getLatestWinners = query({
                 (league) => league.leagueTier === competition.leagueTier
               )?.name ?? getLeagueName(competition.leagueTier),
             winnerName: winner.playerIgn,
+            winnerUuid:
+              (await ctx.db.get("players", winner.playerId))?.uuid ?? null,
           },
         ];
       })
@@ -103,14 +105,19 @@ async function loadWeekMatches(
     )
     .collect();
 
-  return matches
-    .map((match) => ({
-      _id: match._id,
-      matchNumber: match.matchNumber,
-      rankedMatchId: match.rankedMatchId ?? null,
-      winnerName: match.winnerName ?? "Unknown",
-    }))
-    .sort((a, b) => a.matchNumber - b.matchNumber);
+  return (
+    await Promise.all(
+      matches.map(async (match) => ({
+        _id: match._id,
+        matchNumber: match.matchNumber,
+        rankedMatchId: match.rankedMatchId ?? null,
+        winnerName: match.winnerName ?? "Unknown",
+        winnerUuid: match.winnerPlayerId
+          ? ((await ctx.db.get("players", match.winnerPlayerId))?.uuid ?? null)
+          : null,
+      }))
+    )
+  ).sort((a, b) => a.matchNumber - b.matchNumber);
 }
 
 async function loadWeekStandings(
@@ -152,28 +159,32 @@ async function loadWeekStandings(
       : null;
 
   // Ranked registrations sort first, so their indexes match `participants`.
-  return registrations.map((registration, index) => {
-    const projection =
-      projections && registration.averageTimeMs !== null
-        ? projections[index]!
-        : null;
-    return {
-      rank: registration.averageTimeMs === null ? null : index + 1,
-      playerId: registration.playerId,
-      name: registration.playerIgn,
-      totalPoints: registration.totalPoints,
-      movement: projection
-        ? projection.movement
-        : (registration.movementStatus ?? null),
-      currentPercentage: projection
-        ? projection.currentPercentage
-        : (registration.currentPercentage ?? null),
-      averagePercentage: projection
-        ? projection.averagePercentage
-        : (registration.averagePercentage ?? null),
-      projected: projection !== null,
-    };
-  });
+  return Promise.all(
+    registrations.map(async (registration, index) => {
+      const projection =
+        projections && registration.averageTimeMs !== null
+          ? projections[index]!
+          : null;
+      return {
+        rank: registration.averageTimeMs === null ? null : index + 1,
+        playerId: registration.playerId,
+        // Faces and match rows find players by UUID, which survives name changes.
+        uuid: (await ctx.db.get("players", registration.playerId))?.uuid ?? "",
+        name: registration.playerIgn,
+        totalPoints: registration.totalPoints,
+        movement: projection
+          ? projection.movement
+          : (registration.movementStatus ?? null),
+        currentPercentage: projection
+          ? projection.currentPercentage
+          : (registration.currentPercentage ?? null),
+        averagePercentage: projection
+          ? projection.averagePercentage
+          : (registration.averagePercentage ?? null),
+        projected: projection !== null,
+      };
+    })
+  );
 }
 
 export const getWeekMatches = query({
@@ -187,6 +198,7 @@ export const getWeekStandings = query({
     v.object({
       rank: v.union(v.number(), v.null()),
       playerId: v.id("players"),
+      uuid: v.string(),
       name: v.string(),
       totalPoints: v.number(),
       movement: v.union(
