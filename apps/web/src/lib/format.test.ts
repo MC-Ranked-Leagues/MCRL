@@ -4,7 +4,6 @@ import { formatPercentage, formatRunTime } from "./format";
 describe("formatRunTime", () => {
   it("shows hundredths by default", () => {
     expect(formatRunTime(83_456)).toBe("1:23.45");
-    expect(formatRunTime(0)).toBe("0:00.00");
   });
 
   it("rounds to whole seconds without hundredths", () => {
@@ -15,6 +14,7 @@ describe("formatRunTime", () => {
 
   it("uses an em dash for missing values", () => {
     expect(formatRunTime(null)).toBe("—");
+    expect(formatRunTime(0)).toBe("—");
   });
 });
 

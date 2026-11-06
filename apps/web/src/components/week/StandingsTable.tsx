@@ -291,12 +291,15 @@ function StandingRow({
 }
 
 function movementGroup(standing: WeekStanding) {
-  if (standing.movement === "promoted") return 0;
-  if (standing.movement === "demoted") return 2;
-  return 1;
+  // The weekly winner takes the first promotion slot regardless of average.
+  if (standing.rank === 1 && standing.movement === "promoted") return 0;
+  if (standing.movement === "promoted") return 1;
+  if (standing.movement === "demoted") return 3;
+  return 2;
 }
 
-// Average decides who moves, so sorting by it puts each kind of move in a block.
+// Average decides the other moves, so sorting by it puts each kind of move in
+// a block.
 function sortRows(standings: WeekStanding[], sort: "points" | "average") {
   if (sort === "points") return standings;
   return [...standings].sort(
