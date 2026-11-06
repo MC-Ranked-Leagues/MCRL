@@ -176,7 +176,7 @@ export function LeagueSim() {
         {LEAGUES.map((league, i) => (
           <div
             key={league}
-            className="absolute inset-x-0 border-2 border-obsidian-line bg-obsidian-deep/90 px-3 pt-1 font-minecraft text-sm text-home-muted"
+            className="absolute inset-x-0 border-3 border-obsidian-line bg-obsidian-deep/90 px-3 pt-1 font-minecraft text-sm text-home-muted"
             style={{ top: i * (CARD + GAP), height: CARD + 4 }}
           >
             League {league}
@@ -203,9 +203,9 @@ export function LeagueSim() {
                   : "transition-[transform,opacity]"
               } ${
                 player.move === "up"
-                  ? "bg-[#173d1c] text-[#7ee07e]"
+                  ? "bg-promoted-tint text-promoted"
                   : player.move === "down"
-                    ? "bg-[#42170f] text-lava-hover"
+                    ? "bg-demoted-tint text-demoted"
                     : isFollowed
                       ? "bg-obsidian-raised"
                       : ""
@@ -244,7 +244,7 @@ export function LeagueSim() {
               </span>
               {isFollowed && (
                 <div
-                  className={`league-tooltip pointer-events-none absolute right-0 grid w-72 grid-cols-[1fr_repeat(4,1.5rem)_2.5rem] items-center gap-y-1 p-3 text-right font-minecraft text-xs text-home-text ${
+                  className={`mc-tooltip pointer-events-none absolute right-0 grid w-72 grid-cols-[1fr_repeat(4,1.5rem)_2.5rem] items-center gap-y-1 p-3 text-right font-minecraft text-xs text-home-text ${
                     cardAbove ? "bottom-full mb-2" : "top-full mt-2"
                   }`}
                 >

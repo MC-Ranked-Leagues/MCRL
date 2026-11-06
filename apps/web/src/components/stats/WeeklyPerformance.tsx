@@ -7,13 +7,12 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { formatPercentage, formatRunTime } from "@/lib/format";
+import { movementLabel } from "@/lib/movement";
 import { cn } from "@/lib/utils";
 import { getWeekHref } from "@/lib/weekRoutes";
 import {
-  formatDuration,
-  formatPercentage,
-  movementLabel,
-  type MatchDetail,
+  type Run,
   type Movement,
   type WeeklyPerformance as WeeklyPerformanceData,
 } from "./stats-utils";
@@ -47,32 +46,32 @@ function MovementBadge({ movement }: { movement: Movement }) {
   );
 }
 
-function getMatchStatus(match: MatchDetail) {
-  if (match.missed) {
+function getRunStatus(run: Run) {
+  if (run.missed) {
     return { label: "Missed", className: "text-muted-foreground" };
   }
-  if (match.dnf) {
+  if (run.dnf) {
     return { label: "DNF", className: "text-destructive" };
   }
-  if (match.placement !== null) {
-    return { label: `#${match.placement}`, className: "text-foreground" };
+  if (run.placement !== null) {
+    return { label: `#${run.placement}`, className: "text-foreground" };
   }
   return { label: "—", className: "text-muted-foreground" };
 }
 
-function MatchRow({ match }: { match: MatchDetail }) {
-  const status = getMatchStatus(match);
-  const hasFinish = !match.missed && !match.dnf;
-  const finishTime = hasFinish ? formatDuration(match.timeMs) : "—";
+function RunRow({ run }: { run: Run }) {
+  const status = getRunStatus(run);
+  const hasFinish = !run.missed && !run.dnf;
+  const finishTime = hasFinish ? formatRunTime(run.timeMs) : "—";
 
   return (
     <li className="grid min-h-12 grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-t border-border/60 py-2.5 first:border-t-0 sm:grid-cols-[minmax(0,1fr)_5rem_7.5rem_5rem]">
       <div className="min-w-0">
-        <p className="text-sm font-medium">Match {match.matchNumber}</p>
+        <p className="text-sm font-medium">Match {run.matchNumber}</p>
         <p className="mt-0.5 text-xs text-muted-foreground sm:hidden">
           {hasFinish ? finishTime : "No finish time"}
           <span aria-hidden> · </span>
-          <span className="text-primary">+{match.pointsWon} pts</span>
+          <span className="text-primary">+{run.pointsWon} pts</span>
         </p>
       </div>
       <span
@@ -87,7 +86,7 @@ function MatchRow({ match }: { match: MatchDetail }) {
         {finishTime}
       </span>
       <span className="hidden text-right text-sm font-medium text-primary tabular-nums sm:block">
-        +{match.pointsWon} pts
+        +{run.pointsWon} pts
       </span>
     </li>
   );
@@ -109,7 +108,7 @@ export function WeeklyPerformance({
           </p>
           <h3
             id="weekly-performance-heading"
-            className="mt-1 font-minecraft text-base tracking-[0.08em] uppercase"
+            className="mt-1 text-base tracking-[0.08em] uppercase"
           >
             Weekly performance
           </h3>
@@ -143,7 +142,7 @@ export function WeeklyPerformance({
                       href={getWeekHref(week.weekNumber, week.leagueNumber)}
                       className="hover:underline focus-visible:underline"
                     >
-                      <h4 className="font-minecraft text-sm tracking-[0.08em] uppercase">
+                      <h4 className="text-sm tracking-[0.08em] uppercase">
                         Week {week.weekNumber}
                       </h4>
                     </a>
@@ -182,7 +181,7 @@ export function WeeklyPerformance({
                         Average time
                       </dt>
                       <dd className="mt-0.5 text-sm tabular-nums">
-                        {formatDuration(week.averageTimeMs)}
+                        {formatRunTime(week.averageTimeMs)}
                       </dd>
                     </div>
                     <div>
@@ -209,8 +208,8 @@ export function WeeklyPerformance({
                   <span className="text-right">Points</span>
                 </div>
                 <ul>
-                  {week.matchDetails.map((match) => (
-                    <MatchRow key={match.matchId} match={match} />
+                  {week.matchDetails.map((run) => (
+                    <RunRow key={run.matchId} run={run} />
                   ))}
                 </ul>
               </div>

@@ -1,6 +1,7 @@
 import { mcsrranked, RankedError } from "mcsrranked-sdk";
 // Regenerate with `bun run league-summary <snapshot.zip>`.
 import summary from "@/data/league-summary.json";
+import { formatRunTime } from "@/lib/format";
 
 export const LEAGUES = [1, 2, 3, 4, 5, 6, 7];
 
@@ -21,11 +22,6 @@ const LEAGUE_7 = 7;
 const LEAGUE_7_AVERAGE = 30 * 60;
 const LEAGUE_7_BEST = 25 * 60;
 
-export function formatTime(seconds: number) {
-  const rounded = Math.round(seconds);
-  return `${Math.floor(rounded / 60)}:${String(rounded % 60).padStart(2, "0")}`;
-}
-
 export function cleanTimeDigits(text: string) {
   return text.replace(/\D/g, "").slice(0, 4);
 }
@@ -44,14 +40,10 @@ export function parseTimeDigits(digits: string) {
 }
 
 export function timeToDigits(seconds: number) {
-  return formatTime(seconds).replace(":", "").padStart(4, "0");
+  return formatRunTime(seconds * 1000, { hundredths: false })
+    .replace(":", "")
+    .padStart(4, "0");
 }
-
-export function headUrl(player: string) {
-  return `https://vzge.me/face/128/${encodeURIComponent(player)}.png`;
-}
-
-export const STEVE_HEAD = headUrl("Steve");
 
 // The middle half of a league's players for one stat.
 export function typicalRange(league: number, stat: Stat): Range | null {

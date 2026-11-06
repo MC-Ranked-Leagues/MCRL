@@ -1,5 +1,6 @@
 ---
 import Layout from "@/layouts/main.astro";
+import { SITE_NAME } from "@/consts";
 import PixelIcons from "@/components/championship/PixelIcons.astro";
 import { Award, Trophy, Swords, CheckCircle } from "lucide-react";
 import {
@@ -102,7 +103,7 @@ const GRAND_FINAL = {
 ---
 
 <Layout
-  title="League 1 Championship | MCSR Ranked Leagues"
+  title={`League 1 Championship | ${SITE_NAME}`}
   description="League 1 Championship info"
 >
   <div
@@ -124,7 +125,7 @@ const GRAND_FINAL = {
     <div class="relative z-10 container mx-auto px-6 pt-32">
       <div class="mb-20 pt-4 text-center md:pt-8">
         <h1
-          class="font-minecraft text-3xl font-bold tracking-tight text-white uppercase sm:text-5xl md:text-8xl"
+          class="text-3xl font-bold tracking-tight text-white uppercase sm:text-5xl md:text-8xl"
         >
           LEAGUE 1 <span class="text-cyan-400">CHAMPIONSHIPS</span>
         </h1>
@@ -185,7 +186,7 @@ const GRAND_FINAL = {
             </div>
             <h2
               id="day-two-title"
-              class="font-minecraft text-2xl font-bold tracking-wider text-white uppercase md:text-4xl"
+              class="text-2xl font-bold tracking-wider text-white uppercase md:text-4xl"
             >
               Day 2 <span class="text-cyan-400">Championship Bracket</span>
             </h2>
@@ -364,9 +365,7 @@ const GRAND_FINAL = {
         <div
           class="mb-8 flex items-center justify-between border-b-2 border-black pb-4"
         >
-          <h2
-            class="font-minecraft text-xl font-bold tracking-wider text-white uppercase"
-          >
+          <h2 class="text-xl font-bold tracking-wider text-white uppercase">
             Qualified Players
           </h2>
           <span
@@ -426,7 +425,7 @@ const GRAND_FINAL = {
                     </div>
                   </div>
                   <div class="text-center">
-                    <h3 class="font-minecraft text-lg font-bold tracking-wide text-white">
+                    <h3 class="text-lg font-bold tracking-wide text-white">
                       {slot.player?.name ?? "TBD"}
                     </h3>
                     <p
@@ -445,9 +444,7 @@ const GRAND_FINAL = {
 
       <section class="mb-24">
         <div class="mb-12 text-center">
-          <h2
-            class="font-minecraft text-xl font-bold tracking-wider text-white uppercase"
-          >
+          <h2 class="text-xl font-bold tracking-wider text-white uppercase">
             Tournament Layout & Rules
           </h2>
         </div>
@@ -458,7 +455,7 @@ const GRAND_FINAL = {
           >
             <div class="absolute top-0 left-0 h-8 w-1 bg-lime-400"></div>
             <h3
-              class="mb-4 flex items-center gap-2 font-minecraft text-lg font-bold text-white uppercase"
+              class="mb-4 flex items-center gap-2 text-lg font-bold text-white uppercase"
             >
               <CheckCircle className="h-5 w-5 text-lime-400" /> Qualification
             </h3>
@@ -510,7 +507,7 @@ const GRAND_FINAL = {
           >
             <div class="absolute top-0 left-0 h-8 w-1 bg-cyan-400"></div>
             <h3
-              class="mb-4 flex items-center gap-2 font-minecraft text-lg font-bold text-white uppercase"
+              class="mb-4 flex items-center gap-2 text-lg font-bold text-white uppercase"
             >
               <Trophy className="h-5 w-5 text-cyan-400" /> Day 1 Robin
             </h3>
@@ -565,7 +562,7 @@ const GRAND_FINAL = {
           >
             <div class="absolute top-0 left-0 h-8 w-1 bg-pink-400"></div>
             <h3
-              class="mb-4 flex items-center gap-2 font-minecraft text-lg font-bold text-white uppercase"
+              class="mb-4 flex items-center gap-2 text-lg font-bold text-white uppercase"
             >
               <Swords className="h-5 w-5 text-pink-400" /> Day 2 Bracket
             </h3>
@@ -603,9 +600,7 @@ const GRAND_FINAL = {
 
       <section class="mb-24">
         <div class="mb-12 text-center">
-          <h2
-            class="font-minecraft text-xl font-bold tracking-wider text-white uppercase"
-          >
+          <h2 class="text-xl font-bold tracking-wider text-white uppercase">
             Cash Prize Pool
           </h2>
           <p class="mt-1 text-xs tracking-widest text-slate-400 uppercase">

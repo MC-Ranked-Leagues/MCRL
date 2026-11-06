@@ -1,7 +1,10 @@
 import type { MouseEvent } from "react";
 
+// Opened when a link names no league, so its URL leaves the league out.
+export const DEFAULT_LEAGUE_TIER = 1;
+
 export function getWeekHref(weekNumber: number, leagueTier: number) {
-  return leagueTier === 1
+  return leagueTier === DEFAULT_LEAGUE_TIER
     ? `/week/${weekNumber}`
     : `/week/${weekNumber}?league=${leagueTier}`;
 }

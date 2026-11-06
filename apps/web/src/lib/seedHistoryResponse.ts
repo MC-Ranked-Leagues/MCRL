@@ -21,3 +21,15 @@ export const PublishedSeedSchema = z.object({
 export const SeedHistoryResponseSchema = z.array(PublishedSeedSchema);
 
 export type PublishedSeed = z.infer<typeof PublishedSeedSchema>;
+
+export const SEED_TYPE_LABELS: Record<
+  z.infer<typeof PublishedSeedTypeSchema>,
+  string
+> = {
+  BURIED_TREASURE: "Buried Treasure",
+  VILLAGE: "Village",
+  DESERT_TEMPLE: "Desert Temple",
+  JUNGLE_PYRAMID: "Jungle Pyramid",
+  RUINED_PORTAL: "Ruined Portal",
+  SHIPWRECK: "Shipwreck",
+};

@@ -3,11 +3,10 @@ import { Activity, Clock3, Trophy, UserRoundX } from "lucide-react";
 import { mcsrranked } from "mcsrranked-sdk";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatPercentage, formatRunTime } from "@/lib/format";
 import { AverageTimeTrend } from "./AverageTimeTrend";
 import { WeeklyPerformance } from "./WeeklyPerformance";
 import {
-  formatDuration,
-  formatPercentage,
   getCurrentPercentageAverage,
   mergeWeeklyPerformance,
   type PlayerStats,
@@ -132,7 +131,7 @@ export function PlayerStatsDashboard({ stats }: PlayerStatsDashboardProps) {
       <Card className="min-h-80 items-center justify-center px-6 py-12 text-center">
         <UserRoundX className="size-10 text-muted-foreground/55" aria-hidden />
         <div>
-          <h2 className="font-minecraft text-lg tracking-[0.08em] uppercase">
+          <h2 className="text-lg tracking-[0.08em] uppercase">
             Statistics unavailable
           </h2>
           <p className="mt-2 max-w-md text-sm text-muted-foreground">
@@ -153,7 +152,7 @@ export function PlayerStatsDashboard({ stats }: PlayerStatsDashboardProps) {
         <CardContent className="px-5 py-6 md:px-7 md:py-7">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
             <div className="flex min-w-0 flex-col items-baseline gap-1 sm:flex-row md:gap-4">
-              <h2 className="mt-2 truncate font-minecraft text-3xl tracking-tight uppercase md:text-4xl">
+              <h2 className="mt-2 truncate text-3xl tracking-tight uppercase md:text-4xl">
                 {stats.name}
               </h2>
               <div className="mt-0 flex flex-wrap items-center gap-2 sm:mt-3">
@@ -189,13 +188,13 @@ export function PlayerStatsDashboard({ stats }: PlayerStatsDashboardProps) {
           <Metric
             icon={<Clock3 className="size-4" aria-hidden />}
             label="Average time"
-            value={formatDuration(stats.summary.avgTimeMs)}
+            value={formatRunTime(stats.summary.avgTimeMs)}
             note="Across recorded weeks"
           />
           <Metric
             icon={<Trophy className="size-4" aria-hidden />}
             label="Best time"
-            value={formatDuration(stats.summary.bestTimeMs)}
+            value={formatRunTime(stats.summary.bestTimeMs)}
             note="Fastest completion"
           />
         </CardContent>

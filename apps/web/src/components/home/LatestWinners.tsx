@@ -1,6 +1,7 @@
 import { api } from "@mcrl/backend/api";
 import { useQuery } from "convex/react";
 import ConvexClientProvider from "@/components/ConvexClientProvider";
+import { PlayerHead } from "@/components/PlayerHead";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getWeekHref } from "@/lib/weekRoutes";
 
@@ -9,6 +10,7 @@ const PLACEHOLDER_CELLS = [1, 2, 3, 4, 5, 6].map((leagueTier) => ({
   leagueTier,
   leagueName: `League ${leagueTier}`,
   winnerName: undefined,
+  winnerUuid: null,
 }));
 
 function WinnersBand() {
@@ -33,37 +35,31 @@ function WinnersBand() {
       className="border-t border-obsidian-line/60 bg-obsidian-deep/80"
     >
       <ul className="grid grid-cols-2 px-3 py-3 sm:grid-cols-3 lg:auto-cols-fr lg:grid-flow-col">
-        {cells.map(({ leagueTier, leagueName, winnerName }) => (
+        {cells.map(({ leagueTier, leagueName, winnerName, winnerUuid }) => (
           <li key={leagueTier} className="min-w-0">
             {week && winnerName !== undefined ? (
               <a
                 href={getWeekHref(week.weekNumber, leagueTier)}
                 className="flex h-full items-center gap-3 px-3 py-2 transition-colors hover:bg-obsidian-raised"
               >
-                <img
-                  src={`https://mc-heads.net/avatar/${encodeURIComponent(winnerName)}/36`}
-                  alt=""
-                  width={36}
-                  height={36}
-                  className="size-9 shrink-0 bg-obsidian-line [image-rendering:pixelated]"
-                />
+                <PlayerHead player={winnerUuid ?? winnerName} />
                 <span className="min-w-0">
                   <span className="block font-minecraft text-sm text-home-gold">
                     {leagueName}
                   </span>
-                  <span className="block truncate font-semibold">
+                  <span className="block truncate font-minecraft">
                     {winnerName}
                   </span>
                 </span>
               </a>
             ) : (
               <div className="flex h-full items-center gap-3 px-3 py-2">
-                <Skeleton className="size-9 shrink-0 rounded-none bg-obsidian-line" />
+                <Skeleton className="size-8 shrink-0" />
                 <div className="min-w-0">
                   <span className="block font-minecraft text-sm text-home-gold">
                     {leagueName}
                   </span>
-                  <Skeleton className="my-1.5 h-4 w-20 max-w-full rounded-none bg-obsidian-line" />
+                  <Skeleton className="my-1.5 h-4 w-20 max-w-full" />
                 </div>
               </div>
             )}

@@ -14,11 +14,9 @@ import {
 import { CanvasRenderer } from "echarts/renderers";
 import { ChartLine } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  formatDuration,
-  movementLabel,
-  type WeeklyPerformance,
-} from "./stats-utils";
+import { formatRunTime } from "@/lib/format";
+import { movementLabel } from "@/lib/movement";
+import type { WeeklyPerformance } from "./stats-utils";
 
 registerECharts([
   LineChart,
@@ -94,7 +92,7 @@ export function AverageTimeTrend({ weeks }: { weeks: WeeklyPerformance[] }) {
 
           return [
             `<strong>Week ${week.weekNumber}</strong> &middot; League ${week.leagueNumber}`,
-            `<div style="margin-top:6px;color:${primary};font-size:15px;font-weight:700">${formatDuration(week.averageTimeMs)}</div>`,
+            `<div style="margin-top:6px;color:${primary};font-size:15px;font-weight:700">${formatRunTime(week.averageTimeMs)}</div>`,
             `<div style="margin-top:6px;color:${mutedForeground}">${week.matches} matches &middot; ${week.totalPoints} points</div>`,
             `<div style="color:${mutedForeground}">${movementLabel(week.movement)}</div>`,
           ].join("");
@@ -117,7 +115,8 @@ export function AverageTimeTrend({ weeks }: { weeks: WeeklyPerformance[] }) {
         axisLabel: {
           color: mutedForeground,
           fontSize: 10,
-          formatter: (value: number) => formatDuration(value, false),
+          formatter: (value: number) =>
+            formatRunTime(value, { hundredths: false }),
         },
         splitLine: {
           lineStyle: { color: border, opacity: 0.08, type: "dashed" },

@@ -53,7 +53,7 @@ class StatsErrorBoundary extends Component<
           <Card className="w-full items-center px-6 py-14 text-center">
             <Trophy className="size-10 text-muted-foreground/55" aria-hidden />
             <div>
-              <h1 className="font-minecraft text-xl tracking-[0.08em] uppercase">
+              <h1 className="text-xl tracking-[0.08em] uppercase">
                 Stats could not be loaded
               </h1>
               <p className="mt-2 max-w-md text-sm text-muted-foreground">
@@ -98,9 +98,7 @@ function NoPlayerSelected() {
     <Card className="min-h-80 items-center justify-center px-6 py-12 text-center">
       <Search className="size-10 text-muted-foreground/55" aria-hidden />
       <div>
-        <h2 className="font-minecraft text-lg tracking-[0.08em] uppercase">
-          Find a player
-        </h2>
+        <h2 className="text-lg tracking-[0.08em] uppercase">Find a player</h2>
         <p className="mt-2 max-w-md text-sm text-muted-foreground">
           Search by player name to view statistics from any league.
         </p>
@@ -182,7 +180,7 @@ function StatsContent() {
   return (
     <section className="mx-auto min-h-screen max-w-7xl px-4 pt-24 pb-20 md:px-8 md:pt-28 md:pb-24">
       <header className="mb-8 max-w-2xl md:mb-10">
-        <h1 className="font-minecraft text-3xl font-bold tracking-tight uppercase md:text-4xl">
+        <h1 className="text-3xl font-bold tracking-tight uppercase md:text-4xl">
           Player statistics
         </h1>
         <p className="mt-3 text-sm leading-6 text-muted-foreground md:text-base">
