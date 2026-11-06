@@ -1,222 +1,202 @@
-import {
-  ArrowDown,
-  ArrowUp,
-  ChevronDown,
-  CircleMinus,
-  Flag,
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { formatPercentage, formatRunTime } from "@/lib/format";
+import { ChevronDown } from "lucide-react";
+import { formatPercentage, formatRunTime, ordinal } from "@/lib/format";
 import { movementLabel } from "@/lib/movement";
 import { cn } from "@/lib/utils";
 import { getWeekHref } from "@/lib/weekRoutes";
-import {
-  type Run,
-  type Movement,
-  type WeeklyPerformance as WeeklyPerformanceData,
-} from "./stats-utils";
+import type { Run, WeeklyPerformance as WeekData } from "./stats-utils";
 
-function MovementBadge({ movement }: { movement: Movement }) {
-  const label = movementLabel(movement);
+// The header and every row share these columns. Older weeks and League 7 have
+// no percentages, so their columns only show when some week has them. On
+// phones they move under the week.
+const COLUMNS =
+  "grid grid-cols-[minmax(0,1fr)_2.75rem_5rem_1rem] items-center gap-x-2 sm:grid-cols-[minmax(0,1fr)_3.5rem_6rem_1.25rem] sm:gap-x-3";
+const PERCENTAGE_COLUMNS =
+  "sm:grid-cols-[minmax(0,1fr)_3.5rem_5.5rem_6.5rem_6rem_1.25rem]";
 
-  if (movement === "promoted") {
-    return (
-      <Badge className="border-primary/20 bg-primary/10 text-primary">
-        <ArrowUp data-icon="inline-start" aria-hidden />
-        {label}
-      </Badge>
-    );
-  }
+const MOVE_TINTS = {
+  promoted: "bg-promoted-tint",
+  demoted: "bg-demoted-tint",
+  none: "",
+} as const;
 
-  if (movement === "demoted") {
-    return (
-      <Badge variant="destructive">
-        <ArrowDown data-icon="inline-start" aria-hidden />
-        {label}
-      </Badge>
-    );
-  }
+const MOVE_TEXT = {
+  promoted: "text-promoted",
+  demoted: "text-demoted",
+  none: "text-home-muted",
+} as const;
 
-  return (
-    <Badge variant="outline" className="text-muted-foreground">
-      <CircleMinus data-icon="inline-start" aria-hidden />
-      {label}
-    </Badge>
-  );
-}
-
-function getRunStatus(run: Run) {
-  if (run.missed) {
-    return { label: "Missed", className: "text-muted-foreground" };
-  }
-  if (run.dnf) {
-    return { label: "DNF", className: "text-destructive" };
-  }
-  if (run.placement !== null) {
-    return { label: `#${run.placement}`, className: "text-foreground" };
-  }
-  return { label: "—", className: "text-muted-foreground" };
-}
-
-function RunRow({ run }: { run: Run }) {
-  const status = getRunStatus(run);
-  const hasFinish = !run.missed && !run.dnf;
-  const finishTime = hasFinish ? formatRunTime(run.timeMs) : "—";
+export function WeeklyPerformance({ weeks }: { weeks: WeekData[] }) {
+  const showsPercentages = weeks.some(hasPercentages);
+  const columns = cn(COLUMNS, showsPercentages && PERCENTAGE_COLUMNS);
 
   return (
-    <li className="grid min-h-12 grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-t border-border/60 py-2.5 first:border-t-0 sm:grid-cols-[minmax(0,1fr)_5rem_7.5rem_5rem]">
-      <div className="min-w-0">
-        <p className="text-sm font-medium">Match {run.matchNumber}</p>
-        <p className="mt-0.5 text-xs text-muted-foreground sm:hidden">
-          {hasFinish ? finishTime : "No finish time"}
-          <span aria-hidden> · </span>
-          <span className="text-primary">+{run.pointsWon} pts</span>
-        </p>
-      </div>
-      <span
-        className={cn(
-          "text-right font-minecraft text-xs tabular-nums sm:text-left",
-          status.className
+    <section aria-labelledby="weeks-heading">
+      <div className="flex items-baseline justify-between gap-4">
+        <h2
+          id="weeks-heading"
+          className="text-3xl leading-none font-bold md:text-4xl"
+        >
+          Weeks
+        </h2>
+        {weeks.length > 0 && (
+          <span className="text-home-muted">
+            {weeks.length} {weeks.length === 1 ? "week" : "weeks"} played
+          </span>
         )}
-      >
-        {status.label}
-      </span>
-      <span className="hidden text-sm text-muted-foreground tabular-nums sm:block">
-        {finishTime}
-      </span>
-      <span className="hidden text-right text-sm font-medium text-primary tabular-nums sm:block">
-        +{run.pointsWon} pts
-      </span>
-    </li>
-  );
-}
-
-export function WeeklyPerformance({
-  weeks,
-}: {
-  weeks: WeeklyPerformanceData[];
-}) {
-  const newestFirst = [...weeks].reverse();
-
-  return (
-    <section aria-labelledby="weekly-performance-heading">
-      <div className="mb-3 flex items-end justify-between gap-4 px-1">
-        <div>
-          <p className="text-[10px] font-semibold tracking-[0.18em] text-muted-foreground uppercase">
-            History
-          </p>
-          <h3
-            id="weekly-performance-heading"
-            className="mt-1 text-base tracking-[0.08em] uppercase"
-          >
-            Weekly performance
-          </h3>
-        </div>
-        <span className="text-xs text-muted-foreground tabular-nums">
-          {weeks.length} {weeks.length === 1 ? "week" : "weeks"}
-        </span>
       </div>
 
       {weeks.length === 0 ? (
-        <Card className="items-center px-6 py-12 text-center">
-          <Flag className="size-8 text-muted-foreground/55" aria-hidden />
-          <div>
-            <p className="font-medium">No weekly results yet</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              This player does not have recorded match history.
-            </p>
-          </div>
-        </Card>
+        <p className="mt-4 text-home-muted">No weeks played yet.</p>
       ) : (
-        <Card className="gap-0 py-0">
-          {newestFirst.map((week) => (
-            <details
+        <>
+          <div
+            aria-hidden
+            className={cn(
+              columns,
+              "mt-2 border-b-3 border-obsidian-line px-2 py-2 text-sm whitespace-nowrap text-home-muted"
+            )}
+          >
+            <span>Week</span>
+            <span className="text-right">Points</span>
+            {showsPercentages && (
+              <>
+                <span className="text-right max-sm:hidden">Week %</span>
+                <span className="text-right max-sm:hidden">3-wk avg %</span>
+              </>
+            )}
+            <span className="text-right">Avg time</span>
+          </div>
+          {/* Newest first. */}
+          {weeks.toReversed().map((week) => (
+            <WeekRow
               key={week.weekNumber}
-              className="group border-b border-border/70 last:border-b-0"
-            >
-              <summary className="flex min-h-20 cursor-pointer list-none items-center gap-4 px-4 py-4 transition-colors outline-none hover:bg-muted/25 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset md:px-5 [&::-webkit-details-marker]:hidden">
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2.5">
-                    <a
-                      href={getWeekHref(week.weekNumber, week.leagueNumber)}
-                      className="hover:underline focus-visible:underline"
-                    >
-                      <h4 className="text-sm tracking-[0.08em] uppercase">
-                        Week {week.weekNumber}
-                      </h4>
-                    </a>
-                    <span className="text-xs text-muted-foreground">
-                      {`League ${week.leagueNumber}`}
-                    </span>
-                    <MovementBadge movement={week.movement} />
-                  </div>
-                  <dl className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-5">
-                    <div>
-                      <dt className="text-[9px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
-                        Points
-                      </dt>
-                      <dd className="mt-0.5 text-sm font-semibold text-primary tabular-nums">
-                        {week.totalPoints}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="text-[9px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
-                        Week percentage
-                      </dt>
-                      <dd className="mt-0.5 text-sm font-semibold text-primary tabular-nums">
-                        {formatPercentage(week.currentPercentage)}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="text-[9px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
-                        Movement average
-                      </dt>
-                      <dd className="mt-0.5 text-sm tabular-nums">
-                        {formatPercentage(week.averagePercentage)}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="text-[9px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
-                        Average time
-                      </dt>
-                      <dd className="mt-0.5 text-sm tabular-nums">
-                        {formatRunTime(week.averageTimeMs)}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="text-[9px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
-                        Matches
-                      </dt>
-                      <dd className="mt-0.5 text-sm tabular-nums">
-                        {week.matches}
-                      </dd>
-                    </div>
-                  </dl>
-                </div>
-                <ChevronDown
-                  className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180 motion-reduce:transition-none"
-                  aria-hidden
-                />
-              </summary>
-
-              <div className="border-t border-border/60 bg-background/25 px-4 py-3 md:px-5">
-                <div className="hidden grid-cols-[minmax(0,1fr)_5rem_7.5rem_5rem] gap-4 pb-2 text-[9px] font-semibold tracking-[0.12em] text-muted-foreground uppercase sm:grid">
-                  <span>Match</span>
-                  <span>Status</span>
-                  <span>Time</span>
-                  <span className="text-right">Points</span>
-                </div>
-                <ul>
-                  {week.matchDetails.map((run) => (
-                    <RunRow key={run.matchId} run={run} />
-                  ))}
-                </ul>
-              </div>
-            </details>
+              week={week}
+              columns={columns}
+              showsPercentages={showsPercentages}
+            />
           ))}
-        </Card>
+        </>
       )}
     </section>
+  );
+}
+
+function hasPercentages(week: WeekData) {
+  return week.currentPercentage !== null || week.averagePercentage !== null;
+}
+
+function WeekRow({
+  week,
+  columns,
+  showsPercentages,
+}: {
+  week: WeekData;
+  columns: string;
+  showsPercentages: boolean;
+}) {
+  return (
+    <details className="group border-b border-obsidian-line/60">
+      <summary
+        className={cn(
+          columns,
+          "min-h-14 cursor-pointer list-none px-2 py-2 transition-colors group-open:bg-obsidian-raised group-open:shadow-[inset_3px_0_0_var(--color-lava)] hover:bg-obsidian-raised [&::-webkit-details-marker]:hidden",
+          MOVE_TINTS[week.movement]
+        )}
+      >
+        <span className="min-w-0 leading-tight">
+          <span className="block font-semibold">Week {week.weekNumber}</span>
+          <span className="block text-sm text-home-muted">
+            League {week.leagueNumber} ·{" "}
+            <span className={MOVE_TEXT[week.movement]}>
+              {movementLabel(week.movement)}
+            </span>
+          </span>
+          {hasPercentages(week) && (
+            <span className="block font-minecraft text-xs text-home-muted tabular-nums sm:hidden">
+              Week {formatPercentage(week.currentPercentage)} · Avg{" "}
+              {formatPercentage(week.averagePercentage)}
+            </span>
+          )}
+        </span>
+        <span className="text-right font-minecraft text-lg font-bold tabular-nums">
+          {week.totalPoints}
+          <span className="sr-only"> points,</span>
+        </span>
+        {showsPercentages && (
+          <>
+            <span className="text-right font-minecraft text-home-muted tabular-nums max-sm:hidden">
+              <span className="sr-only">Week percentage </span>
+              {formatPercentage(week.currentPercentage)}
+            </span>
+            <span className="text-right font-minecraft tabular-nums max-sm:hidden">
+              <span className="sr-only">, 3-week average </span>
+              {formatPercentage(week.averagePercentage)}
+            </span>
+          </>
+        )}
+        <span className="text-right font-minecraft tabular-nums">
+          <span className="sr-only">, average time </span>
+          {formatRunTime(week.averageTimeMs)}
+        </span>
+        <ChevronDown
+          aria-hidden
+          className="size-5 text-home-muted transition-transform group-open:rotate-180 motion-reduce:transition-none"
+        />
+      </summary>
+
+      <div className="bg-obsidian-deep px-2 pt-1 pb-3">
+        {week.matchDetails.length === 0 ? (
+          <p className="py-2 text-home-muted">No matches recorded.</p>
+        ) : (
+          <ol>
+            {week.matchDetails.map((run) => (
+              <RunRow key={run.matchId} run={run} />
+            ))}
+          </ol>
+        )}
+        <a
+          href={getWeekHref(week.weekNumber, week.leagueNumber)}
+          className="mt-3 inline-block font-semibold text-home-gold underline underline-offset-4"
+        >
+          Week {week.weekNumber} standings
+        </a>
+      </div>
+    </details>
+  );
+}
+
+function RunRow({ run }: { run: Run }) {
+  const timeMs = run.missed || run.dnf ? null : run.timeMs;
+
+  return (
+    <li className="grid grid-cols-[3.5rem_minmax(0,1fr)_auto_3rem] items-center gap-x-3 border-b border-obsidian-line/60 px-1 py-2">
+      <span
+        className={cn(
+          "font-minecraft text-xl leading-none font-bold",
+          run.placement === 1 && "text-home-gold",
+          run.dnf && "text-lava-hover",
+          run.missed && "text-base text-home-muted"
+        )}
+      >
+        {run.missed
+          ? "Missed"
+          : run.dnf || run.placement === null
+            ? "DNF"
+            : ordinal(run.placement)}
+      </span>
+      <span className="font-semibold">Match {run.matchNumber}</span>
+      <span className="font-minecraft text-sm text-home-muted tabular-nums">
+        {/* Shows a dash for DNFs and missed matches, like other empty values. */}
+        {formatRunTime(timeMs)}
+      </span>
+      <span
+        className={cn(
+          "text-right font-minecraft text-lg leading-none font-bold tabular-nums",
+          run.pointsWon === 0 && "text-home-muted"
+        )}
+      >
+        +{run.pointsWon}
+      </span>
+    </li>
   );
 }

@@ -3,7 +3,7 @@ import { useQuery } from "convex/react";
 import { PlayerHead } from "@/components/PlayerHead";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useHttpQuery } from "@/hooks/use-http-query";
-import { formatPercentage, formatRunTime } from "@/lib/format";
+import { formatPercentage, formatRunTime, ordinal } from "@/lib/format";
 import {
   SEED_TYPE_LABELS,
   type PublishedSeed,
@@ -132,10 +132,4 @@ export function PlayerRuns({
       )}
     </>
   );
-}
-
-function ordinal(place: number) {
-  const lastTwo = place % 100;
-  if (lastTwo >= 11 && lastTwo <= 13) return `${place}th`;
-  return `${place}${["th", "st", "nd", "rd"][place % 10] ?? "th"}`;
 }

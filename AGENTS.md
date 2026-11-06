@@ -90,8 +90,8 @@ Seed history through `PUBLIC_SEED_API_URL`.
 
 The site is moving page by page to the obsidian design used by the home and
 week pages. Pages on it wrap their content in `.obsidian-page`, which sets the
-base text and the focus ring. Stats and credits still use the older shadcn
-tokens until they are redesigned. The championship page is kept only as an
+base text and the focus ring. Credits still uses the older shadcn tokens until
+it is redesigned. The championship page is kept only as an
 archive and stays out of the navbar.
 
 Keep new UI on the shared values so pages don't drift apart:

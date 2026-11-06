@@ -12,8 +12,6 @@ import {
   type EChartsCoreOption,
 } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
-import { ChartLine } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatRunTime } from "@/lib/format";
 import { movementLabel } from "@/lib/movement";
 import type { WeeklyPerformance } from "./stats-utils";
@@ -29,7 +27,9 @@ registerECharts([
 function cssColor(name: string, fallback: string) {
   if (typeof document === "undefined") return fallback;
 
-  const value = getComputedStyle(document.body).getPropertyValue(name).trim();
+  const value = getComputedStyle(document.documentElement)
+    .getPropertyValue(name)
+    .trim();
 
   return value || fallback;
 }
@@ -48,11 +48,11 @@ export function AverageTimeTrend({ weeks }: { weeks: WeeklyPerformance[] }) {
   const hasAverageData = averageWeeks.length > 0;
 
   const option = useMemo<EChartsCoreOption>(() => {
-    const primary = cssColor("--primary", "#f59e0b");
-    const border = cssColor("--border", "#3f3f46");
-    const mutedForeground = cssColor("--muted-foreground", "#a1a1aa");
-    const popover = cssColor("--popover", "#18181b");
-    const popoverForeground = cssColor("--popover-foreground", "#fafafa");
+    const lava = cssColor("--color-lava", "#f05a1a");
+    const line = cssColor("--color-obsidian-line", "#3a2d4c");
+    const muted = cssColor("--color-home-muted", "#b8aec4");
+    const deep = cssColor("--color-obsidian-deep", "#120c1a");
+    const font = "Minecraft, sans-serif";
 
     return {
       animationDuration: 350,
@@ -61,19 +61,19 @@ export function AverageTimeTrend({ weeks }: { weeks: WeeklyPerformance[] }) {
         description:
           "Line chart showing the player's average completion time for each recorded week.",
       },
-      grid: { top: 18, right: 18, bottom: 38, left: 54 },
+      grid: { top: 12, right: 12, bottom: 32, left: 56 },
       tooltip: {
         trigger: "axis",
         triggerOn: "mousemove|click",
         axisPointer: {
           type: "line",
-          lineStyle: { color: mutedForeground, opacity: 0.25, width: 1 },
+          lineStyle: { color: muted, opacity: 0.4, width: 1 },
         },
-        backgroundColor: popover,
-        borderColor: border,
-        borderWidth: 1,
-        padding: 12,
-        textStyle: { color: popoverForeground, fontSize: 12 },
+        // The frame comes from the formatter's own markup.
+        backgroundColor: "transparent",
+        borderWidth: 0,
+        padding: 0,
+        extraCssText: "box-shadow:none;border-radius:0",
         formatter: (rawParams: unknown) => {
           const params: unknown = Array.isArray(rawParams)
             ? rawParams[0]
@@ -90,21 +90,20 @@ export function AverageTimeTrend({ weeks }: { weeks: WeeklyPerformance[] }) {
           const week = averageWeeks[params.dataIndex];
           if (!week) return "";
 
-          return [
-            `<strong>Week ${week.weekNumber}</strong> &middot; League ${week.leagueNumber}`,
-            `<div style="margin-top:6px;color:${primary};font-size:15px;font-weight:700">${formatRunTime(week.averageTimeMs)}</div>`,
-            `<div style="margin-top:6px;color:${mutedForeground}">${week.matches} matches &middot; ${week.totalPoints} points</div>`,
-            `<div style="color:${mutedForeground}">${movementLabel(week.movement)}</div>`,
-          ].join("");
+          return `<div class="mc-tooltip px-3 py-2 text-sm leading-snug text-home-text">
+            <div class="font-bold">Week ${week.weekNumber} · League ${week.leagueNumber}</div>
+            <div class="mt-1 font-minecraft text-lg font-bold">${formatRunTime(week.averageTimeMs)}</div>
+            <div class="text-home-muted">${week.matches} matches · ${week.totalPoints} points · ${movementLabel(week.movement)}</div>
+          </div>`;
         },
       },
       xAxis: {
         type: "category",
         boundaryGap: false,
         data: averageWeeks.map((week) => `W${week.weekNumber}`),
-        axisLine: { lineStyle: { color: border } },
+        axisLine: { lineStyle: { color: line, width: 3 } },
         axisTick: { show: false },
-        axisLabel: { color: mutedForeground, fontSize: 10 },
+        axisLabel: { color: muted, fontFamily: font, fontSize: 12 },
       },
       yAxis: {
         type: "value",
@@ -113,14 +112,13 @@ export function AverageTimeTrend({ weeks }: { weeks: WeeklyPerformance[] }) {
         axisLine: { show: false },
         axisTick: { show: false },
         axisLabel: {
-          color: mutedForeground,
-          fontSize: 10,
+          color: muted,
+          fontFamily: font,
+          fontSize: 12,
           formatter: (value: number) =>
             formatRunTime(value, { hundredths: false }),
         },
-        splitLine: {
-          lineStyle: { color: border, opacity: 0.08, type: "dashed" },
-        },
+        splitLine: { lineStyle: { color: line, opacity: 0.6 } },
       },
       series: [
         {
@@ -129,14 +127,11 @@ export function AverageTimeTrend({ weeks }: { weeks: WeeklyPerformance[] }) {
           data: averageWeeks.map((week) => week.averageTimeMs),
           connectNulls: false,
           showSymbol: true,
-          symbol: "circle",
-          symbolSize: 8,
-          lineStyle: { color: primary, width: 2 },
-          itemStyle: {
-            color: primary,
-            borderColor: popover,
-            borderWidth: 2,
-          },
+          // Square points, to match the site's blocky shapes.
+          symbol: "rect",
+          symbolSize: 9,
+          lineStyle: { color: lava, width: 3 },
+          itemStyle: { color: lava, borderColor: deep, borderWidth: 2 },
           emphasis: { disabled: true },
         },
       ],
@@ -165,39 +160,19 @@ export function AverageTimeTrend({ weeks }: { weeks: WeeklyPerformance[] }) {
 
   return (
     <section aria-labelledby="average-time-heading">
-      <Card>
-        <CardHeader>
-          <CardTitle
-            id="average-time-heading"
-            className="font-minecraft text-base tracking-[0.08em] uppercase"
-          >
-            Average time by week
-          </CardTitle>
-        </CardHeader>
-
-        <CardContent>
-          {!hasAverageData ? (
-            <div className="flex min-h-64 flex-col items-center justify-center text-center">
-              <ChartLine
-                className="mb-3 size-8 text-muted-foreground/50"
-                aria-hidden
-              />
-              <p className="font-medium">No average-time data</p>
-              <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-                Weekly averages will appear after this player records a
-                completed week.
-              </p>
-            </div>
-          ) : (
-            <div
-              ref={chartElementRef}
-              className="h-70 w-full"
-              role="img"
-              aria-label="Average completion time by week"
-            />
-          )}
-        </CardContent>
-      </Card>
+      <h2
+        id="average-time-heading"
+        className="text-3xl leading-none font-bold md:text-4xl"
+      >
+        Average time
+      </h2>
+      {!hasAverageData ? (
+        <p className="mt-4 text-home-muted">
+          Weekly averages show up once this player finishes a week.
+        </p>
+      ) : (
+        <div ref={chartElementRef} className="mt-4 h-72 w-full" role="img" />
+      )}
     </section>
   );
 }
