@@ -51,7 +51,7 @@
     "test:web": "bun run --filter @mcrl/web test",
     "test:backend": "bun run --filter @mcrl/backend test",
     "build": "bun run build:web",
-    "build:cloudflare:league": "bun ci && bun run build:web",
+    "build:cloudflare:league": "(git fetch --unshallow || true) && bun ci && bun run build:web",
     "build:web": "bun run --filter @mcrl/web build",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "lint:bot": "bun run --filter @mcrl/bot lint",

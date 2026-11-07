@@ -3,6 +3,7 @@ import type { GetStaticPaths, InferGetStaticPropsType } from "astro";
 import Docs from "@/components/docs/Docs";
 import DocsLayout from "@/layouts/docs.astro";
 import { docsSource } from "@/lib/docsSource";
+import { GITHUB_URL } from "@/links";
 
 export const getStaticPaths = (() =>
   docsSource.getPages().map((page) => ({
@@ -15,6 +16,8 @@ type Props = InferGetStaticPropsType<typeof getStaticPaths>;
 const { page } = Astro.props;
 const { body: Content, toc } = await page.data.load();
 const tree = await docsSource.serializePageTree(docsSource.getPageTree());
+// `page.path` is relative to the content directory set in `astro.config.mjs`.
+const editUrl = `${GITHUB_URL}/blob/main/apps/web/src/content/docs/${page.path}`;
 ---
 
 <DocsLayout title={page.data.title} description={page.data.description}>
@@ -27,6 +30,8 @@ const tree = await docsSource.serializePageTree(docsSource.getPageTree());
     title={page.data.title}
     description={page.data.description}
     toc={toc}
+    lastModified={page.data.lastModified}
+    editUrl={editUrl}
   >
     <Content />
   </Docs>

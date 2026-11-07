@@ -44,7 +44,10 @@ export default defineConfig({
   integrations: [
     react(),
     fumadocs({
-      collections: { docs: { dir: "src/content/docs" } },
+      collections: {
+        // `lastModified` dates each page by its last commit.
+        docs: { dir: "src/content/docs", lastModified: true },
+      },
       components: "./src/components/docs/mdx.tsx",
     }),
     sitemap(),
