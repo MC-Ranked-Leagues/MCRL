@@ -16,14 +16,14 @@
     "typecheck": "astro check"
   },
   "dependencies": {
-    "@astrojs/check": "^0.9.7",
-    "@astrojs/react": "^4.4.2",
-    "@astrojs/starlight": "^0.38.2",
+    "@astrojs/check": "^0.9.12",
+    "@astrojs/react": "^7.1.4",
+    "@astrojs/starlight": "^0.42.10",
     "@base-ui/react": "catalog:",
     "@fontsource-variable/archivo": "catalog:",
     "@fontsource-variable/inter": "catalog:",
     "@mcrl/backend": "workspace:*",
-    "astro": "^6.0.8",
+    "astro": "^7.4.7",
     "clsx": "catalog:",
     "convex": "catalog:",
     "echarts": "^6.1.0",

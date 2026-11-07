@@ -50,7 +50,7 @@ export const getLatestWinners = query({
       competitions.map(async (competition) => {
         const registrations = await ctx.db
           .query("registrations")
-          .withIndex("by_competition", (q) =>
+          .withIndex("by_comp_and_player", (q) =>
             q.eq("competitionId", competition._id)
           )
           .collect();
@@ -133,7 +133,9 @@ async function loadWeekStandings(
 
   const registrations = await ctx.db
     .query("registrations")
-    .withIndex("by_competition", (q) => q.eq("competitionId", competition._id))
+    .withIndex("by_comp_and_player", (q) =>
+      q.eq("competitionId", competition._id)
+    )
     .collect();
 
   registrations.sort(compareWeekStandingRegistrations);

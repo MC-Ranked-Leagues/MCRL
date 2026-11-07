@@ -157,7 +157,7 @@ export const deleteMatch = mutation({
     const fastestInvalidated = new Set<Id<"players">>();
     const existingResults = await ctx.db
       .query("matchResults")
-      .withIndex("by_match", (q) => q.eq("matchId", match._id))
+      .withIndex("by_match_and_player", (q) => q.eq("matchId", match._id))
       .collect();
 
     for (const result of existingResults) {
@@ -288,7 +288,7 @@ export const importMatchData = mutation({
 
     const existingResults = await ctx.db
       .query("matchResults")
-      .withIndex("by_match", (q) => q.eq("matchId", match._id))
+      .withIndex("by_match_and_player", (q) => q.eq("matchId", match._id))
       .collect();
 
     const pointDeltasByPlayer = new Map<Id<"players">, number>();
@@ -343,7 +343,7 @@ export const importMatchData = mutation({
 
     const registrations = await ctx.db
       .query("registrations")
-      .withIndex("by_competition", (q) =>
+      .withIndex("by_comp_and_player", (q) =>
         q.eq("competitionId", competition._id)
       )
       .collect();

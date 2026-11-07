@@ -37,30 +37,18 @@ const outlineButton =
   "inline-block border-3 border-current px-5 py-3 font-bold transition-colors hover:bg-obsidian-raised";
 ---
 
-<Layout
-  description="Weekly Minecraft speedrun races against players at your level, for beginners and top runners alike."
->
+<Layout description="Weekly Minecraft speedrun races against players at your level, for beginners and top runners alike.">
   <div class="obsidian-page">
-    <section
-      class="relative flex min-h-160 flex-col overflow-hidden lg:min-h-[calc(100svh-4rem)]"
-    >
+    <section class="relative flex min-h-160 flex-col overflow-hidden lg:min-h-[calc(100svh-4rem)]">
       <img
         src="/images/4.webp"
         alt=""
         fetchpriority="high"
         class="absolute inset-0 size-full object-cover"
       />
-      <div
-        class="absolute inset-0 bg-linear-to-t from-obsidian/70 via-obsidian/60 to-obsidian/30 lg:bg-linear-to-r lg:from-obsidian/90 lg:via-obsidian/60 lg:to-obsidian/40"
-      >
-      </div>
-      <div
-        class="absolute inset-0 bg-radial from-transparent from-25% to-obsidian"
-      >
-      </div>
-      <div
-        class="relative z-10 mx-auto grid w-full max-w-page flex-1 grid-cols-[minmax(0,1fr)] items-center gap-10 px-6 pt-24 pb-10 lg:grid-cols-[1fr_minmax(0,34rem)]"
-      >
+      <div class="absolute inset-0 bg-linear-to-t from-obsidian/70 via-obsidian/60 to-obsidian/30 lg:bg-linear-to-r lg:from-obsidian/90 lg:via-obsidian/60 lg:to-obsidian/40"></div>
+      <div class="absolute inset-0 bg-radial from-transparent from-25% to-obsidian"></div>
+      <div class="relative z-10 mx-auto grid w-full max-w-page flex-1 grid-cols-[minmax(0,1fr)] items-center gap-10 px-6 pt-24 pb-10 lg:grid-cols-[1fr_minmax(0,34rem)]">
         <div>
           <h1 class="max-w-[14ch] text-4xl leading-none font-bold md:text-6xl">
             Ranked Leagues
@@ -101,9 +89,7 @@ const outlineButton =
       </div>
     </section>
 
-    <section
-      class="grid items-center bg-obsidian-raised lg:grid-cols-[1.3fr_1fr]"
-    >
+    <section class="grid items-center bg-obsidian-raised lg:grid-cols-[1.3fr_1fr]">
       <img
         src="/images/1.webp"
         alt="Players gathered in a nether fortress"
@@ -143,24 +129,20 @@ const outlineButton =
     </section>
 
     <section class="bg-obsidian-deep py-14 md:py-20">
-      <div
-        class="mx-auto flex max-w-page flex-col gap-12 px-6 md:flex-row lg:gap-16"
-      >
+      <div class="mx-auto flex max-w-page flex-col gap-12 px-6 md:flex-row lg:gap-16">
         <div class="flex-3">
           <h2 class={heading}>
             Ready to <span class="italic">SPEEDRUN</span>?
           </h2>
           <ol class="mt-7 mb-7">
-            {
-              JOIN_STEPS.map((step, i) => (
-                <li class="grid grid-cols-[2.5rem_1fr] items-baseline border-t border-obsidian-line py-3">
-                  <span class="font-minecraft text-2xl leading-none text-lava">
-                    {i + 1}
-                  </span>
-                  <span class="font-semibold">{step}</span>
-                </li>
-              ))
-            }
+            {JOIN_STEPS.map((step, i) => (
+              <li class="grid grid-cols-[2.5rem_1fr] items-baseline border-t border-obsidian-line py-3">
+                <span class="font-minecraft text-2xl leading-none text-lava">
+                  {i + 1}
+                </span>
+                <span class="font-semibold">{step}</span>
+              </li>
+            ))}
           </ol>
           <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
             <a
@@ -182,14 +164,12 @@ const outlineButton =
         <div class="flex-2">
           <h2 class="text-2xl font-bold">Questions</h2>
           <div class="mt-5">
-            {
-              FAQ.map((item) => (
-                <div class="border-t border-obsidian-line py-4">
-                  <h3 class="font-display font-bold">{item.question}</h3>
-                  <p class="mt-2 text-home-muted">{item.answer}</p>
-                </div>
-              ))
-            }
+            {FAQ.map((item) => (
+              <div class="border-t border-obsidian-line py-4">
+                <h3 class="font-display font-bold">{item.question}</h3>
+                <p class="mt-2 text-home-muted">{item.answer}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>

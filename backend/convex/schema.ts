@@ -70,7 +70,6 @@ export default defineSchema({
     currentPercentage: v.optional(v.union(v.number(), v.null())),
     averagePercentage: v.optional(v.union(v.number(), v.null())),
   })
-    .index("by_competition", ["competitionId"])
     .index("by_player", ["playerId"])
     .index("by_comp_and_player", ["competitionId", "playerId"]),
 
@@ -98,8 +97,6 @@ export default defineSchema({
     placement: v.union(v.number(), v.null()),
     pointsWon: v.number(),
   })
-    .index("by_match", ["matchId"])
-    .index("by_player", ["playerId"])
     .index("by_player_and_competition", ["playerId", "competitionId"])
     .index("by_week_and_player", ["weekNumber", "playerId"])
     .index("by_match_and_player", ["matchId", "playerId"]),

@@ -1,6 +1,6 @@
 import { ConvexError, v } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
-import { type MutationCtx } from "../_generated/server";
+import { env, type MutationCtx } from "../_generated/server";
 import { calculateRegistrationAverageTimeMs } from "../lib/registrationAverage";
 import { getImprovedFastestTimeMs } from "../lib/playerFastestTime";
 
@@ -9,10 +9,10 @@ export type CompetitionDoc = Doc<"competitions">;
 export type RegistrationDoc = Doc<"registrations">;
 
 export function requireWriterKey(writerKey: string): void {
-  if (!process.env.WRITER_API_KEY) {
+  if (!env.WRITER_API_KEY) {
     throwWriteError(500, "Server misconfiguration.");
   }
-  if (writerKey !== process.env.WRITER_API_KEY) {
+  if (writerKey !== env.WRITER_API_KEY) {
     throwWriteError(401, "Unauthorized");
   }
 }
@@ -127,7 +127,7 @@ export async function recalculatePlayerFastestTime(
 ) {
   const results = await ctx.db
     .query("matchResults")
-    .withIndex("by_player", (q) => q.eq("playerId", playerId))
+    .withIndex("by_player_and_competition", (q) => q.eq("playerId", playerId))
     .collect();
   let fastestTimeMs: number | undefined;
   for (const result of results) {

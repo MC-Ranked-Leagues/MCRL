@@ -476,6 +476,7 @@ async function main() {
     const message = (
       error instanceof Error ? error.message : String(error)
     ).replaceAll(writerKey, "[REDACTED]");
+    // eslint-disable-next-line preserve-caught-error -- the cause would expose the unredacted writer key
     throw new Error(
       `${message}\nReplay stopped. Earlier mutations may have committed. There is no automatic retry or cleanup.`
     );
