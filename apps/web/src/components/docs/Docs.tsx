@@ -1,5 +1,6 @@
 import { navigate } from "astro:transitions/client";
 import type { ComponentProps, ReactNode } from "react";
+import { SquarePenIcon } from "lucide-react";
 import {
   type SerializedPageTree,
   useFumadocsLoader,
@@ -17,6 +18,7 @@ import {
   DocsDescription,
   DocsPage,
   DocsTitle,
+  EditOnGitHub,
 } from "@fumadocs/base-ui/layouts/spacious/page";
 import {
   Sidebar,
@@ -39,6 +41,10 @@ interface DocsProps {
   title: string;
   description?: string;
   toc: TOCItemType[];
+  /** The date of the page's last commit, missing for uncommitted pages. */
+  lastModified?: Date;
+  /** The page's source file on GitHub. */
+  editUrl: string;
   children?: ReactNode;
 }
 
@@ -50,6 +56,8 @@ export default function Docs({
   title,
   description,
   toc,
+  lastModified,
+  editUrl,
   children,
 }: DocsProps) {
   const data = useFumadocsLoader({ tree });
@@ -109,6 +117,23 @@ export default function Docs({
           <DocsTitle>{title}</DocsTitle>
           <DocsDescription>{description}</DocsDescription>
           {children}
+          <div className="mt-12 flex flex-wrap items-center justify-between gap-4">
+            <EditOnGitHub href={editUrl}>
+              <SquarePenIcon className="size-3.5" />
+              Edit this page
+            </EditOnGitHub>
+            {lastModified && (
+              // Fumadocs' `PageLastUpdate` only fills in the date after
+              // hydration. UTC keeps the server and browser text the same.
+              <p className="text-fd-muted-foreground text-sm">
+                Last updated on{" "}
+                {lastModified.toLocaleDateString("en-US", {
+                  dateStyle: "long",
+                  timeZone: "UTC",
+                })}
+              </p>
+            )}
+          </div>
         </DocsPage>
       </DocsLayout>
     </RootProvider>
@@ -154,7 +179,7 @@ function SidebarWithDiscord({ className, ...props }: SidebarProps) {
         target="_blank"
         rel="noreferrer noopener"
         className={cn(
-          "text-fd-muted-foreground hover:bg-fd-accent/60 hover:text-fd-accent-foreground z-10 mx-3 mb-3 flex w-[calc(var(--fd-sidebar-width)---spacing(6))] items-center gap-3 self-end rounded-lg px-2.5 py-2 text-[0.8125rem] transition-colors [grid-area:sidebar] max-md:hidden [&_svg]:size-4",
+          "text-fd-muted-foreground hover:bg-fd-accent/60 hover:text-fd-accent-foreground z-10 mx-3 mb-3 flex w-[calc(var(--fd-sidebar-width)-(--spacing(6)))] items-center gap-3 self-end rounded-lg px-2.5 py-2 text-[0.8125rem] transition-colors [grid-area:sidebar] max-md:hidden [&_svg]:size-4",
           collapsed && "invisible"
         )}
       >
