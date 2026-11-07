@@ -1,11 +1,43 @@
 ---
-title: Promotions and demotions
-description: How players move between leagues.
+title: Format and promotions
+description: How points, rankings, promotions and demotions work.
 ---
+
+## Points
+
+For each seed, if you complete, you earn points based on your placement.
+
+Points for each placement are calculated using this formula, rounded down:
+
+> _Points = (Players / 2) - (Placement - 1) + Bonus_
+
+Where `Players` is the total number of players who signed up for the week, and `Placement` is your placement for the seed (1st = 1, 2nd = 2, etc). However you will always receive at least 1 point for completing a seed.
+
+Additionally, the first three to finish a seed will get bonus points, provided their placement is in the top half of registered players, rounded down:
+
+> 1st +5 \
+> 2nd +3 \
+> 3rd +1
+
+For example, if there are 25 players in a match:
+
+- 1st place: (25/2) - (1-1) + 5 = 17.5 ≈ 17 points
+- 2nd place: (25/2) - (2-1) + 3 = 14.5 ≈ 14 points
+- 3rd place: (25/2) - (3-1) + 1 = 11.5 ≈ 11 points
+- 4th place: (25/2) - (4-1) + 0 = 9.5 ≈ 9 points
+- 10th place: (25/2) - (10-1) + 0 = 12.5 - 9 + 0 = 3.5 ≈ 3 points
+- 12th place and below: 1 point
+- No completion: 0 points
+
+## Ranking
+
+The ranking for each week is just the total number of points. In case of ties, the player with a faster average completion time ranks higher. If points and average time are both tied, Minecraft names determine the order alphabetically. Not completing or not playing a seed counts as time limit for the average time. If you didn't complete any seed, you are effectively unranked. The ranking is used to calculate a performance score, which is used for relegations.
+
+## Promotions and demotions
 
 At the end of each week, we promote and relegate players to ensure that the leagues are balanced and that the competition is fair.
 
-## Leagues 1-6
+### Leagues 1-6
 
 Promotions and demotions are done by 3-week average performance, counting the current week and up to 2 of the most recent appearances. Missing every seed makes you ineligible for movement that week.
 
@@ -14,8 +46,8 @@ Performance is calculated by taking a reverse ranking of all players who got poi
 Here's how we do the math:
 
 ```
-a (number of players who have at least 1 point) \
-n (your placement, 1st = 1, 2nd = 2, etc) \
+a (number of players who have at least 1 point)
+n (your placement, 1st = 1, 2nd = 2, etc)
 
 performance = (a - n + 1) / a
 ```
@@ -28,12 +60,12 @@ Then we take the average and rank everyone who played the week by that average. 
 
 Number of promotions and demotions is 15% of the number of people who played the week, rounded to nearest whole number. So for example, if 25 people played, the number of promotions and demotions would be:
 
-> 25 * 0.15 = 3.75 ≈ 4.
+> 25 \* 0.15 = 3.75 ≈ 4.
 
 The weekly winner takes the first promotion slot. The remaining promotion slots go to the highest average performances, and the lowest ranked players are demoted. Anyone with an average performance score of 0 is demoted, even if this would result in more demotions. You can not be promoted from league 1 and you can not be relegated from league 6.
 
 When a player is demoted, their saved performance history is cleared and replaced with one 85% score for that week. Their next appearance in the lower league averages this 85% with their new performance.
 
-## League 7
+### League 7
 
 In league 7, a player is promoted to league 6 if they complete a seed under 25 minutes, or have a competition average time under 30 minutes. They must have played at least one seed. Not completing or not playing a seed counts as the time limit for the average. League 7 does not use rolling performance percentages.

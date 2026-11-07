@@ -1,0 +1,29 @@
+---
+import { ClientRouter } from "astro:transitions";
+import "@/docs.css";
+import { SITE_NAME } from "@/consts";
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+// Left out when `SITE_URL` isn't set, such as on preview deployments.
+const canonicalUrl = Astro.site && new URL(Astro.url.pathname, Astro.site);
+---
+
+<html lang="en" transition:animate="none">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/webp" href="/MCRL.webp" />
+    <title>{`${title} | ${SITE_NAME}`}</title>
+    {description && <meta name="description" content={description} />}
+    {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
+    <ClientRouter />
+  </head>
+  <body class="flex min-h-screen flex-col">
+    <slot />
+  </body>
+</html>

@@ -1,0 +1,42 @@
+/* Only the info pages load this, so Fumadocs' styles stay off the rest of the site. */
+@import "tailwindcss";
+@import "@fumadocs/base-ui/css/neutral.css";
+/* The preset leaves out the spacious layout's styles, Fumadocs' docs add them like this. */
+@import "@fumadocs/base-ui/css/generated/spacious.css";
+@import "@fumadocs/base-ui/css/preset.css";
+
+/* The active page uses lava as Fumadocs' primary color. Light mode needs a
+   darker shade to stay readable on white. */
+@theme {
+  --color-fd-primary: #c2410c;
+  --color-fd-primary-foreground: #ffffff;
+}
+
+/* Dark mode uses the site's obsidian palette from global.css: the page panel
+   is `obsidian`, the area around it `obsidian-deep`, and hover, menus and
+   code are `obsidian-raised`. */
+.dark,
+.dark #nd-sidebar {
+  --color-fd-background: #120c1a;
+  --color-fd-foreground: #f7f1ea;
+  --color-fd-card: #1a1325;
+  --color-fd-card-foreground: #f7f1ea;
+  --color-fd-popover: #241a33;
+  --color-fd-popover-foreground: #f7f1ea;
+  --color-fd-muted: #241a33;
+  --color-fd-muted-foreground: #b8aec4;
+  --color-fd-secondary: #241a33;
+  --color-fd-secondary-foreground: #f7f1ea;
+  --color-fd-accent: #241a33;
+  --color-fd-accent-foreground: #f7f1ea;
+  --color-fd-border: #3a2d4c;
+  --color-fd-ring: #b8aec4;
+  --color-fd-primary: #f05a1a;
+  --color-fd-primary-foreground: #1d0b03;
+}
+
+/* Fumadocs keeps blank code lines with `.line:empty`, but ours still hold an
+   empty `<span>`, so they would collapse. */
+.shiki .line {
+  min-height: 1lh;
+}
