@@ -71,7 +71,9 @@ export const getPlayerStats = query({
         .collect(),
       ctx.db
         .query("matchResults")
-        .withIndex("by_player", (q) => q.eq("playerId", args.playerId))
+        .withIndex("by_player_and_competition", (q) =>
+          q.eq("playerId", args.playerId)
+        )
         .collect(),
     ]);
 

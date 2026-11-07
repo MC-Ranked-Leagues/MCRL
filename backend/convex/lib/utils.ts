@@ -1,4 +1,5 @@
 import type { z } from "zod";
+import { env } from "../_generated/server";
 
 type JsonValue =
   | string
@@ -54,7 +55,7 @@ export async function validateApiKey(
   envVar: "READER_API_KEY" | "WRITER_API_KEY"
 ): Promise<Response | null> {
   const providedKey = request.headers.get("x-api-key");
-  const expectedKey = process.env[envVar];
+  const expectedKey = env[envVar];
 
   if (!expectedKey) {
     console.error(`[Config] ${envVar} environment variable is not set`);

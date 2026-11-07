@@ -308,17 +308,22 @@ describe("match result imports", () => {
       matchNumber: 1,
     });
 
-    const state = await t.run(async (ctx) => ({
-      alex: await ctx.db
+    const state = await t.run(async (ctx) => {
+      const alex = await ctx.db
         .query("players")
         .withIndex("by_uuid", (q) => q.eq("uuid", players.alex.uuid))
-        .unique(),
-      alexRegistration: await ctx.db
-        .query("registrations")
-        .filter((q) => q.eq(q.field("playerIgn"), players.alex.ign))
-        .unique(),
-      matches: await ctx.db.query("matches").collect(),
-    }));
+        .unique();
+      return {
+        alex,
+        alexRegistration: alex
+          ? await ctx.db
+              .query("registrations")
+              .withIndex("by_player", (q) => q.eq("playerId", alex._id))
+              .unique()
+          : null,
+        matches: await ctx.db.query("matches").collect(),
+      };
+    });
 
     expect(state.matches.map((match) => match.matchNumber)).toEqual([2]);
     expect(state.alexRegistration).toMatchObject({
@@ -737,7 +742,7 @@ describe("public mutation input limits", () => {
       competition: await ctx.db.get("competitions", competitionId),
       registrations: await ctx.db
         .query("registrations")
-        .withIndex("by_competition", (q) =>
+        .withIndex("by_comp_and_player", (q) =>
           q.eq("competitionId", competitionId)
         )
         .collect(),

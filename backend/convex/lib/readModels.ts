@@ -192,7 +192,7 @@ export async function recomputeMatchWinnerSnapshot(
 ) {
   const results = await ctx.db
     .query("matchResults")
-    .withIndex("by_match", (q) => q.eq("matchId", matchId))
+    .withIndex("by_match_and_player", (q) => q.eq("matchId", matchId))
     .collect();
 
   const winner = results

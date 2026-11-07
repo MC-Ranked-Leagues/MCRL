@@ -10,6 +10,9 @@ import { DISCORD_URL, GITHUB_URL } from "./src/links.ts";
 // https://astro.build/config
 export default defineConfig({
   site: process.env.SITE_URL,
+  // Astro 7 defaults to "jsx", which drops the whitespace between inline
+  // elements on separate lines that our templates rely on.
+  compressHTML: true,
   vite: {
     plugins: [
       tailwindcss(),

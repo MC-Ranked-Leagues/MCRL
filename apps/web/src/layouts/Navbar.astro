@@ -21,9 +21,7 @@ const isCurrent = (href: string) =>
   id="navbar"
   class="animate-slide-down fixed top-0 right-0 left-0 z-50 border-b border-transparent text-home-text opacity-0 transition-colors duration-300"
 >
-  <div
-    class="mx-auto flex max-w-page items-center justify-between gap-6 px-6 py-3"
-  >
+  <div class="mx-auto flex max-w-page items-center justify-between gap-6 px-6 py-3">
     <a href="/" class="flex items-center gap-2.5">
       <img
         src="/MCRL.webp"
@@ -37,20 +35,18 @@ const isCurrent = (href: string) =>
 
     {/* Desktop Links */}
     <div class="hidden items-center gap-7 md:flex">
-      {
-        NAV_LINKS.map((link) => (
-          <a
-            href={link.href}
-            aria-current={isCurrent(link.href) ? "page" : undefined}
-            class={cn(
-              "font-minecraft text-sm transition-colors hover:text-home-gold",
-              isCurrent(link.href) && "font-bold"
-            )}
-          >
-            {link.name}
-          </a>
-        ))
-      }
+      {NAV_LINKS.map((link) => (
+        <a
+          href={link.href}
+          aria-current={isCurrent(link.href) ? "page" : undefined}
+          class={cn(
+            "font-minecraft text-sm transition-colors hover:text-home-gold",
+            isCurrent(link.href) && "font-bold"
+          )}
+        >
+          {link.name}
+        </a>
+      ))}
       <a
         href={DISCORD_URL}
         target="_blank"
@@ -82,20 +78,18 @@ const isCurrent = (href: string) =>
   class="fixed inset-0 z-40 hidden flex-col bg-obsidian px-6 pt-24 text-home-text md:hidden"
 >
   <div class="flex flex-col gap-6">
-    {
-      NAV_LINKS.map((link) => (
-        <a
-          href={link.href}
-          aria-current={isCurrent(link.href) ? "page" : undefined}
-          class={cn(
-            "font-minecraft text-3xl transition-colors hover:text-home-gold",
-            isCurrent(link.href) && "font-bold"
-          )}
-        >
-          {link.name}
-        </a>
-      ))
-    }
+    {NAV_LINKS.map((link) => (
+      <a
+        href={link.href}
+        aria-current={isCurrent(link.href) ? "page" : undefined}
+        class={cn(
+          "font-minecraft text-3xl transition-colors hover:text-home-gold",
+          isCurrent(link.href) && "font-bold"
+        )}
+      >
+        {link.name}
+      </a>
+    ))}
     <div class="mt-8 border-t border-obsidian-line pt-8">
       <a
         href={DISCORD_URL}

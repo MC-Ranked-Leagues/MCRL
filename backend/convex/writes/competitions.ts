@@ -138,7 +138,7 @@ export const reopenCompetition = mutation({
 
     const registrations = await ctx.db
       .query("registrations")
-      .withIndex("by_competition", (q) =>
+      .withIndex("by_comp_and_player", (q) =>
         q.eq("competitionId", competition._id)
       )
       .collect();
@@ -188,7 +188,9 @@ async function getMovementRegistrations<
   }
   const registrations = await ctx.db
     .query("registrations")
-    .withIndex("by_competition", (q) => q.eq("competitionId", competition._id))
+    .withIndex("by_comp_and_player", (q) =>
+      q.eq("competitionId", competition._id)
+    )
     .collect();
   if (registrations.length !== movements.length) {
     throwWriteError(400, "Movements must cover every registration.");
