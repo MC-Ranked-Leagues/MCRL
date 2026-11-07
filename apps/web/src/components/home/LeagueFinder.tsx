@@ -167,7 +167,7 @@ export function LeagueFinder() {
           Read the rules
         </a>
         <a
-          href="/rules/timeslots"
+          href="/info/rules/timeslots"
           className="font-semibold text-home-gold underline underline-offset-4"
         >
           See competition times
@@ -447,7 +447,7 @@ function CompareRow({
       <td className="py-1 font-semibold">{label}</td>
       <td
         className={`py-1 whitespace-nowrap ${
-          verdict === "In range" ? "text-[#7ee07e]" : "text-home-muted"
+          verdict === "In range" ? "text-promoted" : "text-home-muted"
         }`}
       >
         {verdict}

@@ -1,0 +1,5 @@
+{
+  "title": "Tournaments",
+  "icon": "Trophy",
+  "pages": ["league1-championship", "championships", "..."]
+}

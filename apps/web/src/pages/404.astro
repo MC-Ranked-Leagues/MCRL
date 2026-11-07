@@ -1,0 +1,18 @@
+---
+import Layout from "@/layouts/main.astro";
+import Footer from "@/layouts/Footer.astro";
+import { SITE_NAME } from "@/consts";
+---
+
+<Layout title={`Page not found | ${SITE_NAME}`}>
+  <div class="obsidian-page">
+    <div class="mx-auto min-h-screen max-w-page px-6 pt-24 pb-14 md:pb-20">
+      <h1 class="text-4xl font-bold md:text-6xl">Page not found</h1>
+      <p class="mt-5 text-home-muted">This page doesn't exist.</p>
+      <a href="/" class="mt-3 inline-block underline">
+        Go to the home page
+      </a>
+    </div>
+    <Footer />
+  </div>
+</Layout>

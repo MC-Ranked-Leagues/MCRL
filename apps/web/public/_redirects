@@ -1,2 +1,12 @@
 /week/:week /week/ 200
 /week/:week/ /week/ 200
+/registration/* /info/registration 301
+/rules/relegations /info/rules/format 301
+/rules/relegations/ /info/rules/format 301
+/rules/* /info/rules/:splat 301
+/tournaments/* /info/tournaments/:splat 301
+/bot/* /info/extra/league-bot 301
+/info/share-stream /info/extra/share-stream 301
+/info/share-stream/ /info/extra/share-stream 301
+/info/contributions /info/extra/contributions 301
+/info/contributions/ /info/extra/contributions 301

@@ -3,9 +3,8 @@ import { defineConfig } from "astro/config";
 import react from "@astrojs/react";
 import { fileURLToPath } from "node:url";
 
-import starlight from "@astrojs/starlight";
-import { SITE_NAME } from "./src/consts.ts";
-import { DISCORD_URL, GITHUB_URL } from "./src/links.ts";
+import sitemap from "@astrojs/sitemap";
+import fumadocs from "@fumadocs/astro";
 
 // https://astro.build/config
 export default defineConfig({
@@ -44,75 +43,10 @@ export default defineConfig({
   },
   integrations: [
     react(),
-    starlight({
-      title: SITE_NAME,
-      favicon: "/MCRL.png",
-      customCss: ["./src/starlight.css"],
-      markdown: {
-        headingLinks: false,
-      },
-      components: {
-        SocialIcons: "./src/components/SocialIcons.astro",
-      },
-      social: [
-        {
-          icon: "github",
-          label: "GitHub",
-          href: GITHUB_URL,
-        },
-        {
-          icon: "discord",
-          label: "Discord",
-          href: DISCORD_URL,
-        },
-      ],
-      sidebar: [
-        {
-          label: "Information",
-          slug: "info",
-        },
-        {
-          label: "Registration",
-          collapsed: false,
-          items: [
-            { label: "Registration Process", slug: "registration/process" },
-          ],
-        },
-        {
-          label: "Rules",
-          collapsed: false,
-          items: [
-            { label: "Organization", slug: "rules/organization" },
-            { label: "Seed types", slug: "rules/seeds" },
-            { label: "Timeslots", slug: "rules/timeslots" },
-            { label: "Format", slug: "rules/format" },
-            { label: "Promotions and demotions", slug: "rules/relegations" },
-          ],
-        },
-        {
-          label: "Tournaments",
-          collapsed: false,
-          items: [
-            {
-              label: "League 1 Championships",
-              slug: "tournaments/league1-championship",
-            },
-            {
-              label: "League Championships (2-6)",
-              slug: "tournaments/championships",
-            },
-          ],
-        },
-        {
-          label: "Extra Information",
-          collapsed: false,
-          items: [
-            { label: "Using the League Bot", slug: "bot/players" },
-            { label: "Share your stream", slug: "info/share-stream" },
-            { label: "Contributions", slug: "info/contributions" },
-          ],
-        },
-      ],
+    fumadocs({
+      collections: { docs: { dir: "src/content/docs" } },
+      components: "./src/components/docs/mdx.tsx",
     }),
+    sitemap(),
   ],
 });

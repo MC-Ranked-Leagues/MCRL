@@ -19,9 +19,9 @@ MCRL is a recurring weekly tournament split into skill-based leagues.
 - Each league plays several matches during the week.
 - Weekly performance determines promotions, relegations, or no movement.
 
-The public rules describe [league organization](apps/web/src/content/docs/rules/organization.md),
-[points](apps/web/src/content/docs/rules/format.md), and
-[movement](apps/web/src/content/docs/rules/relegations.md). Their formulas and
+The public rules describe [league organization](apps/web/src/content/docs/rules/organization.mdx),
+[points](apps/web/src/content/docs/rules/format.mdx), and
+[movement](apps/web/src/content/docs/rules/format.mdx#promotions-and-demotions). Their formulas and
 constants may evolve separately from this spec.
 
 ## Competition expectations
