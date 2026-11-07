@@ -31,14 +31,14 @@ export function MatchRace({
       <h2 className="flex flex-wrap items-baseline gap-x-3 text-2xl font-bold">
         Match {match.matchNumber}
         {seed?.type && (
-          <span className="font-display text-base font-normal text-home-muted">
+          <span className="font-display text-base font-normal text-muted">
             {SEED_TYPE_LABELS[seed.type]}
           </span>
         )}
       </h2>
       {seed && (
         <details className="mt-1">
-          <summary className="cursor-pointer font-semibold text-home-gold">
+          <summary className="cursor-pointer font-semibold text-gold">
             Seed for this match
           </summary>
           <dl className="mt-2 grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 text-sm">
@@ -51,7 +51,7 @@ export function MatchRace({
               ] as const
             ).map(([label, value]) => (
               <div key={label} className="contents">
-                <dt className="text-home-muted">{label}</dt>
+                <dt className="text-muted">{label}</dt>
                 <dd className="break-all tabular-nums">{value}</dd>
               </div>
             ))}
@@ -67,7 +67,7 @@ export function MatchRace({
             ))}
           </div>
         ) : rankedMatch === null ? (
-          <p className="text-home-muted">
+          <p className="text-muted">
             {match.rankedMatchId
               ? "Couldn't load this match from Ranked. Reload to try again."
               : "This match has no Ranked timeline."}
@@ -80,7 +80,7 @@ export function MatchRace({
                 <>
                   <span
                     className={cn(
-                      "font-minecraft text-lg leading-none font-bold text-home-muted",
+                      "font-minecraft text-lg leading-none font-bold text-muted",
                       run.isFinished ? "text-right" : "text-center"
                     )}
                   >
@@ -100,13 +100,13 @@ export function MatchRace({
                         <span
                           className={cn(
                             "font-minecraft tabular-nums",
-                            !run.isFinished && "text-home-muted"
+                            !run.isFinished && "text-muted"
                           )}
                         >
                           {formatRunTime(run.finalTime)}
                         </span>
                         {run.statusText && (
-                          <span className="text-home-muted lowercase">
+                          <span className="text-muted lowercase">
                             {" "}
                             {run.statusText}
                           </span>

@@ -20,7 +20,7 @@ export function MatchStrip({
       {!matches ? (
         <div className="h-14" aria-busy="true" />
       ) : matches.length === 0 ? (
-        <p className="mx-auto flex h-14 max-w-page items-center px-6 text-home-muted">
+        <p className="mx-auto flex h-14 max-w-page items-center px-6 text-muted">
           No matches played.
         </p>
       ) : (
@@ -42,7 +42,7 @@ export function MatchStrip({
                 >
                   <PlayerHead player={match.winnerUuid ?? match.winnerName} />
                   <span>
-                    <span className="block font-minecraft text-sm text-home-gold">
+                    <span className="block font-minecraft text-sm text-gold">
                       Match {match.matchNumber}
                     </span>
                     <span className="block font-minecraft text-sm">

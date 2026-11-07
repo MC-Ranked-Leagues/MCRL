@@ -57,7 +57,7 @@ export function PlayerRuns({
           {standing.totalPoints} points
         </span>
         {standing.averagePercentage !== null && (
-          <span className="text-home-muted">
+          <span className="text-muted">
             {" "}
             · {formatPercentage(standing.averagePercentage)} average
           </span>
@@ -65,7 +65,7 @@ export function PlayerRuns({
       </p>
 
       {failed ? (
-        <p className="mt-3 text-home-muted">
+        <p className="mt-3 text-muted">
           Couldn't load this player. Reload to try again.
         </p>
       ) : placements === undefined ? (
@@ -75,7 +75,7 @@ export function PlayerRuns({
           ))}
         </div>
       ) : placements.length === 0 ? (
-        <p className="mt-3 text-home-muted">No matches this week.</p>
+        <p className="mt-3 text-muted">No matches this week.</p>
       ) : (
         <ol className="mt-3 border-t border-obsidian-line/60">
           {placements.map((placement) => {
@@ -92,9 +92,9 @@ export function PlayerRuns({
                   <span
                     className={cn(
                       "font-minecraft text-xl leading-none font-bold",
-                      placement.placement === 1 && "text-home-gold",
+                      placement.placement === 1 && "text-gold",
                       placement.dnf && "text-lava-hover",
-                      placement.missed && "text-base text-home-muted"
+                      placement.missed && "text-base text-muted"
                     )}
                   >
                     {placement.missed
@@ -108,18 +108,18 @@ export function PlayerRuns({
                       Match {placement.matchNumber}
                     </span>
                     {seed?.type && (
-                      <span className="block truncate text-sm text-home-muted">
+                      <span className="block truncate text-sm text-muted">
                         {SEED_TYPE_LABELS[seed.type]}
                       </span>
                     )}
                   </span>
-                  <span className="font-minecraft text-sm text-home-muted tabular-nums">
+                  <span className="font-minecraft text-sm text-muted tabular-nums">
                     {timeMs !== null && formatRunTime(timeMs)}
                   </span>
                   <span
                     className={cn(
                       "text-right font-minecraft text-lg leading-none font-bold tabular-nums",
-                      placement.pointsWon === 0 && "text-home-muted"
+                      placement.pointsWon === 0 && "text-muted"
                     )}
                   >
                     +{placement.pointsWon}

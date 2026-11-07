@@ -115,7 +115,7 @@ export function LeagueFinder() {
                 placeholder="Your name"
                 autoComplete="off"
                 spellCheck={false}
-                className="stat-slot mt-1 block h-12 w-full px-3 font-minecraft text-lg outline-none placeholder:text-home-muted/60"
+                className="stat-slot mt-1 block h-12 w-full px-3 font-minecraft text-lg outline-none placeholder:text-muted/60"
               />
             </label>
             <button
@@ -157,18 +157,18 @@ export function LeagueFinder() {
       </div>
 
       <div className="mt-4 flex flex-wrap items-baseline gap-x-6 gap-y-1 border-t border-obsidian-line pt-3">
-        <p className="mr-auto text-sm text-home-muted">
+        <p className="mr-auto text-sm text-muted">
           *An estimate from existing players. A reviewer makes the final call.
         </p>
         <a
           href="/info"
-          className="font-semibold text-home-gold underline underline-offset-4"
+          className="font-semibold text-gold underline underline-offset-4"
         >
           Read the rules
         </a>
         <a
           href="/info/rules/timeslots"
-          className="font-semibold text-home-gold underline underline-offset-4"
+          className="font-semibold text-gold underline underline-offset-4"
         >
           See competition times
         </a>
@@ -192,7 +192,7 @@ function LookupDivider({ lookup }: { lookup: Lookup }) {
     <p
       aria-live="polite"
       className={`my-3 flex items-center gap-3 text-center text-sm ${
-        isProblem ? "text-lava-hover" : "text-home-muted"
+        isProblem ? "text-lava-hover" : "text-muted"
       }`}
     >
       <span className="h-px flex-1 bg-obsidian-line" />
@@ -231,7 +231,7 @@ function StatField({
         {label}
         <span
           className={`block text-sm font-normal ${
-            showHint ? "text-lava-hover" : "text-home-muted"
+            showHint ? "text-lava-hover" : "text-muted"
           }`}
         >
           {showHint ? hint : note}
@@ -250,7 +250,7 @@ function StatField({
         inputMode="numeric"
         autoComplete="off"
         aria-invalid={showHint}
-        className="stat-slot h-12 w-32 shrink-0 px-2 text-center font-minecraft text-xl text-home-gold outline-none placeholder:text-home-muted/40 sm:w-40"
+        className="stat-slot h-12 w-32 shrink-0 px-2 text-center font-minecraft text-xl text-gold outline-none placeholder:text-muted/40 sm:w-40"
       />
     </label>
   );
@@ -315,13 +315,11 @@ function ResultPanel({
           />
         </span>
         <div className="min-w-0">
-          <p className="text-sm text-home-muted">You fit best in*</p>
+          <p className="text-sm text-muted">You fit best in*</p>
           <p
             key={league}
             className={`font-minecraft text-4xl leading-none font-bold whitespace-nowrap xl:text-5xl ${
-              hasStats
-                ? "animate-league-pop text-home-gold"
-                : "text-home-muted/50"
+              hasStats ? "animate-league-pop text-gold" : "text-muted/50"
             }`}
           >
             League {league ?? "?"}
@@ -330,7 +328,7 @@ function ResultPanel({
       </div>
 
       <LeagueStrip shares={shares} league={league} />
-      <p className="mt-2 min-h-10 text-sm text-home-muted xl:min-h-5">
+      <p className="mt-2 min-h-10 text-sm text-muted xl:min-h-5">
         {hasStats
           ? `Players like you mostly race in League ${league}.`
           : "One number is enough. All three give a better estimate."}
@@ -340,7 +338,7 @@ function ResultPanel({
       </p>
 
       <table className="my-2 w-full border-t border-obsidian-line text-left text-sm">
-        <thead className="text-home-muted">
+        <thead className="text-muted">
           <tr>
             <th className="py-1 font-normal">
               <span className="sr-only">Stat</span>
@@ -401,8 +399,8 @@ function LeagueStrip({
                 isMatch
                   ? "bg-lava font-bold text-lava-ink"
                   : isClose
-                    ? "bg-lava/25 text-home-text"
-                    : "bg-obsidian-raised text-home-muted"
+                    ? "bg-lava/25 text-foreground"
+                    : "bg-obsidian-raised text-muted"
               }`}
             >
               {tier}
@@ -410,7 +408,7 @@ function LeagueStrip({
           );
         })}
       </ol>
-      <p className="mt-1 flex justify-between text-xs text-home-muted">
+      <p className="mt-1 flex justify-between text-xs text-muted">
         <span>Fastest</span>
         <span>Slowest</span>
       </p>
@@ -447,12 +445,12 @@ function CompareRow({
       <td className="py-1 font-semibold">{label}</td>
       <td
         className={`py-1 whitespace-nowrap ${
-          verdict === "In range" ? "text-promoted" : "text-home-muted"
+          verdict === "In range" ? "text-promoted" : "text-muted"
         }`}
       >
         {verdict}
       </td>
-      <td className="py-1 text-right whitespace-nowrap text-home-muted tabular-nums">
+      <td className="py-1 text-right whitespace-nowrap text-muted tabular-nums">
         {range ? `${show(range.low)} to ${show(range.high)}` : "-"}
       </td>
     </tr>

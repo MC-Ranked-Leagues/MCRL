@@ -50,7 +50,7 @@ export function AverageTimeTrend({ weeks }: { weeks: WeeklyPerformance[] }) {
   const option = useMemo<EChartsCoreOption>(() => {
     const lava = cssColor("--color-lava", "#f05a1a");
     const line = cssColor("--color-obsidian-line", "#3a2d4c");
-    const muted = cssColor("--color-home-muted", "#b8aec4");
+    const muted = cssColor("--color-muted", "#b8aec4");
     const deep = cssColor("--color-obsidian-deep", "#120c1a");
     const font = "Minecraft, sans-serif";
 
@@ -90,10 +90,10 @@ export function AverageTimeTrend({ weeks }: { weeks: WeeklyPerformance[] }) {
           const week = averageWeeks[params.dataIndex];
           if (!week) return "";
 
-          return `<div class="mc-tooltip px-3 py-2 text-sm leading-snug text-home-text">
+          return `<div class="mc-tooltip px-3 py-2 text-sm leading-snug text-foreground">
             <div class="font-bold">Week ${week.weekNumber} · League ${week.leagueNumber}</div>
             <div class="mt-1 font-minecraft text-lg font-bold">${formatRunTime(week.averageTimeMs)}</div>
-            <div class="text-home-muted">${week.matches} matches · ${week.totalPoints} points · ${movementLabel(week.movement)}</div>
+            <div class="text-muted">${week.matches} matches · ${week.totalPoints} points · ${movementLabel(week.movement)}</div>
           </div>`;
         },
       },
@@ -167,7 +167,7 @@ export function AverageTimeTrend({ weeks }: { weeks: WeeklyPerformance[] }) {
         Average time
       </h2>
       {!hasAverageData ? (
-        <p className="mt-4 text-home-muted">
+        <p className="mt-4 text-muted">
           Weekly averages show up once this player finishes a week.
         </p>
       ) : (

@@ -40,7 +40,7 @@ export function StandingsTable({
 
   if (standings.length === 0) {
     return (
-      <p className="text-home-muted">
+      <p className="text-muted">
         No results for League {leagueTier} this week.
       </p>
     );
@@ -56,7 +56,7 @@ export function StandingsTable({
     ? "points"
     : (chosenSort ?? (isLive ? "points" : "average"));
   const rows = sortRows(standings, sort);
-  const headerCell = "px-2 py-2 font-normal whitespace-nowrap text-home-muted";
+  const headerCell = "px-2 py-2 font-normal whitespace-nowrap text-muted";
   const renderRow = (standing: WeekStanding, index: number) => (
     <StandingRow
       key={standing.playerId}
@@ -100,7 +100,7 @@ export function StandingsTable({
                   "cursor-pointer px-2.5 py-1 font-minecraft transition-colors",
                   sort === value
                     ? "bg-lava font-bold text-lava-ink"
-                    : "bg-obsidian-raised text-home-muted hover:text-home-text"
+                    : "bg-obsidian-raised text-muted hover:text-foreground"
                 )}
               >
                 {label}
@@ -160,7 +160,7 @@ export function StandingsTable({
 
       {missed.length > 0 && (
         <table className="mt-4 w-full table-fixed border-collapse text-left">
-          <caption className="px-2 pb-1 text-left text-sm font-semibold text-home-muted">
+          <caption className="px-2 pb-1 text-left text-sm font-semibold text-muted">
             Didn't play
           </caption>
           <tbody>{missed.map(renderRow)}</tbody>
@@ -201,7 +201,7 @@ function StandingRow({
       className={cn(
         "h-9 cursor-pointer border-b border-obsidian-line/60 transition-colors hover:bg-obsidian-raised",
         move && !standing.projected && MOVE_TINTS[move],
-        standing.rank === null && "text-home-muted",
+        standing.rank === null && "text-muted",
         isSelected &&
           "bg-obsidian-raised shadow-[inset_3px_0_0_var(--color-lava)]"
       )}
@@ -243,13 +243,13 @@ function StandingRow({
               {standing.rank === 1 && (
                 <CrownIcon
                   aria-label={isLive ? "Leading" : "Winner"}
-                  className="size-4 shrink-0 text-home-gold"
+                  className="size-4 shrink-0 text-gold"
                 />
               )}
             </span>
             {/* Below `lg` the percentage columns move under the name, leaving room for the details panel. */}
             {standing.averagePercentage !== null && (
-              <span className="block font-minecraft text-xs text-home-muted tabular-nums lg:hidden">
+              <span className="block font-minecraft text-xs text-muted tabular-nums lg:hidden">
                 {standing.currentPercentage !== null &&
                   `Week ${formatPercentage(standing.currentPercentage)} · `}
                 Avg {formatPercentage(standing.averagePercentage)}
@@ -271,7 +271,7 @@ function StandingRow({
           <td
             className={cn(
               COLUMN_WIDTHS.week,
-              "px-2 text-right font-minecraft text-home-muted tabular-nums max-lg:hidden"
+              "px-2 text-right font-minecraft text-muted tabular-nums max-lg:hidden"
             )}
           >
             {formatPercentage(standing.currentPercentage)}

@@ -216,7 +216,7 @@ function WeekContent() {
       />
 
       {failed ? (
-        <p className="mx-auto max-w-page px-6 py-8 text-home-muted">
+        <p className="mx-auto max-w-page px-6 py-8 text-muted">
           Couldn't load this week. Reload to try again.
         </p>
       ) : (
@@ -255,7 +255,7 @@ function WeekContent() {
           if (!open) setSelectedPlayerId(null);
         }}
       >
-        <DrawerContent className="obsidian-page">
+        <DrawerContent>
           <DrawerTitle className="sr-only">
             {player ? player.name : `Match ${match?.matchNumber}`}
           </DrawerTitle>
