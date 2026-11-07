@@ -1,8 +1,9 @@
 ---
+import "@fontsource-variable/archivo/wdth.css";
 import { TEAM } from "@/lib/credits-content";
 import Layout from "@/layouts/main.astro";
 import { SITE_NAME } from "@/consts";
-import FooterCTA from "@/layouts/Footer.astro";
+import Footer from "@/layouts/Footer.astro";
 
 const TOTAL_PEOPLE = new Set(
   TEAM.roles.flatMap((role) => [...role.leaders, ...role.members])
@@ -13,18 +14,19 @@ const TOTAL_PEOPLE = new Set(
   title={`Credits | ${SITE_NAME}`}
   description="The people who organize, produce, and build MCSR Ranked Leagues."
 >
-  <div class="min-h-screen bg-background px-6 pt-32 pb-16 sm:pt-36">
-    <div class="mx-auto max-w-5xl">
+  <div class="obsidian-page">
+    <div class="mx-auto min-h-screen max-w-page px-6 pt-24 pb-14 md:pb-20">
       <header
-        class="animate-slide-up flex flex-col gap-5 border-b border-border pb-9 opacity-0 sm:flex-row sm:items-end sm:justify-between"
+        class="animate-slide-up flex flex-col gap-5 border-b border-obsidian-line pb-9 opacity-0 sm:flex-row sm:items-end sm:justify-between"
       >
-        <h1
-          class="max-w-3xl text-4xl leading-none tracking-tight text-foreground sm:text-6xl"
-        >
-          {TEAM.title}
+        <h1 class="max-w-3xl text-4xl leading-none font-bold md:text-6xl">
+          The team behind <span class="text-lava">{SITE_NAME}</span>
         </h1>
-        <p class="shrink-0 font-minecraft text-sm text-muted-foreground">
-          {TOTAL_PEOPLE} people &middot; {TEAM.roles.length} teams
+        <p class="shrink-0 text-home-muted">
+          <span class="font-minecraft text-home-text">{TOTAL_PEOPLE}</span>
+          people &middot;
+          <span class="font-minecraft text-home-text">{TEAM.roles.length}</span>
+          teams
         </p>
       </header>
 
@@ -33,7 +35,7 @@ const TOTAL_PEOPLE = new Set(
           TEAM.roles.map((role, index) => (
             <section
               class:list={[
-                "animate-slide-up grid gap-5 border-b border-border py-8 opacity-0 sm:grid-cols-[11rem_1fr] sm:gap-6 lg:px-7",
+                "animate-slide-up grid gap-5 border-b border-obsidian-line py-8 opacity-0 sm:grid-cols-[13rem_1fr] sm:gap-6 lg:px-7",
                 index % 2 === 0 ? "lg:pl-0" : "lg:border-l lg:pr-0",
               ]}
               style={`animation-delay: ${100 + index * 70}ms`}
@@ -41,19 +43,19 @@ const TOTAL_PEOPLE = new Set(
             >
               <div class="flex items-baseline gap-3">
                 <span
-                  class="font-minecraft text-xs text-muted-foreground/50"
+                  class="font-minecraft text-xl leading-none text-lava"
                   aria-hidden="true"
                 >
-                  {String(index + 1).padStart(2, "0")}
+                  {index + 1}
                 </span>
                 <div>
                   <h2
                     id={`role-${index}`}
-                    class="text-base leading-tight text-foreground"
+                    class="text-xl leading-tight font-bold"
                   >
                     {role.name}
                   </h2>
-                  <p class="mt-1 text-xs text-muted-foreground">
+                  <p class="mt-1 text-sm text-home-muted">
                     {role.leaders.length + role.members.length} people
                   </p>
                 </div>
@@ -61,16 +63,16 @@ const TOTAL_PEOPLE = new Set(
 
               <div class="space-y-4">
                 <div>
-                  <p class="mb-1.5 text-[0.65rem] tracking-[0.18em] text-primary uppercase">
+                  <p class="mb-1 text-sm text-home-muted">
                     {role.leaders.length === 1 ? "Lead" : "Leads"}
                   </p>
-                  <p class="font-minecraft text-sm leading-relaxed text-foreground">
+                  <p class="font-minecraft text-lg font-bold wrap-anywhere">
                     {role.leaders.join(" / ")}
                   </p>
                 </div>
-                <ul class="flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-muted-foreground">
+                <ul class="flex flex-wrap gap-x-4 gap-y-1.5 font-minecraft text-home-muted">
                   {role.members.map((member) => (
-                    <li>{member}</li>
+                    <li class="wrap-anywhere">{member}</li>
                   ))}
                 </ul>
               </div>
@@ -78,10 +80,11 @@ const TOTAL_PEOPLE = new Set(
           ))
         }
       </div>
-      <p class="mx-auto mt-8 w-fit text-sm text-muted-foreground">
+
+      <p class="mt-10 text-center text-home-muted">
         Plus hundreds of other people
       </p>
     </div>
+    <Footer />
   </div>
-  <FooterCTA />
 </Layout>

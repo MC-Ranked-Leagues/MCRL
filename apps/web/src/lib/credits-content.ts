@@ -5,7 +5,6 @@ export type CreditRole = {
 };
 
 export const TEAM = {
-  title: "The team behind Ranked Leagues",
   roles: [
     {
       name: "Seed checking team",
