@@ -77,6 +77,8 @@
     "typescript-eslint": "^8.72.1"
   },
   "overrides": {
-    "@astrojs/mdx": "8.1.2"
+    "@astrojs/mdx": "8.1.2",
+    "@emnapi/core": "1.11.3",
+    "@emnapi/runtime": "1.11.3"
   }
 }
