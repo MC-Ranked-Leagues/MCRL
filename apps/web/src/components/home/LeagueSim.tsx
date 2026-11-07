@@ -166,7 +166,7 @@ export function LeagueSim() {
 
   return (
     <div aria-hidden>
-      <p className="mb-3 font-minecraft text-sm text-home-gold">{status}</p>
+      <p className="mb-3 font-minecraft text-sm text-gold">{status}</p>
       {/* Rows sit on top of the cards rather than inside them, so a row can
           slide straight from one league to the next. */}
       <div
@@ -176,7 +176,7 @@ export function LeagueSim() {
         {LEAGUES.map((league, i) => (
           <div
             key={league}
-            className="absolute inset-x-0 border-3 border-obsidian-line bg-obsidian-deep/90 px-3 pt-1 font-minecraft text-sm text-home-muted"
+            className="absolute inset-x-0 border-3 border-obsidian-line bg-obsidian-deep/90 px-3 pt-1 font-minecraft text-sm text-muted"
             style={{ top: i * (CARD + GAP), height: CARD + 4 }}
           >
             League {league}
@@ -216,7 +216,7 @@ export function LeagueSim() {
                 zIndex: isFollowed ? 20 : player.move ? 10 : 1,
               }}
             >
-              <span className="w-4 font-minecraft text-xs text-home-muted">
+              <span className="w-4 font-minecraft text-xs text-muted">
                 {rank + 1}
               </span>
               <img
@@ -234,7 +234,7 @@ export function LeagueSim() {
               {player.gain > 0 && (
                 <span
                   key={sim.matchesPlayed}
-                  className="animate-gain font-minecraft text-sm text-home-gold"
+                  className="animate-gain font-minecraft text-sm text-gold"
                 >
                   +{player.gain}
                 </span>
@@ -244,17 +244,17 @@ export function LeagueSim() {
               </span>
               {isFollowed && (
                 <div
-                  className={`mc-tooltip pointer-events-none absolute right-0 grid w-72 grid-cols-[1fr_repeat(4,1.5rem)_2.5rem] items-center gap-y-1 p-3 text-right font-minecraft text-xs text-home-text ${
+                  className={`mc-tooltip pointer-events-none absolute right-0 grid w-72 grid-cols-[1fr_repeat(4,1.5rem)_2.5rem] items-center gap-y-1 p-3 text-right font-minecraft text-xs text-foreground ${
                     cardAbove ? "bottom-full mb-2" : "top-full mt-2"
                   }`}
                 >
-                  <span className="text-left text-home-muted">Match</span>
+                  <span className="text-left text-muted">Match</span>
                   {MATCH_POINTS.map((_, match) => (
-                    <span key={match} className="text-home-muted">
+                    <span key={match} className="text-muted">
                       {match + 1}
                     </span>
                   ))}
-                  <span className="text-home-muted">Total</span>
+                  <span className="text-muted">Total</span>
                   {[
                     { label: "This week", matches: player.matches },
                     { label: "Last week", matches: player.lastWeek },
@@ -264,7 +264,7 @@ export function LeagueSim() {
                       {MATCH_POINTS.map((_, match) => (
                         <span key={match}>{matches[match] ?? "-"}</span>
                       ))}
-                      <span className="text-home-gold">
+                      <span className="text-gold">
                         {matches.reduce((total, points) => total + points, 0)}
                       </span>
                     </Fragment>

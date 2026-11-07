@@ -26,13 +26,13 @@ const SOCIAL_LINKS = [
 ];
 ---
 
-<footer class="border-t border-obsidian-line bg-obsidian-deep text-home-text">
+<footer class="border-t border-obsidian-line bg-obsidian-deep text-foreground">
   <div class="mx-auto max-w-page px-6 py-8">
     <div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
       <div class="flex flex-wrap items-center gap-x-6 gap-y-4">
         <a
           href="/"
-          class="flex items-center gap-2.5 transition-colors hover:text-home-gold"
+          class="flex items-center gap-2.5 transition-colors hover:text-gold"
         >
           <img
             src="/MCRL.webp"
@@ -44,14 +44,14 @@ const SOCIAL_LINKS = [
           />
           <span class="font-minecraft text-lg font-bold">{SITE_NAME}</span>
         </a>
-        <div class="flex items-center gap-4 text-home-muted">
+        <div class="flex items-center gap-4 text-muted">
           {SOCIAL_LINKS.map((link) => (
             <a
               href={link.href}
               target="_blank"
               rel="noopener noreferrer"
               aria-label={link.name}
-              class="transition-colors hover:text-home-gold"
+              class="transition-colors hover:text-gold"
             >
               <svg
                 viewBox="0 0 24 24"
@@ -73,17 +73,17 @@ const SOCIAL_LINKS = [
           href={DISCORD_URL}
           target="_blank"
           rel="noopener noreferrer"
-          class="transition-colors hover:text-home-gold"
+          class="transition-colors hover:text-gold"
         >
           Contact
         </a>
-        <a href="/credits" class="transition-colors hover:text-home-gold">
+        <a href="/credits" class="transition-colors hover:text-gold">
           Credits
         </a>
       </nav>
     </div>
 
-    <p class="mt-6 border-t border-obsidian-line pt-6 text-sm text-home-muted">
+    <p class="mt-6 border-t border-obsidian-line pt-6 text-sm text-muted">
       © 2026 MC Ranked Leagues. This is not an official Minecraft product. Not
       approved by or associated with Mojang or Microsoft.
     </p>

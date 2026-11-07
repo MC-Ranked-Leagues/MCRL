@@ -44,7 +44,7 @@ function WinnersBand() {
               >
                 <PlayerHead player={winnerUuid ?? winnerName} />
                 <span className="min-w-0">
-                  <span className="block font-minecraft text-sm text-home-gold">
+                  <span className="block font-minecraft text-sm text-gold">
                     {leagueName}
                   </span>
                   <span className="block truncate font-minecraft">
@@ -56,7 +56,7 @@ function WinnersBand() {
               <div className="flex h-full items-center gap-3 px-3 py-2">
                 <Skeleton className="size-8 shrink-0" />
                 <div className="min-w-0">
-                  <span className="block font-minecraft text-sm text-home-gold">
+                  <span className="block font-minecraft text-sm text-gold">
                     {leagueName}
                   </span>
                   <Skeleton className="my-1.5 h-4 w-20 max-w-full" />

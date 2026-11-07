@@ -72,7 +72,7 @@ export function PhaseBar({
           <span className="font-semibold">
             {phaseNames[hovered.block.phase]}
           </span>
-          <span className="font-minecraft text-home-muted tabular-nums">
+          <span className="font-minecraft text-muted tabular-nums">
             {formatRunTime(hovered.block.duration)} at{" "}
             {formatRunTime(hovered.block.startTime)}
           </span>

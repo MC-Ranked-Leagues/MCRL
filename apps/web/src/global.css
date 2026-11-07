@@ -30,31 +30,6 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/inter";
 
-@custom-variant dark (&:is(.dark *));
-
-/* The site is dark only. Keep the dark class*/
-:root {
-  --background: oklch(0.148 0.004 228.8);
-  --foreground: oklch(0.987 0.002 197.1);
-  --card: oklch(0.218 0.008 223.9);
-  --card-foreground: oklch(0.987 0.002 197.1);
-  --popover: oklch(0.218 0.008 223.9);
-  --popover-foreground: oklch(0.987 0.002 197.1);
-  --primary: oklch(0.432 0.095 166.913);
-  --primary-foreground: oklch(0.979 0.021 166.113);
-  --secondary: oklch(0.274 0.006 286.033);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.275 0.011 216.9);
-  --muted-foreground: oklch(0.723 0.014 214.4);
-  --accent: oklch(0.275 0.011 216.9);
-  --accent-foreground: oklch(0.987 0.002 197.1);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.56 0.021 213.5);
-  --radius: 0.45rem;
-}
-
 @theme inline {
   --font-sans: "Inter Variable", sans-serif;
   --font-minecraft: "Minecraft", sans-serif;
@@ -68,49 +43,29 @@
   --color-lava: #f05a1a;
   --color-lava-hover: #ff7a3d;
   --color-lava-ink: #1d0b03;
-  --color-home-gold: #ffc24a;
-  --color-home-text: #f7f1ea;
-  --color-home-muted: #b8aec4;
+  --color-gold: #ffc24a;
+  --color-foreground: #f7f1ea;
+  --color-muted: #b8aec4;
   --color-promoted: #7ee07e;
   --color-promoted-tint: #182c20;
   --color-demoted: #ff7a3d;
   --color-demoted-tint: #321518;
 
   --container-page: 76rem;
-
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --color-foreground: var(--foreground);
-  --color-background: var(--background);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-obsidian-line outline-muted/50;
   }
   body {
-    @apply bg-background font-sans text-foreground;
+    @apply bg-obsidian font-display text-[17px] leading-relaxed text-foreground;
+  }
+
+  :is(a, button, summary):focus-visible {
+    outline: 2px solid
+      color-mix(in srgb, var(--color-foreground) 50%, transparent);
+    outline-offset: 2px;
   }
   h1,
   h2,
@@ -137,7 +92,7 @@
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-home-muted);
+    background: var(--color-muted);
     border: 4px solid transparent;
     background-clip: content-box;
   }
@@ -204,18 +159,6 @@
     }
   }
 
-  /* Base text and focus ring for pages on the new design. Moves to `body`
-     once every page uses it. */
-  .obsidian-page {
-    @apply bg-obsidian font-display text-[17px] leading-relaxed text-home-text;
-  }
-
-  .obsidian-page :is(a, button, summary):focus-visible {
-    outline: 2px solid
-      color-mix(in srgb, var(--color-home-text) 50%, transparent);
-    outline-offset: 2px;
-  }
-
   /* An inventory slot: sunk into the page, lit from the bottom right. */
   .stat-slot {
     background: var(--color-obsidian-deep);
@@ -227,7 +170,7 @@
   .stat-slot:focus {
     box-shadow:
       inset 3px 3px 0 #05030a,
-      inset -3px -3px 0 var(--color-home-gold);
+      inset -3px -3px 0 var(--color-gold);
   }
 
   .stat-slot[aria-invalid="true"] {

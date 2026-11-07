@@ -1,4 +1,5 @@
 ---
+import "@fontsource-variable/archivo/wdth.css";
 import "@/global.css";
 import Navbar from "@/layouts/Navbar.astro";
 import { SITE_TITLE, SITE_DESCRIPTION } from "@/consts";
@@ -25,10 +26,10 @@ const canonicalUrl =
     <meta name="description" content={description || SITE_DESCRIPTION} />
     {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
   </head>
-  <body class="dark">
+  <body>
     <a
       href="#main"
-      class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-60 focus:bg-background focus:px-4 focus:py-2"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-60 focus:bg-obsidian-deep focus:px-4 focus:py-2"
     >
       Skip to content
     </a>

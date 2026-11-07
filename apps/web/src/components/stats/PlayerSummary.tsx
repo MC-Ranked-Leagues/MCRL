@@ -96,9 +96,7 @@ export function PlayerSummary({
               )}
               {fastestRank !== null && (
                 <span
-                  className={cn(
-                    fastestRank === 1 ? "text-home-gold" : "text-home-muted"
-                  )}
+                  className={cn(fastestRank === 1 ? "text-gold" : "text-muted")}
                 >
                   #{fastestRank} fastest
                 </span>
@@ -123,7 +121,7 @@ export function PlayerSummary({
             {stats?.summary.totalMatches}
           </Stat>
           {stats && savedAverage === null ? (
-            <li className="col-span-2 min-h-7.5 text-home-muted">
+            <li className="col-span-2 min-h-7.5 text-muted">
               No percentage carried into next week
             </li>
           ) : (
@@ -161,7 +159,7 @@ function Stat({
           {children}
         </span>
       )}
-      <span className="whitespace-nowrap text-home-muted">{label}</span>
+      <span className="whitespace-nowrap text-muted">{label}</span>
     </li>
   );
 }

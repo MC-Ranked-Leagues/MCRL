@@ -90,14 +90,14 @@ export function WeekHero({
                   open={isPickerOpen}
                   onOpenChange={setIsPickerOpen}
                 >
-                  <Popover.Trigger className="flex cursor-pointer items-center gap-2 transition-colors hover:text-home-gold">
+                  <Popover.Trigger className="flex cursor-pointer items-center gap-2 transition-colors hover:text-gold">
                     Week {weekNumber}
                     <ChevronDown aria-hidden className="size-6 md:size-8" />
                   </Popover.Trigger>
                   <Popover.Portal>
                     <Popover.Positioner sideOffset={12} align="start">
-                      <Popover.Popup className="obsidian-page z-50 border-3 border-obsidian-line bg-obsidian-deep p-3">
-                        <Popover.Title className="mb-2 text-sm text-home-muted">
+                      <Popover.Popup className="z-50 border-3 border-obsidian-line bg-obsidian-deep p-3">
+                        <Popover.Title className="mb-2 text-sm text-muted">
                           Jump to a week
                         </Popover.Title>
                         {/* Oldest first, so the newest week ends the grid. */}
@@ -119,7 +119,7 @@ export function WeekHero({
                                   "block w-10 py-1.5 text-center text-base transition-colors",
                                   week.weekNumber === weekNumber
                                     ? "bg-lava font-bold text-lava-ink"
-                                    : "bg-obsidian-raised text-home-muted hover:text-home-text"
+                                    : "bg-obsidian-raised text-muted hover:text-foreground"
                                 )}
                               >
                                 {week.weekNumber}
@@ -142,9 +142,7 @@ export function WeekHero({
             )}
             {weekArrow(newer, "Next week", <ChevronRight className="size-5" />)}
             {isLive && (
-              <span className="font-minecraft text-sm text-home-gold">
-                Live
-              </span>
+              <span className="font-minecraft text-sm text-gold">Live</span>
             )}
           </div>
 
@@ -166,7 +164,7 @@ export function WeekHero({
                         "block py-1.5 text-center transition-colors",
                         league.leagueTier === leagueTier
                           ? "bg-lava font-bold text-lava-ink"
-                          : "bg-obsidian-raised text-home-muted hover:text-home-text"
+                          : "bg-obsidian-raised text-muted hover:text-foreground"
                       )}
                     >
                       {league.leagueTier}
@@ -177,7 +175,7 @@ export function WeekHero({
             ) : (
               <Skeleton className="h-9" />
             )}
-            <p className="mt-1 flex justify-between text-xs text-home-muted">
+            <p className="mt-1 flex justify-between text-xs text-muted">
               <span>Fastest</span>
               <span>Slowest</span>
             </p>
@@ -221,12 +219,12 @@ export function WeekHero({
                       <span
                         className={cn(
                           "text-3xl leading-none font-bold",
-                          place === 1 ? "text-home-gold" : "text-home-text"
+                          place === 1 ? "text-gold" : "text-foreground"
                         )}
                       >
                         {place}
                       </span>
-                      <span className="mt-1 text-sm text-home-muted">
+                      <span className="mt-1 text-sm text-muted">
                         {standing.totalPoints} pts
                       </span>
                     </span>

@@ -1,5 +1,4 @@
 ---
-import "@fontsource-variable/archivo/wdth.css";
 import Layout from "@/layouts/main.astro";
 import { SITE_NAME } from "@/consts";
 import Footer from "@/layouts/Footer.astro";
@@ -11,10 +10,8 @@ import { WeekPage } from "@/components/week/WeekPage";
   title={`Leaderboards | ${SITE_NAME}`}
   description={`View the current and past leaderboards for ${SITE_NAME}.`}
 >
-  <div class="obsidian-page">
-    <div class="min-h-screen">
-      <WeekPage client:load />
-    </div>
-    <Footer />
+  <div class="min-h-screen">
+    <WeekPage client:load />
   </div>
+  <Footer />
 </Layout>

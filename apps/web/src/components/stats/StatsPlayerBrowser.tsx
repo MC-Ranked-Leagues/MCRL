@@ -42,7 +42,7 @@ function PlayerRows({
 }) {
   if (players.length === 0) {
     return (
-      <p className="py-6 text-home-muted">
+      <p className="py-6 text-muted">
         {isSearch ? "No players with that name." : "No finished runs yet."}
       </p>
     );
@@ -76,7 +76,7 @@ function PlayerRows({
                 <span
                   className={cn(
                     "text-right font-semibold tabular-nums",
-                    player.rank === 1 && "text-home-gold"
+                    player.rank === 1 && "text-gold"
                   )}
                 >
                   {player.rank}
@@ -88,12 +88,12 @@ function PlayerRows({
                   <span className="block truncate font-minecraft">
                     {player.name}
                   </span>
-                  <span className="block text-sm text-home-muted">
+                  <span className="block text-sm text-muted">
                     League {player.leagueTier}
                   </span>
                 </span>
               </span>
-              <span className="font-minecraft text-home-muted tabular-nums">
+              <span className="font-minecraft text-muted tabular-nums">
                 {formatRunTime(player.fastestTimeMs)}
               </span>
             </button>
@@ -137,12 +137,12 @@ function PlayerList({
         placeholder="Player name"
         autoComplete="off"
         spellCheck={false}
-        className="stat-slot mt-1 block h-12 w-full px-3 font-minecraft text-lg outline-none placeholder:text-home-muted/60"
+        className="stat-slot mt-1 block h-12 w-full px-3 font-minecraft text-lg outline-none placeholder:text-muted/60"
       />
       <h2 className="mt-5 text-2xl font-bold">
         {isSearch ? "Search results" : "Fastest players"}
       </h2>
-      <p className="mb-2 text-sm text-home-muted">
+      <p className="mb-2 text-sm text-muted">
         {isSearch
           ? "Players from every league."
           : "The 20 best times across every league."}
@@ -217,11 +217,11 @@ export function StatsPlayerBrowser({
       <div className="lg:hidden">
         <Drawer autoFocus open={isSheetOpen} onOpenChange={setIsSheetOpen}>
           <DrawerTrigger className="flex h-12 w-full cursor-pointer items-center gap-3 border-3 border-obsidian-line bg-obsidian-deep px-3 text-left font-semibold transition-colors hover:bg-obsidian-raised">
-            <Search aria-hidden className="size-5 text-home-muted" />
+            <Search aria-hidden className="size-5 text-muted" />
             <span className="flex-1">Find a player</span>
-            <ChevronDown aria-hidden className="size-5 text-home-muted" />
+            <ChevronDown aria-hidden className="size-5 text-muted" />
           </DrawerTrigger>
-          <DrawerContent className="obsidian-page">
+          <DrawerContent>
             <DrawerTitle className="sr-only">Find a player</DrawerTitle>
             <div className="flex min-h-0 flex-col px-4 pt-4 pb-6">
               <PlayerList

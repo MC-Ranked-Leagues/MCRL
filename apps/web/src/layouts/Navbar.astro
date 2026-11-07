@@ -19,7 +19,7 @@ const isCurrent = (href: string) =>
 
 <nav
   id="navbar"
-  class="animate-slide-down fixed top-0 right-0 left-0 z-50 border-b border-transparent text-home-text opacity-0 transition-colors duration-300"
+  class="animate-slide-down fixed top-0 right-0 left-0 z-50 border-b border-transparent text-foreground opacity-0 transition-colors duration-300"
 >
   <div class="mx-auto flex max-w-page items-center justify-between gap-6 px-6 py-3">
     <a href="/" class="flex items-center gap-2.5">
@@ -40,7 +40,7 @@ const isCurrent = (href: string) =>
           href={link.href}
           aria-current={isCurrent(link.href) ? "page" : undefined}
           class={cn(
-            "font-minecraft text-sm transition-colors hover:text-home-gold",
+            "font-minecraft text-sm transition-colors hover:text-gold",
             isCurrent(link.href) && "font-bold"
           )}
         >
@@ -51,7 +51,7 @@ const isCurrent = (href: string) =>
         href={DISCORD_URL}
         target="_blank"
         rel="noopener noreferrer"
-        class="border-3 border-home-text/40 px-4 py-1.5 font-minecraft text-sm font-bold transition-colors hover:border-home-gold hover:text-home-gold"
+        class="border-3 border-foreground/40 px-4 py-1.5 font-minecraft text-sm font-bold transition-colors hover:border-gold hover:text-gold"
       >
         Discord
       </a>
@@ -61,7 +61,7 @@ const isCurrent = (href: string) =>
     <div class="md:hidden">
       <button
         id="menu-toggle"
-        class="p-2 transition-colors hover:text-home-gold"
+        class="p-2 transition-colors hover:text-gold"
         aria-label="Toggle Menu"
         aria-expanded="false"
       >
@@ -75,7 +75,7 @@ const isCurrent = (href: string) =>
 {/* Mobile Menu Overlay */}
 <div
   id="mobile-menu"
-  class="fixed inset-0 z-40 hidden flex-col bg-obsidian px-6 pt-24 text-home-text md:hidden"
+  class="fixed inset-0 z-40 hidden flex-col bg-obsidian px-6 pt-24 text-foreground md:hidden"
 >
   <div class="flex flex-col gap-6">
     {NAV_LINKS.map((link) => (
@@ -83,7 +83,7 @@ const isCurrent = (href: string) =>
         href={link.href}
         aria-current={isCurrent(link.href) ? "page" : undefined}
         class={cn(
-          "font-minecraft text-3xl transition-colors hover:text-home-gold",
+          "font-minecraft text-3xl transition-colors hover:text-gold",
           isCurrent(link.href) && "font-bold"
         )}
       >

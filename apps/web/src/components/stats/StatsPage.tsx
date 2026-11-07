@@ -57,7 +57,7 @@ class StatsErrorBoundary extends Component<
           <h1 className="text-4xl leading-none font-bold md:text-6xl">
             Stats didn't load
           </h1>
-          <p className="mt-5 mb-7 text-home-muted">
+          <p className="mt-5 mb-7 text-muted">
             Something went wrong on our side. Reload to try again.
           </p>
           <button
@@ -153,7 +153,7 @@ function StatsContent() {
               <h1 className="text-4xl leading-none font-bold md:text-6xl">
                 Player stats
               </h1>
-              <p className="mt-4 text-home-muted">
+              <p className="mt-4 text-muted">
                 Search for a player to see their stats.
               </p>
             </div>
@@ -165,7 +165,7 @@ function StatsContent() {
             />
           )}
           {stats === null ? (
-            <p className="text-home-muted">
+            <p className="text-muted">
               This player's record is gone. Pick another player.
             </p>
           ) : stats === undefined ? (

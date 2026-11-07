@@ -22,7 +22,7 @@ const MOVE_TINTS = {
 const MOVE_TEXT = {
   promoted: "text-promoted",
   demoted: "text-demoted",
-  none: "text-home-muted",
+  none: "text-muted",
 } as const;
 
 export function WeeklyPerformance({ weeks }: { weeks: WeekData[] }) {
@@ -39,21 +39,21 @@ export function WeeklyPerformance({ weeks }: { weeks: WeekData[] }) {
           Weeks
         </h2>
         {weeks.length > 0 && (
-          <span className="text-home-muted">
+          <span className="text-muted">
             {weeks.length} {weeks.length === 1 ? "week" : "weeks"} played
           </span>
         )}
       </div>
 
       {weeks.length === 0 ? (
-        <p className="mt-4 text-home-muted">No weeks played yet.</p>
+        <p className="mt-4 text-muted">No weeks played yet.</p>
       ) : (
         <>
           <div
             aria-hidden
             className={cn(
               columns,
-              "mt-2 border-b-3 border-obsidian-line px-2 py-2 text-sm whitespace-nowrap text-home-muted"
+              "mt-2 border-b-3 border-obsidian-line px-2 py-2 text-sm whitespace-nowrap text-muted"
             )}
           >
             <span>Week</span>
@@ -105,14 +105,14 @@ function WeekRow({
       >
         <span className="min-w-0 leading-tight">
           <span className="block font-semibold">Week {week.weekNumber}</span>
-          <span className="block text-sm text-home-muted">
+          <span className="block text-sm text-muted">
             League {week.leagueNumber} ·{" "}
             <span className={MOVE_TEXT[week.movement]}>
               {movementLabel(week.movement)}
             </span>
           </span>
           {hasPercentages(week) && (
-            <span className="block font-minecraft text-xs text-home-muted tabular-nums sm:hidden">
+            <span className="block font-minecraft text-xs text-muted tabular-nums sm:hidden">
               Week {formatPercentage(week.currentPercentage)} · Avg{" "}
               {formatPercentage(week.averagePercentage)}
             </span>
@@ -124,7 +124,7 @@ function WeekRow({
         </span>
         {showsPercentages && (
           <>
-            <span className="text-right font-minecraft text-home-muted tabular-nums max-sm:hidden">
+            <span className="text-right font-minecraft text-muted tabular-nums max-sm:hidden">
               <span className="sr-only">Week percentage </span>
               {formatPercentage(week.currentPercentage)}
             </span>
@@ -140,13 +140,13 @@ function WeekRow({
         </span>
         <ChevronDown
           aria-hidden
-          className="size-5 text-home-muted transition-transform group-open:rotate-180 motion-reduce:transition-none"
+          className="size-5 text-muted transition-transform group-open:rotate-180 motion-reduce:transition-none"
         />
       </summary>
 
       <div className="bg-obsidian-deep px-2 pt-1 pb-3">
         {week.matchDetails.length === 0 ? (
-          <p className="py-2 text-home-muted">No matches recorded.</p>
+          <p className="py-2 text-muted">No matches recorded.</p>
         ) : (
           <ol>
             {week.matchDetails.map((run) => (
@@ -156,7 +156,7 @@ function WeekRow({
         )}
         <a
           href={getWeekHref(week.weekNumber, week.leagueNumber)}
-          className="mt-3 inline-block font-semibold text-home-gold underline underline-offset-4"
+          className="mt-3 inline-block font-semibold text-gold underline underline-offset-4"
         >
           Week {week.weekNumber} standings
         </a>
@@ -173,9 +173,9 @@ function RunRow({ run }: { run: Run }) {
       <span
         className={cn(
           "font-minecraft text-xl leading-none font-bold",
-          run.placement === 1 && "text-home-gold",
+          run.placement === 1 && "text-gold",
           run.dnf && "text-lava-hover",
-          run.missed && "text-base text-home-muted"
+          run.missed && "text-base text-muted"
         )}
       >
         {run.missed
@@ -185,14 +185,14 @@ function RunRow({ run }: { run: Run }) {
             : ordinal(run.placement)}
       </span>
       <span className="font-semibold">Match {run.matchNumber}</span>
-      <span className="font-minecraft text-sm text-home-muted tabular-nums">
+      <span className="font-minecraft text-sm text-muted tabular-nums">
         {/* Shows a dash for DNFs and missed matches, like other empty values. */}
         {formatRunTime(timeMs)}
       </span>
       <span
         className={cn(
           "text-right font-minecraft text-lg leading-none font-bold tabular-nums",
-          run.pointsWon === 0 && "text-home-muted"
+          run.pointsWon === 0 && "text-muted"
         )}
       >
         +{run.pointsWon}
