@@ -160,17 +160,18 @@ export const signupCommand = {
         return;
       }
       try {
+        const restoreLeague = player.leagueNumber === 7 ? 6 : player.leagueNumber;
         await syncLeagueRole(
           interaction.guild,
           config,
           interaction.user.id,
-          player.leagueNumber,
+          restoreLeague,
           "Restoring saved league"
         );
         await interaction.editReply(
           (transferred
-            ? `Moved your League ${player.leagueNumber} membership to this Discord account.`
-            : `Restored your League ${player.leagueNumber} role.`) +
+            ? `Moved your League ${restoreLeague} membership to this Discord account.`
+            : `Restored your League ${restoreLeague} role.`) +
             oldRoleNotice
         );
       } catch (error) {
