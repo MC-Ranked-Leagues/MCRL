@@ -19,51 +19,51 @@ export interface GuildConfiguration {
 
 export const guildConfiguration: Readonly<Record<string, GuildConfiguration>> =
   {
-    "1282908945274638347": {
+    "1559925008116097196": {
       dev: false,
       developerId: "843901903213428816",
       signup: {
-        channelId: "1477876959462690869",
+        channelId: "1566236429443661965",
         reviewerId: "1108291604248277062",
       },
-      logChannelId: "1483969111720595620",
-      commandRoleId: "1478250767281553408",
-      currentWeekRoleId: "1323786883188260864",
+      logChannelId: "1559931280723017899",
+      commandRoleId: "1559925312794665010",
+      currentWeekRoleId: "1569780942124359690",
       leagues: {
         1: {
-          infoChannelId: "1483548240807727200",
-          chatChannelId: "1477931318565146784",
-          leagueRoleId: "1477663316531744828",
+          infoChannelId: "1559929620403331122",
+          chatChannelId: "1559929641136038018",
+          leagueRoleId: "1559925745684451328",
           maxTimeLimitMs: 13 * 60 * 1000,
         },
         2: {
-          infoChannelId: "1483548929684410421",
-          chatChannelId: "1477931603866161256",
-          leagueRoleId: "1477663343031488582",
+          infoChannelId: "1559929751903408198",
+          chatChannelId: "1559929765983690822",
+          leagueRoleId: "1559925786239045763",
           maxTimeLimitMs: 15 * 60 * 1000,
         },
         3: {
-          infoChannelId: "1483549774291403015",
-          chatChannelId: "1477931653102833747",
-          leagueRoleId: "1477663367735808113",
+          infoChannelId: "1559929836422701196",
+          chatChannelId: "1559929852734472293",
+          leagueRoleId: "1559925818413555863",
           maxTimeLimitMs: 17 * 60 * 1000,
         },
         4: {
-          infoChannelId: "1483550605925421067",
-          chatChannelId: "1477931691304816703",
-          leagueRoleId: "1477663392335663277",
+          infoChannelId: "1559929939698909316",
+          chatChannelId: "1559929954953728010",
+          leagueRoleId: "1559925842606297198",
           maxTimeLimitMs: 20 * 60 * 1000,
         },
         5: {
-          infoChannelId: "1483551190422782214",
-          chatChannelId: "1477931729363796081",
-          leagueRoleId: "1477663419871002625",
+          infoChannelId: "1559930057810645053",
+          chatChannelId: "1559930073518313493",
+          leagueRoleId: "1559925867998609518",
           maxTimeLimitMs: 25 * 60 * 1000,
         },
         6: {
-          infoChannelId: "1483551761699442790",
-          chatChannelId: "1477931763203440731",
-          leagueRoleId: "1477929059185856672",
+          infoChannelId: "1559930160805847082",
+          chatChannelId: "1559925895177830440",
+          leagueRoleId: "1559925895177830440",
           maxTimeLimitMs: 30 * 60 * 1000,
         },
         7: {
