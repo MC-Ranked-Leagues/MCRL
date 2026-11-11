@@ -29,29 +29,30 @@ const FAQ = [
   },
 ];
 
-const heading = "font-bold leading-none text-3xl md:text-4xl";
+const heading = "text-pixel-md md:text-pixel-lg";
 const primaryButton =
-  "inline-block bg-lava px-6 py-3.5 font-minecraft text-lg font-bold text-lava-ink transition-colors hover:bg-lava-hover";
+  "inline-block bg-primary px-6 py-3 font-minecraft text-lg font-bold text-primary-foreground transition-colors hover:bg-primary-hover";
 const outlineButton =
-  "inline-block border-3 border-current px-5 py-3 font-bold transition-colors hover:bg-obsidian-raised";
+  "inline-block border-2 border-border px-5 py-2.5 text-lg font-semibold transition-colors hover:border-foreground";
+const textLink =
+  "font-semibold underline decoration-muted underline-offset-4 transition-colors hover:decoration-foreground";
 ---
 
 <Layout description="Weekly Minecraft speedrun races against players at your level, for beginners and top runners alike.">
-  <section class="relative flex min-h-160 flex-col overflow-hidden lg:min-h-[calc(100svh-4rem)]">
+  <section class="relative overflow-hidden">
     <img
       src="/images/4.webp"
       alt=""
       fetchpriority="high"
       class="absolute inset-0 size-full object-cover"
     />
-    <div class="absolute inset-0 bg-linear-to-t from-obsidian/70 via-obsidian/60 to-obsidian/30 lg:bg-linear-to-r lg:from-obsidian/90 lg:via-obsidian/60 lg:to-obsidian/40"></div>
-    <div class="absolute inset-0 bg-radial from-transparent from-25% to-obsidian"></div>
-    <div class="relative z-10 mx-auto grid w-full max-w-page flex-1 grid-cols-[minmax(0,1fr)] items-center gap-10 px-6 pt-24 pb-10 lg:grid-cols-[1fr_minmax(0,34rem)]">
+    {/* Darkens the picture behind the text and the sim, so both stay
+        readable. */}
+    <div class="absolute inset-0 bg-linear-to-t from-background/80 via-background/70 to-background/40 lg:bg-linear-to-r lg:from-background/95 lg:via-background/70 lg:to-background/50"></div>
+    <div class="relative mx-auto grid max-w-page grid-cols-[minmax(0,1fr)] items-center gap-10 px-6 pt-28 pb-12 lg:min-h-160 lg:grid-cols-[1fr_minmax(0,34rem)]">
       <div>
-        <h1 class="max-w-[14ch] text-4xl leading-none font-bold md:text-6xl">
-          Ranked Leagues
-        </h1>
-        <p class="mt-5 mb-7 max-w-[42ch] text-lg md:text-xl">
+        <h1 class="text-pixel-lg md:text-pixel-xl">Ranked Leagues</h1>
+        <p class="mt-4 mb-7 max-w-[38ch] text-lg md:text-xl">
           Play against people at your level and climb seven leagues. Beginners
           welcome.
         </p>
@@ -76,69 +77,27 @@ const outlineButton =
       </div>
       <LeagueSim client:load />
     </div>
-    <div class="relative">
-      <LatestWinners client:load />
-    </div>
   </section>
 
-  <section class="py-6">
+  <LatestWinners client:load />
+
+  <section class="py-14 md:py-20">
     <div class="mx-auto max-w-page px-6">
       <LeagueFinder client:load />
     </div>
   </section>
 
-  <section class="grid items-center bg-obsidian-raised lg:grid-cols-[1.3fr_1fr]">
-    <img
-      src="/images/1.webp"
-      alt="Players gathered in a nether fortress"
-      loading="lazy"
-      class="size-full min-h-64 object-cover lg:min-h-88"
-    />
-    <div class="px-6 py-10 lg:p-12">
-      <h2 class={heading}>Watch it Live</h2>
-      <p class="mt-5 mb-6 max-w-[38ch] text-muted">
-        Follow ranked leagues live on Twitch every weekend.
-      </p>
-      <div class="flex flex-wrap gap-3">
-        <a
-          href={TWITCH_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          class={cn(outlineButton, "border-purple-400")}
-        >
-          Twitch
-        </a>
-        <a
-          href={YOUTUBE_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          class={cn(outlineButton, "border-red-400")}
-        >
-          YouTube
-        </a>
-      </div>
-      <a
-        href="/info/extra/share-stream"
-        class="mt-5 inline-block font-semibold text-gold underline underline-offset-4"
-      >
-        Playing yourself? Share your stream
-      </a>
-    </div>
-  </section>
-
-  <section class="bg-obsidian-deep py-14 md:py-20">
-    <div class="mx-auto flex max-w-page flex-col gap-12 px-6 md:flex-row lg:gap-16">
-      <div class="flex-3">
-        <h2 class={heading}>
-          Ready to <span class="italic">SPEEDRUN</span>?
-        </h2>
-        <ol class="mt-7 mb-7">
+  <section class="border-y border-border bg-background-deep py-14 md:py-20">
+    <div class="mx-auto grid max-w-page grid-cols-[minmax(0,1fr)] gap-x-16 gap-y-12 px-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,30rem)]">
+      <div>
+        <h2 class={heading}>How to join</h2>
+        <ol class="mt-6 mb-7 border-b border-border">
           {JOIN_STEPS.map((step, i) => (
-            <li class="grid grid-cols-[2.5rem_1fr] items-baseline border-t border-obsidian-line py-3">
-              <span class="font-minecraft text-2xl leading-none text-lava">
+            <li class="grid grid-cols-[2rem_1fr] items-baseline border-t border-border py-3">
+              <span class="font-minecraft text-pixel-sm text-muted">
                 {i + 1}
               </span>
-              <span class="font-semibold">{step}</span>
+              <span class="text-lg font-semibold">{step}</span>
             </li>
           ))}
         </ol>
@@ -151,25 +110,63 @@ const outlineButton =
           >
             Join on Discord
           </a>
-          <a
-            href="/info/registration"
-            class="font-semibold text-gold underline underline-offset-4"
-          >
+          <a href="/info/registration" class={textLink}>
             Full sign-up guide
           </a>
         </div>
       </div>
-      <div class="flex-2">
-        <h2 class="text-2xl font-bold">Questions</h2>
-        <div class="mt-5">
+      <div>
+        <h2 class="text-pixel-sm">Questions</h2>
+        <div class="mt-4 border-b border-border">
           {FAQ.map((item) => (
-            <div class="border-t border-obsidian-line py-4">
-              <h3 class="font-display font-bold">{item.question}</h3>
-              <p class="mt-2 text-muted">{item.answer}</p>
+            <div class="border-t border-border py-4">
+              <h3 class="font-display text-lg leading-snug font-bold text-shadow-none">
+                {item.question}
+              </h3>
+              <p class="mt-1.5 max-w-[60ch] text-muted">{item.answer}</p>
             </div>
           ))}
         </div>
       </div>
+    </div>
+  </section>
+
+  <section class="grid items-center lg:grid-cols-2">
+    <img
+      src="/images/1.webp"
+      alt="Players gathered in a nether fortress"
+      loading="lazy"
+      class="size-full min-h-64 object-cover lg:min-h-96"
+    />
+    <div class="px-6 py-12 lg:px-16">
+      <h2 class={heading}>Watch it live</h2>
+      <p class="mt-4 mb-6 max-w-[38ch] text-lg">
+        Follow ranked leagues live on Twitch every weekend.
+      </p>
+      <div class="flex flex-wrap gap-3">
+        <a
+          href={TWITCH_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          class={outlineButton}
+        >
+          Twitch
+        </a>
+        <a
+          href={YOUTUBE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          class={outlineButton}
+        >
+          YouTube
+        </a>
+      </div>
+      <a
+        href="/info/extra/share-stream"
+        class={cn(textLink, "mt-6 inline-block")}
+      >
+        Playing yourself? Share your stream
+      </a>
     </div>
   </section>
 

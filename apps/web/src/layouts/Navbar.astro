@@ -19,9 +19,9 @@ const isCurrent = (href: string) =>
 
 <nav
   id="navbar"
-  class="animate-slide-down fixed top-0 right-0 left-0 z-50 border-b border-transparent text-foreground opacity-0 transition-colors duration-300"
+  class="fixed top-0 right-0 left-0 z-50 border-b border-border bg-background text-foreground"
 >
-  <div class="mx-auto flex max-w-page items-center justify-between gap-6 px-6 py-3">
+  <div class="mx-auto flex h-14 max-w-page items-center justify-between gap-6 px-6">
     <a href="/" class="flex items-center gap-2.5">
       <img
         src="/MCRL.webp"
@@ -30,18 +30,20 @@ const isCurrent = (href: string) =>
         height="32"
         class="size-8 [image-rendering:pixelated]"
       />
-      <span class="font-minecraft text-lg font-bold">{SITE_NAME}</span>
+      <span class="font-minecraft text-pixel-sm pixel-shadow">{SITE_NAME}</span>
     </a>
 
-    {/* Desktop Links */}
-    <div class="hidden items-center gap-7 md:flex">
+    <div class="hidden h-full items-center gap-7 md:flex">
       {NAV_LINKS.map((link) => (
         <a
           href={link.href}
           aria-current={isCurrent(link.href) ? "page" : undefined}
           class={cn(
-            "font-minecraft text-sm transition-colors hover:text-gold",
-            isCurrent(link.href) && "font-bold"
+            // The current page's bar sits on the navbar's bottom edge.
+            "flex h-full items-center border-y-2 border-transparent font-minecraft text-sm transition-colors hover:text-foreground",
+            isCurrent(link.href)
+              ? "border-b-primary pixel-shadow"
+              : "text-muted"
           )}
         >
           {link.name}
@@ -51,75 +53,55 @@ const isCurrent = (href: string) =>
         href={DISCORD_URL}
         target="_blank"
         rel="noopener noreferrer"
-        class="border-3 border-foreground/40 px-4 py-1.5 font-minecraft text-sm font-bold transition-colors hover:border-gold hover:text-gold"
+        class="border-2 border-border px-3.5 py-1 font-minecraft text-sm font-bold transition-colors hover:border-foreground"
       >
         Discord
       </a>
     </div>
 
-    {/* Mobile Toggle */}
-    <div class="md:hidden">
-      <button
-        id="menu-toggle"
-        class="p-2 transition-colors hover:text-gold"
-        aria-label="Toggle Menu"
-        aria-expanded="false"
-      >
-        <Menu className="h-6 w-6" id="icon-menu" />
-        <X className="hidden h-6 w-6" id="icon-close" />
-      </button>
-    </div>
+    <button
+      id="menu-toggle"
+      class="-mr-2 p-2 md:hidden"
+      aria-label="Toggle Menu"
+      aria-expanded="false"
+    >
+      <Menu className="size-6" id="icon-menu" />
+      <X className="hidden size-6" id="icon-close" />
+    </button>
   </div>
 </nav>
 
-{/* Mobile Menu Overlay */}
 <div
   id="mobile-menu"
-  class="fixed inset-0 z-40 hidden flex-col bg-obsidian px-6 pt-24 text-foreground md:hidden"
+  class="fixed inset-0 z-40 hidden flex-col bg-background px-6 pt-20 text-foreground md:hidden"
 >
-  <div class="flex flex-col gap-6">
-    {NAV_LINKS.map((link) => (
-      <a
-        href={link.href}
-        aria-current={isCurrent(link.href) ? "page" : undefined}
-        class={cn(
-          "font-minecraft text-3xl transition-colors hover:text-gold",
-          isCurrent(link.href) && "font-bold"
-        )}
-      >
-        {link.name}
-      </a>
-    ))}
-    <div class="mt-8 border-t border-obsidian-line pt-8">
-      <a
-        href={DISCORD_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        class="block bg-lava px-6 py-4 text-center font-minecraft text-xl font-bold text-lava-ink transition-colors hover:bg-lava-hover"
-      >
-        Join on Discord
-      </a>
-    </div>
-  </div>
+  {NAV_LINKS.map((link) => (
+    <a
+      href={link.href}
+      aria-current={isCurrent(link.href) ? "page" : undefined}
+      class={cn(
+        "border-b border-border py-4 font-minecraft text-pixel-md",
+        !isCurrent(link.href) && "text-muted"
+      )}
+    >
+      {link.name}
+    </a>
+  ))}
+  <a
+    href={DISCORD_URL}
+    target="_blank"
+    rel="noopener noreferrer"
+    class="mt-8 block bg-primary px-6 py-3.5 text-center font-minecraft text-lg font-bold text-primary-foreground"
+  >
+    Join on Discord
+  </a>
 </div>
 
 <script>
-  const navbar = document.getElementById("navbar");
   const menuToggle = document.getElementById("menu-toggle");
   const mobileMenu = document.getElementById("mobile-menu");
   const iconMenu = document.getElementById("icon-menu");
   const iconClose = document.getElementById("icon-close");
-
-  function setNavbarSolid(isSolid: boolean) {
-    navbar?.classList.toggle("bg-obsidian", isSolid);
-    navbar?.classList.toggle("border-obsidian-line", isSolid);
-    navbar?.classList.toggle("border-transparent", !isSolid);
-  }
-
-  // Handle scroll
-  window.addEventListener("scroll", () => {
-    setNavbarSolid(window.scrollY > 20);
-  });
 
   function setMenuOpen(isOpen: boolean) {
     mobileMenu?.classList.toggle("hidden", !isOpen);
@@ -127,11 +109,9 @@ const isCurrent = (href: string) =>
     iconMenu?.classList.toggle("hidden", isOpen);
     iconClose?.classList.toggle("hidden", !isOpen);
     menuToggle?.setAttribute("aria-expanded", String(isOpen));
-    document.body.style.overflow = isOpen ? "hidden" : "unset";
-    setNavbarSolid(isOpen || window.scrollY > 20);
+    document.body.style.overflow = isOpen ? "hidden" : "";
   }
 
-  // Handle menu toggle
   menuToggle?.addEventListener("click", () => {
     setMenuOpen(mobileMenu?.classList.contains("hidden") ?? false);
   });

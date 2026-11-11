@@ -8,7 +8,7 @@ import {
   type PublishedSeed,
 } from "@/lib/seedHistoryResponse";
 import { cn } from "@/lib/utils";
-import { PhaseBar } from "./PhaseBar";
+import { PhaseBar, PhaseLegend } from "./PhaseBar";
 import type { WeekMatch } from "./weekData";
 
 export function MatchRace({
@@ -28,17 +28,17 @@ export function MatchRace({
 
   return (
     <>
-      <h2 className="flex flex-wrap items-baseline gap-x-3 text-2xl font-bold">
+      <h2 className="flex flex-wrap items-baseline gap-x-3 text-pixel-sm">
         Match {match.matchNumber}
         {seed?.type && (
-          <span className="font-display text-base font-normal text-muted">
+          <span className="font-display text-base font-normal text-muted text-shadow-none">
             {SEED_TYPE_LABELS[seed.type]}
           </span>
         )}
       </h2>
       {seed && (
         <details className="mt-1">
-          <summary className="cursor-pointer font-semibold text-gold">
+          <summary className="cursor-pointer text-sm font-semibold text-muted hover:text-foreground">
             Seed for this match
           </summary>
           <dl className="mt-2 grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 text-sm">
@@ -59,7 +59,9 @@ export function MatchRace({
         </details>
       )}
 
-      <div className="mt-3">
+      {rankedMatch && <PhaseLegend />}
+
+      <div className="mt-2">
         {rankedMatch === undefined ? (
           <div aria-busy="true" className="flex flex-col gap-1">
             {Array.from({ length: 8 }, (_, index) => (
@@ -80,7 +82,7 @@ export function MatchRace({
                 <>
                   <span
                     className={cn(
-                      "font-minecraft text-lg leading-none font-bold text-muted",
+                      "font-minecraft text-lg leading-none text-muted pixel-shadow",
                       run.isFinished ? "text-right" : "text-center"
                     )}
                   >
@@ -99,7 +101,7 @@ export function MatchRace({
                             as a finish. */}
                         <span
                           className={cn(
-                            "font-minecraft tabular-nums",
+                            "font-minecraft",
                             !run.isFinished && "text-muted"
                           )}
                         >
@@ -127,7 +129,7 @@ export function MatchRace({
                       onClick={() => onPlayer(playerId)}
                       className={cn(
                         rowClass,
-                        "cursor-pointer transition-colors hover:bg-obsidian-raised"
+                        "cursor-pointer transition-colors hover:bg-background-raised"
                       )}
                     >
                       {content}

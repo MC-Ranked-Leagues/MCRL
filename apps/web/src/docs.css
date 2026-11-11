@@ -5,34 +5,52 @@
 @import "@fumadocs/base-ui/css/generated/spacious.css";
 @import "@fumadocs/base-ui/css/preset.css";
 
-/* The active page uses lava as Fumadocs' primary color. Light mode needs a
-   darker shade to stay readable on white. */
+@import "@fontsource-variable/archivo/wdth.css";
+@import "./minecraft-font.css";
+
+/* Lava is the primary color, in a darker shade for light mode so it stays
+   readable on white. The font and square corners match the rest of the site. */
 @theme {
   --color-fd-primary: #c2410c;
   --color-fd-primary-foreground: #ffffff;
+  --font-sans: "Archivo Variable", sans-serif;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-2xl: 0;
 }
 
-/* Dark mode uses the site's obsidian palette from global.css: the page panel
-   is `obsidian`, the area around it `obsidian-deep`, and hover, menus and
-   code are `obsidian-raised`. */
+/* Dark mode copies the palette from global.css: `background` for the page panel,
+   `background-deep` around it, and `background-raised` for hover, menus and code. */
 .dark,
 .dark #nd-sidebar {
-  --color-fd-background: #120c1a;
-  --color-fd-foreground: #f7f1ea;
-  --color-fd-card: #1a1325;
-  --color-fd-card-foreground: #f7f1ea;
-  --color-fd-popover: #241a33;
-  --color-fd-popover-foreground: #f7f1ea;
-  --color-fd-muted: #241a33;
-  --color-fd-muted-foreground: #b8aec4;
-  --color-fd-secondary: #241a33;
-  --color-fd-secondary-foreground: #f7f1ea;
-  --color-fd-accent: #241a33;
-  --color-fd-accent-foreground: #f7f1ea;
-  --color-fd-border: #3a2d4c;
-  --color-fd-ring: #b8aec4;
-  --color-fd-primary: #f05a1a;
+  --color-fd-background: #0c0b0e;
+  --color-fd-foreground: #f3efe8;
+  --color-fd-card: #141317;
+  --color-fd-card-foreground: #f3efe8;
+  --color-fd-popover: #201f25;
+  --color-fd-popover-foreground: #f3efe8;
+  --color-fd-muted: #201f25;
+  --color-fd-muted-foreground: #a9a4ae;
+  --color-fd-secondary: #201f25;
+  --color-fd-secondary-foreground: #f3efe8;
+  --color-fd-accent: #201f25;
+  --color-fd-accent-foreground: #f3efe8;
+  --color-fd-border: #34323b;
+  --color-fd-ring: #a9a4ae;
+  --color-fd-primary: #ff7a3d;
   --color-fd-primary-foreground: #1d0b03;
+}
+
+/* Only the page title uses the Minecraft font, styled like the site's
+   headings. Section headings stay in Archivo so long pages read easily. */
+#nd-page h1 {
+  font-family: "Minecraft", "Archivo Variable", sans-serif;
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 1;
+  text-shadow: 0.1em 0.1em 0 color-mix(in srgb, currentColor 25%, black);
 }
 
 /* Fumadocs keeps blank code lines with `.line:empty`, but ours still hold an

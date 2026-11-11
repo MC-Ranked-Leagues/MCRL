@@ -42,8 +42,8 @@ const FIELDS = [
 ] as const;
 
 function parseElo(text: string) {
-  const elo = /^\d{1,4}$/.test(text.trim()) ? Number(text) : null;
-  return elo !== null && elo > 0 ? elo : null;
+  const elo = /^\d{1,4}$/.test(text.trim()) ? Number(text) : 0;
+  return elo > 0 ? elo : null;
 }
 
 function parseValues(values: Values): Stats {
@@ -96,13 +96,11 @@ export function LeagueFinder() {
 
   return (
     <div>
-      <h2 className="mb-4 text-3xl leading-none font-bold md:text-4xl">
-        Find your league
-      </h2>
+      <h2 className="mb-6 text-pixel-md md:text-pixel-lg">Find your league</h2>
 
       {/* Both panels stretch to the taller one, so their edges line up. */}
       <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1fr)_4rem_minmax(0,1fr)] lg:gap-6">
-        <div className="flex flex-col border-3 border-obsidian-line bg-obsidian-deep/50 p-5">
+        <div className="flex flex-col border border-border p-5">
           <form
             onSubmit={(event) => void submit(event)}
             className="flex items-end gap-2"
@@ -115,12 +113,12 @@ export function LeagueFinder() {
                 placeholder="Your name"
                 autoComplete="off"
                 spellCheck={false}
-                className="stat-slot mt-1 block h-12 w-full px-3 font-minecraft text-lg outline-none placeholder:text-muted/60"
+                className="field mt-1 block h-12 w-full px-3 font-minecraft text-lg outline-none placeholder:text-muted/60"
               />
             </label>
             <button
               type="submit"
-              className="h-12 shrink-0 cursor-pointer bg-lava px-5 font-minecraft text-lg font-bold text-lava-ink transition-colors hover:bg-lava-hover"
+              className="h-12 shrink-0 cursor-pointer bg-primary px-5 font-minecraft text-lg font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
             >
               {lookup.status === "loading" ? "Looking..." : "Look up"}
             </button>
@@ -132,11 +130,7 @@ export function LeagueFinder() {
             {FIELDS.map((field) => (
               <StatField
                 key={field.key}
-                label={field.label}
-                note={field.note}
-                placeholder={field.placeholder}
-                hint={field.hint}
-                isTime={field.key !== "elo"}
+                field={field}
                 value={values[field.key]}
                 isValid={stats[field.key] !== null}
                 onChange={(value) =>
@@ -156,19 +150,19 @@ export function LeagueFinder() {
         />
       </div>
 
-      <div className="mt-4 flex flex-wrap items-baseline gap-x-6 gap-y-1 border-t border-obsidian-line pt-3">
+      <div className="mt-4 flex flex-wrap items-baseline gap-x-6 gap-y-1 border-t border-border pt-3">
         <p className="mr-auto text-sm text-muted">
           *An estimate from existing players. A reviewer makes the final call.
         </p>
         <a
           href="/info"
-          className="font-semibold text-gold underline underline-offset-4"
+          className="font-semibold underline decoration-muted underline-offset-4 transition-colors hover:decoration-foreground"
         >
           Read the rules
         </a>
         <a
           href="/info/rules/timeslots"
-          className="font-semibold text-gold underline underline-offset-4"
+          className="font-semibold underline decoration-muted underline-offset-4 transition-colors hover:decoration-foreground"
         >
           See competition times
         </a>
@@ -192,46 +186,39 @@ function LookupDivider({ lookup }: { lookup: Lookup }) {
     <p
       aria-live="polite"
       className={`my-3 flex items-center gap-3 text-center text-sm ${
-        isProblem ? "text-lava-hover" : "text-muted"
+        isProblem ? "text-primary-hover" : "text-muted"
       }`}
     >
-      <span className="h-px flex-1 bg-obsidian-line" />
+      <span className="h-px flex-1 bg-border" />
       {message}
-      <span className="h-px flex-1 bg-obsidian-line" />
+      <span className="h-px flex-1 bg-border" />
     </p>
   );
 }
 
 function StatField({
-  label,
-  note,
-  placeholder,
-  hint,
-  isTime,
+  field: { key, label, note, placeholder, hint },
   value,
   isValid,
   onChange,
 }: {
-  label: string;
-  note: string;
-  placeholder: string;
-  hint: string;
-  isTime: boolean;
+  field: (typeof FIELDS)[number];
   value: string;
   isValid: boolean;
   onChange: (value: string) => void;
 }) {
+  const isTime = key !== "elo";
   // Waits until they leave the field, so half-typed numbers don't show an error.
   const [hasLeft, setHasLeft] = useState(false);
   const showHint = hasLeft && value.trim() !== "" && !isValid;
 
   return (
-    <label className="flex flex-1 items-center gap-4 border-t border-obsidian-line py-2 font-semibold first:border-t-0">
+    <label className="flex flex-1 items-center gap-4 border-t border-border py-2 font-semibold first:border-t-0">
       <span className="min-w-0 flex-1">
         {label}
         <span
           className={`block text-sm font-normal ${
-            showHint ? "text-lava-hover" : "text-muted"
+            showHint ? "text-primary-hover" : "text-muted"
           }`}
         >
           {showHint ? hint : note}
@@ -250,7 +237,7 @@ function StatField({
         inputMode="numeric"
         autoComplete="off"
         aria-invalid={showHint}
-        className="stat-slot h-12 w-32 shrink-0 px-2 text-center font-minecraft text-xl text-gold outline-none placeholder:text-muted/40 sm:w-40"
+        className="field h-12 w-32 shrink-0 px-2 text-center font-minecraft text-xl outline-none placeholder:text-muted/50 sm:w-40"
       />
     </label>
   );
@@ -275,7 +262,7 @@ function ProgressArrow({ progress }: { progress: number }) {
             width={1.02}
             height={height}
             className={`transition-[fill] duration-100 ${
-              column / columns < progress ? "fill-lava" : "fill-obsidian-line"
+              column / columns < progress ? "fill-primary" : "fill-border"
             }`}
             style={{ transitionDelay: `${column * 12}ms` }}
           />
@@ -303,9 +290,12 @@ function ResultPanel({
   // Every part keeps its place before any numbers are in, so the page holds
   // still when the result arrives.
   return (
-    <section aria-live="polite" className="mc-tooltip flex flex-col p-5">
+    <section
+      aria-live="polite"
+      className="flex flex-col border border-border bg-background-deep p-5"
+    >
       <div className="flex items-center gap-5">
-        <span className="stat-slot flex size-20 shrink-0 items-center justify-center">
+        <span className="field flex size-20 shrink-0 items-center justify-center">
           <img
             src={playerUuid ? headUrl(playerUuid) : STEVE_HEAD}
             alt=""
@@ -318,8 +308,8 @@ function ResultPanel({
           <p className="text-sm text-muted">You fit best in*</p>
           <p
             key={league}
-            className={`font-minecraft text-4xl leading-none font-bold whitespace-nowrap xl:text-5xl ${
-              hasStats ? "animate-league-pop text-gold" : "text-muted/50"
+            className={`font-minecraft text-pixel-lg whitespace-nowrap pixel-shadow ${
+              hasStats ? "animate-league-pop" : "text-muted/50"
             }`}
           >
             League {league ?? "?"}
@@ -337,7 +327,7 @@ function ResultPanel({
           : ""}
       </p>
 
-      <table className="my-2 w-full border-t border-obsidian-line text-left text-sm">
+      <table className="my-2 w-full border-t border-border text-left text-sm">
         <thead className="text-muted">
           <tr>
             <th className="py-1 font-normal">
@@ -368,7 +358,7 @@ function ResultPanel({
         href={DISCORD_URL}
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-auto block bg-lava px-6 py-2.5 text-center font-minecraft text-lg font-bold text-lava-ink transition-colors hover:bg-lava-hover"
+        className="mt-auto block bg-primary px-6 py-2.5 text-center font-minecraft text-lg font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
       >
         Join on Discord
       </a>
@@ -397,10 +387,10 @@ function LeagueStrip({
               aria-current={isMatch ? "true" : undefined}
               className={`py-1 text-center transition-colors duration-200 ${
                 isMatch
-                  ? "bg-lava font-bold text-lava-ink"
+                  ? "bg-primary font-bold text-primary-foreground"
                   : isClose
-                    ? "bg-lava/25 text-foreground"
-                    : "bg-obsidian-raised text-muted"
+                    ? "bg-primary/25 text-foreground"
+                    : "bg-background-raised text-muted"
               }`}
             >
               {tier}
@@ -441,7 +431,7 @@ function CompareRow({
   }
 
   return (
-    <tr className="border-t border-obsidian-line/50">
+    <tr className="border-t border-border/50">
       <td className="py-1 font-semibold">{label}</td>
       <td
         className={`py-1 whitespace-nowrap ${

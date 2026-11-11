@@ -113,7 +113,7 @@ export function buildRuns<Player extends { uuid: string }>(match: {
       duration: phaseEndTime - currentStartTime,
     });
 
-    if (finishStartTime !== null && finishStartTime < finalTime) {
+    if (finishStartTime !== null) {
       blocks.push({
         phase: "complete",
         startTime: finishStartTime,

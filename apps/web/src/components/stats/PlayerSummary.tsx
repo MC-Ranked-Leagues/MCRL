@@ -45,7 +45,7 @@ function useRankedElo(
   return { status: "loading" };
 }
 
-// the placeholders keep the same lines so nothing moves.
+// The placeholders keep the same lines, so nothing moves when data arrives.
 export function PlayerSummary({
   player,
   fastestRank,
@@ -74,11 +74,11 @@ export function PlayerSummary({
       )}
       <div className="min-w-0">
         {player ? (
-          <h1 className="text-xl leading-tight font-bold wrap-anywhere sm:text-4xl">
+          <h1 className="text-pixel-sm wrap-anywhere sm:text-pixel-lg">
             {player.name}
           </h1>
         ) : (
-          <div className="flex h-6.25 items-center sm:h-11.25">
+          <div className="flex h-5 items-center sm:h-10">
             <h1 className="sr-only">Player stats</h1>
             <Skeleton className="h-5 w-48 sm:h-8 sm:w-72" />
           </div>
@@ -96,7 +96,7 @@ export function PlayerSummary({
               )}
               {fastestRank !== null && (
                 <span
-                  className={cn(fastestRank === 1 ? "text-gold" : "text-muted")}
+                  className={fastestRank === 1 ? "text-gold" : "text-muted"}
                 >
                   #{fastestRank} fastest
                 </span>
@@ -155,9 +155,7 @@ function Stat({
       {isLoading ? (
         <Skeleton className="h-5 w-16 self-center" />
       ) : (
-        <span className="font-minecraft text-lg font-bold tabular-nums">
-          {children}
-        </span>
+        <span className="font-minecraft text-lg pixel-shadow">{children}</span>
       )}
       <span className="whitespace-nowrap text-muted">{label}</span>
     </li>

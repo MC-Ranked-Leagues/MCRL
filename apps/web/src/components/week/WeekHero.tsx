@@ -8,13 +8,20 @@ import { getWeekHref, isPlainClick } from "@/lib/weekRoutes";
 import type { League, Week, WeekStanding } from "./weekData";
 
 const PODIUM = [
-  { place: 2, step: "h-24", head: "size-16" },
-  { place: 1, step: "h-32", head: "size-20" },
-  { place: 3, step: "h-20", head: "size-16" },
+  { place: 2, step: "h-20", head: "size-14" },
+  { place: 1, step: "h-28", head: "size-16" },
+  { place: 3, step: "h-16", head: "size-14" },
 ];
 
 const ARROW =
-  "flex size-10 shrink-0 items-center justify-center border-3 border-obsidian-line transition-colors";
+  "flex size-10 shrink-0 items-center justify-center border-2 border-border transition-colors";
+// Shared by the week picker and the league picker.
+const PICKER_ITEM =
+  "block border-2 py-1 text-center font-minecraft transition-colors";
+const PICKER_ITEM_CURRENT =
+  "border-primary bg-primary font-bold text-primary-foreground";
+const PICKER_ITEM_OTHER =
+  "border-border text-muted hover:border-muted hover:text-foreground";
 
 export function WeekHero({
   weeks,
@@ -48,7 +55,7 @@ export function WeekHero({
   function weekArrow(week: Week | undefined, label: string, icon: ReactNode) {
     if (!week || leagueTier === null) {
       return (
-        <span aria-hidden="true" className={cn(ARROW, "opacity-30")}>
+        <span aria-hidden="true" className={cn(ARROW, "text-muted opacity-40")}>
           {icon}
         </span>
       );
@@ -58,7 +65,7 @@ export function WeekHero({
         href={getWeekHref(week.weekNumber, leagueTier)}
         onNavigate={() => onNavigate(week.weekNumber, leagueTier)}
         aria-label={label}
-        className={cn(ARROW, "hover:bg-obsidian-raised")}
+        className={cn(ARROW, "hover:border-muted")}
       >
         {icon}
       </NavLink>
@@ -66,42 +73,36 @@ export function WeekHero({
   }
 
   return (
-    <section className="relative overflow-hidden">
-      <img
-        src="/images/4.webp"
-        alt=""
-        fetchPriority="high"
-        className="absolute inset-0 size-full object-cover"
-      />
-      <div className="absolute inset-0 bg-linear-to-r from-obsidian/95 via-obsidian/70 to-obsidian/50" />
-      <div className="absolute inset-0 bg-linear-to-t from-obsidian-deep to-transparent to-40%" />
-
-      <div className="relative mx-auto grid max-w-page items-end gap-8 px-6 pt-24 lg:grid-cols-[minmax(0,1fr)_minmax(0,32rem)]">
-        <div className="pb-8">
+    <section>
+      <div className="mx-auto grid max-w-page items-end gap-8 px-6 pt-22 lg:grid-cols-[minmax(0,1fr)_minmax(0,30rem)]">
+        <div className="pb-7">
           <div className="flex items-center gap-3">
             {weekArrow(
               older,
               "Previous week",
               <ChevronLeft className="size-5" />
             )}
-            <h1 className="text-4xl leading-none font-bold whitespace-nowrap md:text-6xl">
+            <h1 className="text-pixel-lg whitespace-nowrap text-shadow-none md:text-pixel-xl">
               {weeks && weekNumber !== null && leagueTier !== null ? (
                 <Popover.Root
                   open={isPickerOpen}
                   onOpenChange={setIsPickerOpen}
                 >
-                  <Popover.Trigger className="flex cursor-pointer items-center gap-2 transition-colors hover:text-gold">
+                  <Popover.Trigger className="group flex cursor-pointer items-center gap-2">
                     Week {weekNumber}
-                    <ChevronDown aria-hidden className="size-6 md:size-8" />
+                    <ChevronDown
+                      aria-hidden
+                      className="size-5 text-muted transition-colors group-hover:text-foreground md:size-7"
+                    />
                   </Popover.Trigger>
                   <Popover.Portal>
                     <Popover.Positioner sideOffset={12} align="start">
-                      <Popover.Popup className="z-50 border-3 border-obsidian-line bg-obsidian-deep p-3">
-                        <Popover.Title className="mb-2 text-sm text-muted">
+                      <Popover.Popup className="z-50 border-2 border-border bg-background-deep p-3 font-display">
+                        <Popover.Title className="mb-2 font-display text-sm text-muted text-shadow-none">
                           Jump to a week
                         </Popover.Title>
                         {/* Oldest first, so the newest week ends the grid. */}
-                        <ul className="grid grid-cols-6 gap-1 font-minecraft">
+                        <ul className="grid grid-cols-6 gap-1 text-base">
                           {weeks.toReversed().map((week) => (
                             <li key={week.weekNumber}>
                               <NavLink
@@ -116,10 +117,11 @@ export function WeekHero({
                                     : undefined
                                 }
                                 className={cn(
-                                  "block w-10 py-1.5 text-center text-base transition-colors",
+                                  PICKER_ITEM,
+                                  "w-10",
                                   week.weekNumber === weekNumber
-                                    ? "bg-lava font-bold text-lava-ink"
-                                    : "bg-obsidian-raised text-muted hover:text-foreground"
+                                    ? PICKER_ITEM_CURRENT
+                                    : PICKER_ITEM_OTHER
                                 )}
                               >
                                 {week.weekNumber}
@@ -138,17 +140,21 @@ export function WeekHero({
             {/* Every week shares one prerendered page, so the number only shows
                 once the week list confirms it. */}
             {weekNumber === null && (
-              <Skeleton aria-hidden className="h-9 w-12 md:h-14 md:w-20" />
+              <Skeleton aria-hidden className="h-7 w-12 md:h-10 md:w-18" />
             )}
             {weekArrow(newer, "Next week", <ChevronRight className="size-5" />)}
             {isLive && (
-              <span className="font-minecraft text-sm text-gold">Live</span>
+              <span className="ml-1 flex items-center gap-2 font-minecraft text-sm text-primary-hover uppercase pixel-shadow">
+                <span aria-hidden className="size-2 bg-primary" />
+                Live
+              </span>
             )}
           </div>
 
           <nav aria-label="Leagues" className="mt-6 max-w-96">
+            <p className="mb-1.5 text-sm font-semibold">League</p>
             {leagues && weekNumber !== null ? (
-              <ul className="grid auto-cols-fr grid-flow-col gap-1 font-minecraft">
+              <ul className="grid auto-cols-fr grid-flow-col gap-1">
                 {leagues.map((league) => (
                   <li key={league.leagueTier}>
                     <NavLink
@@ -161,10 +167,10 @@ export function WeekHero({
                         league.leagueTier === leagueTier ? "page" : undefined
                       }
                       className={cn(
-                        "block py-1.5 text-center transition-colors",
+                        PICKER_ITEM,
                         league.leagueTier === leagueTier
-                          ? "bg-lava font-bold text-lava-ink"
-                          : "bg-obsidian-raised text-muted hover:text-foreground"
+                          ? PICKER_ITEM_CURRENT
+                          : PICKER_ITEM_OTHER
                       )}
                     >
                       {league.leagueTier}
@@ -175,16 +181,12 @@ export function WeekHero({
             ) : (
               <Skeleton className="h-9" />
             )}
-            <p className="mt-1 flex justify-between text-xs text-muted">
-              <span>Fastest</span>
-              <span>Slowest</span>
-            </p>
           </nav>
         </div>
 
         {/* Its fixed height keeps the page from shifting on weeks
             without one. */}
-        <ol className="grid h-64 w-full grid-cols-3 items-end gap-1 max-lg:hidden">
+        <ol className="grid h-56 w-full grid-cols-3 items-end gap-1 max-lg:hidden">
           {showsPodium &&
             PODIUM.map(({ place, step, head }) => {
               const standing = ranked?.[place - 1];
@@ -207,24 +209,25 @@ export function WeekHero({
                       player={standing.uuid}
                       className={cn("mx-auto", head)}
                     />
-                    <span className="mt-2 block truncate font-minecraft">
+                    <span className="mt-2 block truncate px-1 font-minecraft">
                       {standing.name}
                     </span>
                     <span
                       className={cn(
-                        "mt-1 flex flex-col items-center justify-start border-x-3 border-t-3 border-obsidian-line bg-obsidian-deep/90 pt-2 font-minecraft transition-colors group-hover:bg-obsidian-raised",
+                        "mt-1.5 flex items-baseline justify-center gap-2 border-t-2 bg-background-raised pt-2.5 transition-colors group-hover:bg-border",
+                        place === 1 ? "border-gold" : "border-border",
                         step
                       )}
                     >
                       <span
                         className={cn(
-                          "text-3xl leading-none font-bold",
-                          place === 1 ? "text-gold" : "text-foreground"
+                          "font-minecraft text-pixel-md pixel-shadow",
+                          place === 1 && "text-gold"
                         )}
                       >
                         {place}
                       </span>
-                      <span className="mt-1 text-sm text-muted">
+                      <span className="font-minecraft text-sm text-muted">
                         {standing.totalPoints} pts
                       </span>
                     </span>

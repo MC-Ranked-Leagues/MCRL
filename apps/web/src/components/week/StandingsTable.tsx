@@ -3,7 +3,7 @@ import { useState } from "react";
 import { PlayerHead } from "@/components/PlayerHead";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatPercentage } from "@/lib/format";
-import { movementLabel, visibleMovement } from "@/lib/movement";
+import { MOVE_TINTS, movementLabel, visibleMovement } from "@/lib/movement";
 import { cn } from "@/lib/utils";
 import type { WeekStanding } from "./weekData";
 
@@ -76,15 +76,14 @@ export function StandingsTable({
   return (
     <div>
       <div className="flex min-h-9 flex-wrap items-center justify-between gap-x-6 gap-y-2">
-        <h2 className="text-3xl leading-none font-bold md:text-4xl">
-          League {leagueTier}
-        </h2>
+        <h2 className="text-pixel-md md:text-pixel-lg">League {leagueTier}</h2>
         {hasAverages && (
           <div
             role="group"
             aria-label="Sort table"
-            className="flex shrink-0 gap-1 text-sm"
+            className="flex shrink-0 items-center gap-1 text-sm"
           >
+            <span className="mr-1 text-muted max-sm:hidden">Sort by</span>
             {(
               [
                 ["points", "Points"],
@@ -97,10 +96,10 @@ export function StandingsTable({
                 aria-pressed={sort === value}
                 onClick={() => setChosenSort(value)}
                 className={cn(
-                  "cursor-pointer px-2.5 py-1 font-minecraft transition-colors",
+                  "cursor-pointer border-2 px-2.5 py-0.5 font-minecraft transition-colors",
                   sort === value
-                    ? "bg-lava font-bold text-lava-ink"
-                    : "bg-obsidian-raised text-muted hover:text-foreground"
+                    ? "border-primary bg-primary font-bold text-primary-foreground"
+                    : "border-border text-muted hover:border-muted hover:text-foreground"
                 )}
               >
                 {label}
@@ -111,7 +110,7 @@ export function StandingsTable({
       </div>
 
       <table className="mt-2 w-full table-fixed border-collapse text-left">
-        <thead className="border-b-3 border-obsidian-line text-sm">
+        <thead className="border-b-2 border-border text-sm">
           <tr>
             <th
               scope="col"
@@ -166,6 +165,29 @@ export function StandingsTable({
           <tbody>{missed.map(renderRow)}</tbody>
         </table>
       )}
+
+      {/* Projected moves show as arrows and final ones as tints, so the key
+          explains whichever this week has. */}
+      {played.some((standing) => standing.projected) ? (
+        <p className="mt-3 flex flex-wrap items-center gap-x-1.5 px-2 text-sm text-muted">
+          <ArrowUpIcon aria-hidden className="size-4 text-promoted" />
+          Promoted
+          <ArrowDownIcon aria-hidden className="ml-3 size-4 text-demoted" />
+          Demoted, if the week ended now
+        </p>
+      ) : (
+        played.some(
+          (standing) =>
+            standing.movement === "promoted" || standing.movement === "demoted"
+        ) && (
+          <p className="mt-3 flex flex-wrap items-center gap-x-2 px-2 text-sm text-muted">
+            <span aria-hidden className="size-2.5 bg-promoted" />
+            Promoted
+            <span aria-hidden className="ml-3 size-2.5 bg-demoted" />
+            Demoted
+          </p>
+        )
+      )}
     </div>
   );
 }
@@ -199,17 +221,17 @@ function StandingRow({
     <tr
       onClick={() => onPlayer(standing.playerId)}
       className={cn(
-        "h-9 cursor-pointer border-b border-obsidian-line/60 transition-colors hover:bg-obsidian-raised",
+        "h-10 cursor-pointer border-b border-border/60 transition-colors hover:bg-background-raised",
         move && !standing.projected && MOVE_TINTS[move],
         standing.rank === null && "text-muted",
         isSelected &&
-          "bg-obsidian-raised shadow-[inset_3px_0_0_var(--color-lava)]"
+          "bg-background-raised shadow-[inset_3px_0_0_var(--color-primary)]"
       )}
     >
       <td
         className={cn(
           COLUMN_WIDTHS.place,
-          "px-2 text-right font-semibold tabular-nums"
+          "px-2 text-right text-muted tabular-nums"
         )}
       >
         {number}
@@ -249,7 +271,7 @@ function StandingRow({
             </span>
             {/* Below `lg` the percentage columns move under the name, leaving room for the details panel. */}
             {standing.averagePercentage !== null && (
-              <span className="block font-minecraft text-xs text-muted tabular-nums lg:hidden">
+              <span className="block font-minecraft text-xs text-muted lg:hidden">
                 {standing.currentPercentage !== null &&
                   `Week ${formatPercentage(standing.currentPercentage)} · `}
                 Avg {formatPercentage(standing.averagePercentage)}
@@ -261,7 +283,7 @@ function StandingRow({
       <td
         className={cn(
           COLUMN_WIDTHS.points,
-          "px-2 text-right font-minecraft text-lg font-bold tabular-nums"
+          "px-2 text-right font-minecraft text-lg pixel-shadow"
         )}
       >
         {standing.totalPoints}
@@ -271,7 +293,7 @@ function StandingRow({
           <td
             className={cn(
               COLUMN_WIDTHS.week,
-              "px-2 text-right font-minecraft text-muted tabular-nums max-lg:hidden"
+              "px-2 text-right font-minecraft text-muted max-lg:hidden"
             )}
           >
             {formatPercentage(standing.currentPercentage)}
@@ -279,7 +301,7 @@ function StandingRow({
           <td
             className={cn(
               COLUMN_WIDTHS.average,
-              "px-2 text-right font-minecraft tabular-nums max-lg:hidden"
+              "px-2 text-right font-minecraft max-lg:hidden"
             )}
           >
             {formatPercentage(standing.averagePercentage)}
@@ -308,8 +330,3 @@ function sortRows(standings: WeekStanding[], sort: "points" | "average") {
       (b.averagePercentage ?? 0) - (a.averagePercentage ?? 0)
   );
 }
-
-const MOVE_TINTS = {
-  promoted: "bg-promoted-tint",
-  demoted: "bg-demoted-tint",
-} as const;

@@ -1,22 +1,18 @@
-import { useCallback, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 
-const MOBILE_BREAKPOINT = 768;
+// Below Tailwind's `md` breakpoint.
+const MOBILE_QUERY = "(max-width: 767px)";
 
-export function useIsMobile(mobileBreakpoint = MOBILE_BREAKPOINT) {
-  const subscribe = useCallback(
-    (onStoreChange: () => void) => {
-      const mediaQuery = window.matchMedia(
-        `(max-width: ${mobileBreakpoint - 1}px)`
-      );
-      mediaQuery.addEventListener("change", onStoreChange);
-      return () => mediaQuery.removeEventListener("change", onStoreChange);
-    },
-    [mobileBreakpoint]
+function subscribe(onChange: () => void) {
+  const mediaQuery = window.matchMedia(MOBILE_QUERY);
+  mediaQuery.addEventListener("change", onChange);
+  return () => mediaQuery.removeEventListener("change", onChange);
+}
+
+export function useIsMobile() {
+  return useSyncExternalStore(
+    subscribe,
+    () => window.matchMedia(MOBILE_QUERY).matches,
+    () => false
   );
-  const getSnapshot = useCallback(
-    () => window.innerWidth < mobileBreakpoint,
-    [mobileBreakpoint]
-  );
-
-  return useSyncExternalStore(subscribe, getSnapshot, () => false);
 }
