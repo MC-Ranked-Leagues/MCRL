@@ -28,14 +28,25 @@ export function MatchRace({
 
   return (
     <>
-      <h2 className="flex flex-wrap items-baseline gap-x-3 text-pixel-sm">
-        Match {match.matchNumber}
-        {seed?.type && (
-          <span className="font-display text-base font-normal text-muted text-shadow-none">
-            {SEED_TYPE_LABELS[seed.type]}
-          </span>
+      <div className="flex items-start justify-between gap-3">
+        <h2 className="flex flex-wrap items-baseline gap-x-3 text-pixel-sm">
+          Match {match.matchNumber}
+          {seed?.type && (
+            <span className="font-display text-base font-normal text-muted text-shadow-none">
+              {SEED_TYPE_LABELS[seed.type]}
+            </span>
+          )}
+        </h2>
+        {seed?.replayKey && (
+          // Seed Manager redirects this to a short-lived download URL.
+          <a
+            href={`${new URL("/api/seeds/replay", import.meta.env.PUBLIC_SEED_API_URL)}?key=${encodeURIComponent(seed.replayKey)}`}
+            className="shrink-0 border-2 border-border px-3.5 py-1 font-minecraft text-sm font-bold transition-colors hover:border-foreground"
+          >
+            Download replay
+          </a>
         )}
-      </h2>
+      </div>
       {seed && (
         <details className="mt-1">
           <summary className="cursor-pointer text-sm font-semibold text-muted hover:text-foreground">
