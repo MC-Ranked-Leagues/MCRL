@@ -171,116 +171,121 @@ export function LeagueSim() {
       : `Week ${sim.week}, match ${sim.matchesPlayed} of ${MATCHES_PER_WEEK}`;
 
   return (
-    <div aria-hidden>
-      <p className="mb-2 font-minecraft text-sm">{status}</p>
-      {/* Rows sit on top of the cards rather than inside them, so a row can
+    <div>
+      <div aria-hidden>
+        <p className="mb-2 font-minecraft text-sm">{status}</p>
+        {/* Rows sit on top of the cards rather than inside them, so a row can
           slide straight from one league to the next. */}
-      <div
-        className="relative"
-        style={{ height: LEAGUES.length * (CARD + GAP) - GAP }}
-      >
-        {LEAGUES.map((league, i) => (
-          <div
-            key={league}
-            className="absolute inset-x-0 border border-border bg-background px-3 pt-1.5 font-minecraft text-sm text-muted"
-            style={{ top: i * (CARD + GAP), height: CARD + 4 }}
-          >
-            League {league}
-          </div>
-        ))}
-
-        {sim.players.map((player) => {
-          const leagueIndex = LEAGUES.indexOf(player.league);
-          const rank = standings(sim.players, player.league).indexOf(player);
-          const y = leagueIndex * (CARD + GAP) + HEADER + rank * ROW;
-          const isFollowed = followed === player.mob;
-
-          return (
+        <div
+          className="relative"
+          style={{ height: LEAGUES.length * (CARD + GAP) - GAP }}
+        >
+          {LEAGUES.map((league, i) => (
             <div
-              key={player.mob}
-              onMouseEnter={(event) =>
-                followRow(player.mob, event.currentTarget)
-              }
-              onMouseLeave={() => setFollowed(null)}
-              className={`absolute inset-x-1 flex items-center gap-2.5 px-2 duration-700 ease-in-out ${
-                // The hovered row skips the fade, or its card would fade in with it.
-                isFollowed
-                  ? "transition-transform"
-                  : "transition-[transform,opacity]"
-              } ${
-                player.move === "up"
-                  ? "bg-promoted-tint text-promoted"
-                  : player.move === "down"
-                    ? "bg-demoted-tint text-demoted"
-                    : isFollowed
-                      ? "bg-background-raised"
-                      : ""
-              } ${isPaused && !isFollowed ? "opacity-40" : ""}`}
-              style={{
-                height: ROW,
-                transform: `translateY(${y}px)`,
-                zIndex: isFollowed ? 20 : player.move ? 10 : 1,
-              }}
+              key={league}
+              className="absolute inset-x-0 border border-border bg-background px-3 pt-1.5 font-minecraft text-sm text-muted"
+              style={{ top: i * (CARD + GAP), height: CARD + 4 }}
             >
-              <span className="w-4 font-minecraft text-xs text-muted">
-                {rank + 1}
-              </span>
-              <img
-                src={`https://mc-heads.net/avatar/MHF_${player.mob}/24`}
-                alt=""
-                width={24}
-                height={24}
-                className="size-6 [image-rendering:pixelated]"
-              />
-              <span className="min-w-0 flex-1 truncate font-semibold">
-                {player.mob}
-                {player.move === "up" && " ▲"}
-                {player.move === "down" && " ▼"}
-              </span>
-              {player.gain > 0 && (
-                <span
-                  key={sim.matchesPlayed}
-                  className="animate-gain font-minecraft text-sm text-gold"
-                >
-                  +{player.gain}
-                </span>
-              )}
-              <span className="w-8 text-right font-minecraft text-sm tabular-nums">
-                {player.points}
-              </span>
-              {isFollowed && (
-                <div
-                  className={`hover-card pointer-events-none absolute right-0 grid w-72 grid-cols-[1fr_repeat(4,1.5rem)_2.5rem] items-center gap-y-1 p-3 text-right font-minecraft text-xs text-foreground ${
-                    cardAbove ? "bottom-full mb-2" : "top-full mt-2"
-                  }`}
-                >
-                  <span className="text-left text-muted">Match</span>
-                  {MATCH_POINTS.map((_, match) => (
-                    <span key={match} className="text-muted">
-                      {match + 1}
-                    </span>
-                  ))}
-                  <span className="text-muted">Total</span>
-                  {[
-                    { label: "This week", matches: player.matches },
-                    { label: "Last week", matches: player.lastWeek },
-                  ].map(({ label, matches }) => (
-                    <Fragment key={label}>
-                      <span className="text-left">{label}</span>
-                      {MATCH_POINTS.map((_, match) => (
-                        <span key={match}>{matches[match] ?? "-"}</span>
-                      ))}
-                      <span className="text-gold">
-                        {matches.reduce((total, points) => total + points, 0)}
-                      </span>
-                    </Fragment>
-                  ))}
-                </div>
-              )}
+              League {league}
             </div>
-          );
-        })}
+          ))}
+
+          {sim.players.map((player) => {
+            const leagueIndex = LEAGUES.indexOf(player.league);
+            const rank = standings(sim.players, player.league).indexOf(player);
+            const y = leagueIndex * (CARD + GAP) + HEADER + rank * ROW;
+            const isFollowed = followed === player.mob;
+
+            return (
+              <div
+                key={player.mob}
+                onMouseEnter={(event) =>
+                  followRow(player.mob, event.currentTarget)
+                }
+                onMouseLeave={() => setFollowed(null)}
+                className={`absolute inset-x-1 flex items-center gap-2.5 px-2 duration-700 ease-in-out ${
+                  // The hovered row skips the fade, or its card would fade in with it.
+                  isFollowed
+                    ? "transition-transform"
+                    : "transition-[transform,opacity]"
+                } ${
+                  player.move === "up"
+                    ? "bg-promoted-tint text-promoted"
+                    : player.move === "down"
+                      ? "bg-demoted-tint text-demoted"
+                      : isFollowed
+                        ? "bg-background-raised"
+                        : ""
+                } ${isPaused && !isFollowed ? "opacity-40" : ""}`}
+                style={{
+                  height: ROW,
+                  transform: `translateY(${y}px)`,
+                  zIndex: isFollowed ? 20 : player.move ? 10 : 1,
+                }}
+              >
+                <span className="w-4 font-minecraft text-xs text-muted">
+                  {rank + 1}
+                </span>
+                <img
+                  src={`https://mc-heads.net/avatar/MHF_${player.mob}/24`}
+                  alt=""
+                  width={24}
+                  height={24}
+                  className="size-6 [image-rendering:pixelated]"
+                />
+                <span className="min-w-0 flex-1 truncate font-semibold">
+                  {player.mob}
+                  {player.move === "up" && " ▲"}
+                  {player.move === "down" && " ▼"}
+                </span>
+                {player.gain > 0 && (
+                  <span
+                    key={sim.matchesPlayed}
+                    className="animate-gain font-minecraft text-sm text-gold"
+                  >
+                    +{player.gain}
+                  </span>
+                )}
+                <span className="w-8 text-right font-minecraft text-sm tabular-nums">
+                  {player.points}
+                </span>
+                {isFollowed && (
+                  <div
+                    className={`hover-card pointer-events-none absolute right-0 grid w-72 grid-cols-[1fr_repeat(4,1.5rem)_2.5rem] items-center gap-y-1 p-3 text-right font-minecraft text-xs text-foreground ${
+                      cardAbove ? "bottom-full mb-2" : "top-full mt-2"
+                    }`}
+                  >
+                    <span className="text-left text-muted">Match</span>
+                    {MATCH_POINTS.map((_, match) => (
+                      <span key={match} className="text-muted">
+                        {match + 1}
+                      </span>
+                    ))}
+                    <span className="text-muted">Total</span>
+                    {[
+                      { label: "This week", matches: player.matches },
+                      { label: "Last week", matches: player.lastWeek },
+                    ].map(({ label, matches }) => (
+                      <Fragment key={label}>
+                        <span className="text-left">{label}</span>
+                        {MATCH_POINTS.map((_, match) => (
+                          <span key={match}>{matches[match] ?? "-"}</span>
+                        ))}
+                        <span className="text-gold">
+                          {matches.reduce((total, points) => total + points, 0)}
+                        </span>
+                      </Fragment>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
+      <p className="mt-3 text-sm text-muted">
+        An example of how the leagues work. These aren't real results.
+      </p>
     </div>
   );
 }

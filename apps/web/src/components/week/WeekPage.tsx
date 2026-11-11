@@ -188,6 +188,7 @@ function WeekContent() {
         key={match._id}
         match={match}
         seed={seeds.get(match.matchNumber)}
+        isArchived={isArchived}
         findPlayerId={(uuid) =>
           standings?.find((standing) => standing.uuid === uuid)?.playerId
         }

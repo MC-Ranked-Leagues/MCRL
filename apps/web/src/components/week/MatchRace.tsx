@@ -1,5 +1,8 @@
+import { api } from "@mcrl/backend/api";
+import { useQuery } from "convex/react";
 import { PlayerHead } from "@/components/PlayerHead";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useHttpQuery } from "@/hooks/use-http-query";
 import { useRankedMatch } from "@/hooks/use-ranked-match";
 import { formatRunTime } from "@/lib/format";
 import { buildRuns } from "@/lib/matchTimeline";
@@ -14,17 +17,35 @@ import type { WeekMatch } from "./weekData";
 export function MatchRace({
   match,
   seed,
+  isArchived,
   findPlayerId,
   onPlayer,
 }: {
   match: WeekMatch;
   seed: PublishedSeed | undefined;
+  isArchived: boolean;
   findPlayerId: (uuid: string) => string | undefined;
   onPlayer: (playerId: string) => void;
 }) {
   const rankedMatch = useRankedMatch(match.rankedMatchId);
   const runs = rankedMatch ? buildRuns(rankedMatch) : [];
   const scale = Math.max(...runs.map((run) => run.finalTime), 1);
+  const args = { matchId: match._id };
+  const livePoints = useQuery(
+    api.weekView.getPointsForMatch,
+    isArchived ? "skip" : args
+  );
+  const { data: archivedPoints } = useHttpQuery(
+    api.weekView.getPointsForMatch,
+    isArchived ? args : "skip",
+    { cache: true }
+  );
+  const pointsByPlayer = new Map<string, number>(
+    (isArchived ? archivedPoints : livePoints)?.map((result) => [
+      result.playerId,
+      result.pointsWon,
+    ])
+  );
 
   return (
     <>
@@ -89,6 +110,10 @@ export function MatchRace({
           <ol>
             {runs.map((run, index) => {
               const playerId = findPlayerId(run.uuid);
+              const points =
+                playerId === undefined
+                  ? undefined
+                  : pointsByPlayer.get(playerId);
               const content = (
                 <>
                   <span
@@ -106,6 +131,12 @@ export function MatchRace({
                     <span className="flex items-baseline justify-between gap-2 leading-none">
                       <span className="min-w-0 truncate font-minecraft">
                         {run.nickname}
+                        {points !== undefined && points > 0 && (
+                          <span className="text-sm text-muted">
+                            {" "}
+                            +{points} pts
+                          </span>
+                        )}
                       </span>
                       <span className="text-sm whitespace-nowrap">
                         {/* Muted so an unfinished run's last time doesn't read

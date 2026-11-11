@@ -3,6 +3,7 @@ import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, type ComponentProps, type ReactNode } from "react";
 import { PlayerHead } from "@/components/PlayerHead";
 import { Skeleton } from "@/components/ui/skeleton";
+import { sortByAverage } from "@/lib/movement";
 import { cn } from "@/lib/utils";
 import { getWeekHref, isPlainClick } from "@/lib/weekRoutes";
 import type { League, Week, WeekStanding } from "./weekData";
@@ -48,7 +49,11 @@ export function WeekHero({
   const newer =
     index === undefined || index < 1 ? undefined : weeks?.[index - 1];
   const [isPickerOpen, setIsPickerOpen] = useState(false);
-  const ranked = standings?.filter((standing) => standing.rank !== null);
+  const played = standings?.filter((standing) => standing.rank !== null);
+  // finished weeks with averages rank by them, older weeks by points.
+  const ranked = played?.some((standing) => standing.averagePercentage !== null)
+    ? sortByAverage(played)
+    : played;
   // Only a finished week has a podium.
   const showsPodium = !isLive && ranked?.length !== 0;
 

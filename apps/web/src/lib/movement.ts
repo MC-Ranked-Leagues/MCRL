@@ -31,3 +31,27 @@ export const MOVE_TINTS: Record<Movement, string> = {
   demoted: "bg-demoted-tint shadow-[inset_3px_0_0_var(--color-demoted)]",
   none: "",
 };
+
+type AveragedStanding = {
+  rank: number | null;
+  movement: Movement | null;
+  averagePercentage: number | null;
+};
+
+function movementGroup(standing: AveragedStanding) {
+  // The weekly winner takes the first promotion slot regardless of average.
+  if (standing.rank === 1 && standing.movement === "promoted") return 0;
+  if (standing.movement === "promoted") return 1;
+  if (standing.movement === "demoted") return 3;
+  return 2;
+}
+
+// Average decides the other moves, so sorting by it puts each kind of move in
+// a block.
+export function sortByAverage<T extends AveragedStanding>(standings: T[]) {
+  return [...standings].sort(
+    (a, b) =>
+      movementGroup(a) - movementGroup(b) ||
+      (b.averagePercentage ?? 0) - (a.averagePercentage ?? 0)
+  );
+}

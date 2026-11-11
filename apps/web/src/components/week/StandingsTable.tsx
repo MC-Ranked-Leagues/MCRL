@@ -3,7 +3,12 @@ import { useState } from "react";
 import { PlayerHead } from "@/components/PlayerHead";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatPercentage } from "@/lib/format";
-import { MOVE_TINTS, movementLabel, visibleMovement } from "@/lib/movement";
+import {
+  MOVE_TINTS,
+  movementLabel,
+  sortByAverage,
+  visibleMovement,
+} from "@/lib/movement";
 import { cn } from "@/lib/utils";
 import type { WeekStanding } from "./weekData";
 
@@ -312,21 +317,6 @@ function StandingRow({
   );
 }
 
-function movementGroup(standing: WeekStanding) {
-  // The weekly winner takes the first promotion slot regardless of average.
-  if (standing.rank === 1 && standing.movement === "promoted") return 0;
-  if (standing.movement === "promoted") return 1;
-  if (standing.movement === "demoted") return 3;
-  return 2;
-}
-
-// Average decides the other moves, so sorting by it puts each kind of move in
-// a block.
 function sortRows(standings: WeekStanding[], sort: "points" | "average") {
-  if (sort === "points") return standings;
-  return [...standings].sort(
-    (a, b) =>
-      movementGroup(a) - movementGroup(b) ||
-      (b.averagePercentage ?? 0) - (a.averagePercentage ?? 0)
-  );
+  return sort === "points" ? standings : sortByAverage(standings);
 }

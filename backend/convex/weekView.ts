@@ -278,3 +278,17 @@ export const getPlayerWeekPlacements = query({
       .sort((a, b) => a.matchNumber - b.matchNumber);
   },
 });
+
+export const getPointsForMatch = query({
+  args: { matchId: v.id("matches") },
+  handler: async (ctx, args) =>
+    (
+      await ctx.db
+        .query("matchResults")
+        .withIndex("by_match_and_player", (q) => q.eq("matchId", args.matchId))
+        .collect()
+    ).map((result) => ({
+      playerId: result.playerId,
+      pointsWon: result.pointsWon,
+    })),
+});

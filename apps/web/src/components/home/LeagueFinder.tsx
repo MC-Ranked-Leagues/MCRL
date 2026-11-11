@@ -106,7 +106,7 @@ export function LeagueFinder() {
             className="flex items-end gap-2"
           >
             <label className="min-w-0 flex-1 font-semibold">
-              MCSR Ranked name
+              Minecraft name
               <input
                 value={name}
                 onChange={(event) => setName(event.target.value)}
