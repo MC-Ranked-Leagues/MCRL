@@ -3,7 +3,7 @@ title: Registration Process
 description: How to register for the Ranked Leagues Event.
 ---
 
-You join the leagues through [Discord](https://discord.gg/zzptZsec42). Signing up
+You join the leagues through [Discord](https://discord.gg/KDsv2AaMyZ). Signing up
 gives you a league, then you register separately for each week you want to play.
 You don't need to participate every week.
 
