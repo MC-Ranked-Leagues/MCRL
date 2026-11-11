@@ -16,6 +16,9 @@ export const PublishedSeedSchema = z.object({
   end: z.string(),
   rng: z.string(),
   type: PublishedSeedTypeSchema.nullable(),
+  // Defaulted because browsers can hold cached responses from before Seed
+  // Manager published this field.
+  replayKey: z.string().nullable().default(null),
 });
 
 export const SeedHistoryResponseSchema = z.array(PublishedSeedSchema);
