@@ -63,13 +63,13 @@ function PlayerRows({
               aria-pressed={isSelected}
               onClick={() => onSelect(player)}
               className={cn(
-                "grid w-full cursor-pointer items-center gap-x-2.5 border-b border-obsidian-line/60 py-1.5 pr-3 pl-1 text-left transition-colors hover:bg-obsidian-raised",
+                "grid w-full cursor-pointer items-center gap-x-2.5 border-b border-border/60 py-1.5 pr-3 pl-1 text-left transition-colors hover:bg-background-raised",
                 // Search results have no rank, so their rows skip that column.
                 player.rank === null
                   ? "grid-cols-[minmax(0,1fr)_auto]"
                   : "grid-cols-[2rem_minmax(0,1fr)_auto]",
                 isSelected &&
-                  "bg-obsidian-raised shadow-[inset_3px_0_0_var(--color-lava)]"
+                  "bg-background-raised shadow-[inset_3px_0_0_var(--color-primary)]"
               )}
             >
               {player.rank !== null && (
@@ -93,7 +93,7 @@ function PlayerRows({
                   </span>
                 </span>
               </span>
-              <span className="font-minecraft text-muted tabular-nums">
+              <span className="font-minecraft text-muted">
                 {formatRunTime(player.fastestTimeMs)}
               </span>
             </button>
@@ -137,19 +137,17 @@ function PlayerList({
         placeholder="Player name"
         autoComplete="off"
         spellCheck={false}
-        className="stat-slot mt-1 block h-12 w-full px-3 font-minecraft text-lg outline-none placeholder:text-muted/60"
+        className="field mt-1 block h-11 w-full px-3 font-minecraft text-lg outline-none placeholder:text-muted/60"
       />
-      <h2 className="mt-5 text-2xl font-bold">
+      <h2 className="mt-6 text-pixel-sm">
         {isSearch ? "Search results" : "Fastest players"}
       </h2>
-      <p className="mb-2 text-sm text-muted">
+      <p className="mt-1 mb-2 text-sm text-muted">
         {isSearch
           ? "Players from every league."
           : "The 20 best times across every league."}
       </p>
-      <div
-        className={cn("border-t border-obsidian-line/60 pr-1", listClassName)}
-      >
+      <div className={cn("border-t border-border/60 pr-1", listClassName)}>
         {players === undefined ? (
           <div aria-busy="true" className="mt-1 flex flex-col gap-1">
             {Array.from({ length: 8 }, (_, index) => (
@@ -200,7 +198,7 @@ export function StatsPlayerBrowser({
     <>
       <aside
         aria-label="Find a player"
-        className="sticky top-20 border-3 border-obsidian-line bg-obsidian-deep p-4 max-lg:hidden"
+        className="sticky top-20 border border-border bg-background-deep p-5 max-lg:hidden"
       >
         <PlayerList
           inputId="stats-player-search"
@@ -216,7 +214,7 @@ export function StatsPlayerBrowser({
 
       <div className="lg:hidden">
         <Drawer autoFocus open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-          <DrawerTrigger className="flex h-12 w-full cursor-pointer items-center gap-3 border-3 border-obsidian-line bg-obsidian-deep px-3 text-left font-semibold transition-colors hover:bg-obsidian-raised">
+          <DrawerTrigger className="flex h-12 w-full cursor-pointer items-center gap-3 border-2 border-border bg-background-deep px-3 text-left font-semibold transition-colors hover:border-muted">
             <Search aria-hidden className="size-5 text-muted" />
             <span className="flex-1">Find a player</span>
             <ChevronDown aria-hidden className="size-5 text-muted" />

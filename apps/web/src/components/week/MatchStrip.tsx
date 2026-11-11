@@ -2,7 +2,6 @@ import { PlayerHead } from "@/components/PlayerHead";
 import { cn } from "@/lib/utils";
 import type { WeekMatch } from "./weekData";
 
-// Each match's winner in a strip of matches
 export function MatchStrip({
   matches,
   activeMatchNumber,
@@ -15,12 +14,12 @@ export function MatchStrip({
   return (
     <nav
       aria-label="Matches"
-      className="border-y-3 border-obsidian-line bg-obsidian-deep"
+      className="border-y border-border bg-background-deep"
     >
       {!matches ? (
-        <div className="h-14" aria-busy="true" />
+        <div className="h-15" aria-busy="true" />
       ) : matches.length === 0 ? (
-        <p className="mx-auto flex h-14 max-w-page items-center px-6 text-muted">
+        <p className="mx-auto flex h-15 max-w-page items-center px-6 text-muted">
           No matches played.
         </p>
       ) : (
@@ -36,13 +35,13 @@ export function MatchStrip({
                   aria-current={isActive ? "true" : undefined}
                   onClick={() => onMatch(match.matchNumber)}
                   className={cn(
-                    "flex h-full w-full cursor-pointer items-center gap-2 border-b-3 border-transparent px-3 py-2 text-left transition-colors hover:bg-obsidian-raised",
-                    isActive && "border-lava bg-obsidian-raised"
+                    "flex h-full w-full cursor-pointer items-center gap-2.5 border-b-2 border-transparent px-3 py-2.5 text-left leading-tight transition-colors hover:bg-background-raised",
+                    isActive && "border-primary bg-background-raised"
                   )}
                 >
                   <PlayerHead player={match.winnerUuid ?? match.winnerName} />
                   <span>
-                    <span className="block font-minecraft text-sm text-gold">
+                    <span className="block font-minecraft text-sm text-muted">
                       Match {match.matchNumber}
                     </span>
                     <span className="block font-minecraft text-sm">

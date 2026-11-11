@@ -3,15 +3,46 @@ import { formatRunTime } from "@/lib/format";
 import { phaseNames, type Phase, type PhaseBlock } from "@/lib/matchTimeline";
 
 const PHASE_COLORS: Record<Phase, string> = {
-  overworld: "#55ff55",
-  nether: "#ff5555",
-  bastion: "#8d8798",
-  fortress: "#b54343",
-  blind: "#7755ee",
-  stronghold: "#77aa88",
-  end: "#e2e2aa",
-  complete: "#e2e2aa",
+  overworld: "#6cc24a",
+  nether: "#d9483b",
+  bastion: "#8a8792",
+  fortress: "#8e2f2f",
+  blind: "#8b5cf6",
+  stronghold: "#5f9e8f",
+  end: "#e6dfa3",
+  complete: "#e6dfa3",
 };
+
+// The finished stretch shares the End's color, so the key leaves it out.
+const LEGEND_PHASES = [
+  "overworld",
+  "nether",
+  "bastion",
+  "fortress",
+  "blind",
+  "stronghold",
+  "end",
+] as const;
+
+export function PhaseLegend() {
+  return (
+    <ul
+      aria-label="Phase colors"
+      className="mt-3 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted"
+    >
+      {LEGEND_PHASES.map((phase) => (
+        <li key={phase} className="flex items-center gap-1.5">
+          <span
+            aria-hidden
+            className="size-2"
+            style={{ backgroundColor: PHASE_COLORS[phase] }}
+          />
+          {phaseNames[phase]}
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 export function PhaseBar({
   blocks,
@@ -58,7 +89,7 @@ export function PhaseBar({
           below the cursor so the run's time above stays visible. */}
       {hovered && (
         <span
-          className="mc-tooltip pointer-events-none fixed z-50 flex items-center gap-2 px-2.5 py-1 text-sm whitespace-nowrap"
+          className="hover-card pointer-events-none fixed z-50 flex items-center gap-2 px-2.5 py-1 text-sm whitespace-nowrap"
           style={{
             left: hovered.x,
             top: hovered.y + 20,
@@ -72,7 +103,7 @@ export function PhaseBar({
           <span className="font-semibold">
             {phaseNames[hovered.block.phase]}
           </span>
-          <span className="font-minecraft text-muted tabular-nums">
+          <span className="font-minecraft text-muted">
             {formatRunTime(hovered.block.duration)} at{" "}
             {formatRunTime(hovered.block.startTime)}
           </span>

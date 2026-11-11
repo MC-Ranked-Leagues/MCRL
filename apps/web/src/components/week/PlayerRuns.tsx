@@ -1,6 +1,7 @@
 import { api } from "@mcrl/backend/api";
 import { useQuery } from "convex/react";
 import { PlayerHead } from "@/components/PlayerHead";
+import { RunPlacement } from "@/components/RunPlacement";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useHttpQuery } from "@/hooks/use-http-query";
 import { formatPercentage, formatRunTime, ordinal } from "@/lib/format";
@@ -42,7 +43,7 @@ export function PlayerRuns({
     <>
       <div className="flex items-start gap-3">
         <PlayerHead player={standing.uuid} />
-        <h2 className="min-w-0 flex-1 text-2xl leading-8 font-bold break-all">
+        <h2 className="min-w-0 flex-1 text-pixel-sm leading-8 break-all">
           <a
             href={`/stats?player=${encodeURIComponent(standing.name)}`}
             className="hover:underline"
@@ -77,7 +78,7 @@ export function PlayerRuns({
       ) : placements.length === 0 ? (
         <p className="mt-3 text-muted">No matches this week.</p>
       ) : (
-        <ol className="mt-3 border-t border-obsidian-line/60">
+        <ol className="mt-3 border-t border-border/60">
           {placements.map((placement) => {
             const seed = seeds.get(placement.matchNumber);
             const timeMs =
@@ -87,22 +88,9 @@ export function PlayerRuns({
                 <button
                   type="button"
                   onClick={() => onMatch(placement.matchNumber)}
-                  className="grid w-full cursor-pointer grid-cols-[3.5rem_minmax(0,1fr)_auto_3rem] items-center gap-x-3 border-b border-obsidian-line/60 px-1 py-2 text-left transition-colors hover:bg-obsidian-raised"
+                  className="grid w-full cursor-pointer grid-cols-[3.5rem_minmax(0,1fr)_auto_3rem] items-center gap-x-3 border-b border-border/60 px-1 py-2 text-left transition-colors hover:bg-background-raised"
                 >
-                  <span
-                    className={cn(
-                      "font-minecraft text-xl leading-none font-bold",
-                      placement.placement === 1 && "text-gold",
-                      placement.dnf && "text-lava-hover",
-                      placement.missed && "text-base text-muted"
-                    )}
-                  >
-                    {placement.missed
-                      ? "Missed"
-                      : placement.dnf || placement.placement === null
-                        ? "DNF"
-                        : ordinal(placement.placement)}
-                  </span>
+                  <RunPlacement run={placement} />
                   <span className="min-w-0 leading-tight">
                     <span className="block font-semibold">
                       Match {placement.matchNumber}
@@ -113,12 +101,12 @@ export function PlayerRuns({
                       </span>
                     )}
                   </span>
-                  <span className="font-minecraft text-sm text-muted tabular-nums">
+                  <span className="font-minecraft text-sm text-muted">
                     {timeMs !== null && formatRunTime(timeMs)}
                   </span>
                   <span
                     className={cn(
-                      "text-right font-minecraft text-lg leading-none font-bold tabular-nums",
+                      "text-right font-minecraft text-lg leading-none pixel-shadow",
                       placement.pointsWon === 0 && "text-muted"
                     )}
                   >

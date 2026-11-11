@@ -20,52 +20,65 @@ function WinnersBand() {
     ? week.winners.filter(({ leagueTier }) => leagueTier !== 7)
     : PLACEHOLDER_CELLS;
 
-  // it stays hidden when theres nothing to show rather than leaving an empty section.
+  // Hidden when there's nothing to show, rather than left as an empty section.
   if (week === null || cells.length === 0) return null;
 
   return (
     <section
-      aria-label={
-        week
-          ? week.isActive
-            ? `Week ${week.weekNumber} so far`
-            : `Week ${week.weekNumber} winners`
-          : "Latest winners"
-      }
-      className="border-t border-obsidian-line/60 bg-obsidian-deep/80"
+      aria-labelledby="latest-winners"
+      className="border-y border-border bg-background-deep"
     >
-      <ul className="grid grid-cols-2 px-3 py-3 sm:grid-cols-3 lg:auto-cols-fr lg:grid-flow-col">
-        {cells.map(({ leagueTier, leagueName, winnerName, winnerUuid }) => (
-          <li key={leagueTier} className="min-w-0">
-            {week && winnerName !== undefined ? (
-              <a
-                href={getWeekHref(week.weekNumber, leagueTier)}
-                className="flex h-full items-center gap-3 px-3 py-2 transition-colors hover:bg-obsidian-raised"
-              >
-                <PlayerHead player={winnerUuid ?? winnerName} />
-                <span className="min-w-0">
-                  <span className="block font-minecraft text-sm text-gold">
-                    {leagueName}
+      <div className="mx-auto max-w-page px-6 pt-5 pb-3">
+        <div className="mb-2 flex items-baseline justify-between gap-4">
+          <h2 id="latest-winners" className="text-pixel-sm">
+            {week
+              ? week.isActive
+                ? `Week ${week.weekNumber} so far`
+                : `Week ${week.weekNumber} winners`
+              : "Latest winners"}
+          </h2>
+          <a
+            href="/week"
+            className="text-sm font-semibold text-muted underline underline-offset-4 transition-colors hover:text-foreground"
+          >
+            Full leaderboard
+          </a>
+        </div>
+        {/* The cells' own padding is pulled back, so the heads line up with
+            the page's edge. */}
+        <ul className="-mx-3 grid grid-cols-2 sm:grid-cols-3 lg:auto-cols-fr lg:grid-flow-col">
+          {cells.map(({ leagueTier, leagueName, winnerName, winnerUuid }) => (
+            <li key={leagueTier} className="min-w-0">
+              {week && winnerName !== undefined ? (
+                <a
+                  href={getWeekHref(week.weekNumber, leagueTier)}
+                  className="flex h-full items-center gap-2.5 px-3 py-2 leading-tight transition-colors hover:bg-background-raised"
+                >
+                  <PlayerHead player={winnerUuid ?? winnerName} />
+                  <span className="min-w-0">
+                    <span className="block font-minecraft text-sm text-muted">
+                      {leagueName}
+                    </span>
+                    <span className="block truncate font-minecraft">
+                      {winnerName}
+                    </span>
                   </span>
-                  <span className="block truncate font-minecraft">
-                    {winnerName}
-                  </span>
-                </span>
-              </a>
-            ) : (
-              <div className="flex h-full items-center gap-3 px-3 py-2">
-                <Skeleton className="size-8 shrink-0" />
-                <div className="min-w-0">
-                  <span className="block font-minecraft text-sm text-gold">
-                    {leagueName}
-                  </span>
-                  <Skeleton className="my-1.5 h-4 w-20 max-w-full" />
+                </a>
+              ) : (
+                <div className="flex h-full items-center gap-2.5 px-3 py-2 leading-tight">
+                  <Skeleton className="size-8 shrink-0" />
+                  <div className="min-w-0">
+                    <span className="block font-minecraft text-sm text-muted">
+                      {leagueName}
+                    </span>
+                    <Skeleton className="my-1 h-4 w-20 max-w-full" />
+                  </div>
                 </div>
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
     </section>
   );
 }

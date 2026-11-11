@@ -24,3 +24,10 @@ export function movementLabel(movement: Movement) {
   if (movement === "demoted") return "Demoted";
   return "Stayed";
 }
+
+// An edge bar in the full color keeps the tint readable at a glance.
+export const MOVE_TINTS: Record<Movement, string> = {
+  promoted: "bg-promoted-tint shadow-[inset_3px_0_0_var(--color-promoted)]",
+  demoted: "bg-demoted-tint shadow-[inset_3px_0_0_var(--color-demoted)]",
+  none: "",
+};

@@ -240,7 +240,7 @@ function WeekContent() {
 
             {/* Left out when there's no match to show. */}
             {matches?.length !== 0 && (
-              <aside className="sticky top-20 border-3 border-obsidian-line bg-obsidian-deep p-4 max-md:hidden">
+              <aside className="sticky top-20 border border-border bg-background-deep p-5 max-md:hidden">
                 {!usesSheet && details}
               </aside>
             )}

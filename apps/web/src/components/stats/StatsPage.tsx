@@ -32,10 +32,6 @@ function subscribeToLocation(callback: () => void) {
   };
 }
 
-function getLocationSnapshot() {
-  return typeof window === "undefined" ? "" : window.location.search;
-}
-
 class StatsErrorBoundary extends Component<
   { children: ReactNode },
   { hasError: boolean }
@@ -54,16 +50,14 @@ class StatsErrorBoundary extends Component<
     if (this.state.hasError) {
       return (
         <section className="mx-auto max-w-page px-6 pt-32 pb-20">
-          <h1 className="text-4xl leading-none font-bold md:text-6xl">
-            Stats didn't load
-          </h1>
+          <h1 className="text-pixel-lg md:text-pixel-xl">Stats didn't load</h1>
           <p className="mt-5 mb-7 text-muted">
             Something went wrong on our side. Reload to try again.
           </p>
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="cursor-pointer bg-lava px-6 py-3.5 font-minecraft text-lg font-bold text-lava-ink transition-colors hover:bg-lava-hover"
+            className="cursor-pointer bg-primary px-6 py-3 font-minecraft text-lg font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
           >
             Reload
           </button>
@@ -78,7 +72,7 @@ class StatsErrorBoundary extends Component<
 function StatsContent() {
   const locationSearch = useSyncExternalStore(
     subscribeToLocation,
-    getLocationSnapshot,
+    () => window.location.search,
     () => ""
   );
   const [locallySelectedPlayer, setLocallySelectedPlayer] =
@@ -132,7 +126,7 @@ function StatsContent() {
         {selectedPlayer && `Showing stats for ${selectedPlayer.name}.`}
       </p>
 
-      <div className="mx-auto grid max-w-page grid-cols-[minmax(0,1fr)] items-start gap-8 px-6 pt-24 pb-8 lg:grid-cols-[22rem_minmax(0,1fr)] lg:gap-12 xl:grid-cols-[24rem_minmax(0,1fr)] xl:gap-16">
+      <div className="mx-auto grid max-w-page grid-cols-[minmax(0,1fr)] items-start gap-8 px-6 pt-22 pb-12 lg:grid-cols-[22rem_minmax(0,1fr)] lg:gap-12 xl:grid-cols-[24rem_minmax(0,1fr)] xl:gap-16">
         <StatsPlayerBrowser
           fastestPlayers={fastestPlayers}
           selectedPlayer={selectedPlayer ?? null}
@@ -150,9 +144,7 @@ function StatsContent() {
         <div className="flex min-w-0 flex-col gap-12">
           {selectedPlayer === null ? (
             <div>
-              <h1 className="text-4xl leading-none font-bold md:text-6xl">
-                Player stats
-              </h1>
+              <h1 className="text-pixel-lg md:text-pixel-xl">Player stats</h1>
               <p className="mt-4 text-muted">
                 Search for a player to see their stats.
               </p>

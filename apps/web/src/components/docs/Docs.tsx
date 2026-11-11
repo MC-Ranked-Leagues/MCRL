@@ -140,7 +140,7 @@ export default function Docs({
   );
 }
 
-// The top right of the page
+// The buttons at the top right of the page.
 function Actions({ className, ...props }: ComponentProps<"div">) {
   const { menuItems } = useSpaciousLayout();
   const github = menuItems.find(
@@ -190,7 +190,7 @@ function SidebarWithDiscord({ className, ...props }: SidebarProps) {
   );
 }
 
-// The Discord mark from Simple Icons
+// The Discord mark from Simple Icons.
 function DiscordIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">

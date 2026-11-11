@@ -38,7 +38,13 @@ type Player = {
   move: "up" | "down" | null;
 };
 
-type Sim = { week: number; matchesPlayed: number; players: Player[] };
+type Sim = {
+  week: number;
+  matchesPlayed: number;
+  // The week's moves are marked for one step before they happen.
+  movesMarked: boolean;
+  players: Player[];
+};
 
 function standings(players: Player[], league: number) {
   return players
@@ -51,15 +57,11 @@ function shuffled<T>(items: T[]) {
 }
 
 function advance(sim: Sim): Sim {
-  const marked = sim.players.some(
-    (player) => player.move && player.gain === -1
-  );
-
-  // The week's moves were announced last step, so now they happen.
-  if (marked) {
+  if (sim.movesMarked) {
     return {
       week: sim.week + 1,
       matchesPlayed: 0,
+      movesMarked: false,
       players: sim.players.map((player) => ({
         ...player,
         league:
@@ -85,10 +87,11 @@ function advance(sim: Sim): Sim {
     }
     return {
       ...sim,
+      movesMarked: true,
       players: sim.players.map((player) => ({
         ...player,
         move: moves.get(player.mob) ?? null,
-        gain: moves.has(player.mob) ? -1 : 0,
+        gain: 0,
       })),
     };
   }
@@ -122,6 +125,7 @@ export function LeagueSim() {
   const [sim, setSim] = useState<Sim>({
     week: 12,
     matchesPlayed: 0,
+    movesMarked: false,
     players: STARTING_MOBS.flatMap((mobs, i) =>
       mobs.map((mob, j) => ({
         mob,
@@ -157,8 +161,7 @@ export function LeagueSim() {
     return () => clearInterval(timer);
   }, [isPaused]);
 
-  const moving = sim.players.some((player) => player.gain === -1);
-  const status = moving
+  const status = sim.movesMarked
     ? `Week ${sim.week} is done. Top moves up, bottom moves down.`
     : sim.matchesPlayed === 0
       ? `Week ${sim.week} is about to start`
@@ -166,7 +169,7 @@ export function LeagueSim() {
 
   return (
     <div aria-hidden>
-      <p className="mb-3 font-minecraft text-sm text-gold">{status}</p>
+      <p className="mb-2 font-minecraft text-sm">{status}</p>
       {/* Rows sit on top of the cards rather than inside them, so a row can
           slide straight from one league to the next. */}
       <div
@@ -176,7 +179,7 @@ export function LeagueSim() {
         {LEAGUES.map((league, i) => (
           <div
             key={league}
-            className="absolute inset-x-0 border-3 border-obsidian-line bg-obsidian-deep/90 px-3 pt-1 font-minecraft text-sm text-muted"
+            className="absolute inset-x-0 border border-border bg-background px-3 pt-1.5 font-minecraft text-sm text-muted"
             style={{ top: i * (CARD + GAP), height: CARD + 4 }}
           >
             League {league}
@@ -207,7 +210,7 @@ export function LeagueSim() {
                   : player.move === "down"
                     ? "bg-demoted-tint text-demoted"
                     : isFollowed
-                      ? "bg-obsidian-raised"
+                      ? "bg-background-raised"
                       : ""
               } ${isPaused && !isFollowed ? "opacity-40" : ""}`}
               style={{
@@ -244,7 +247,7 @@ export function LeagueSim() {
               </span>
               {isFollowed && (
                 <div
-                  className={`mc-tooltip pointer-events-none absolute right-0 grid w-72 grid-cols-[1fr_repeat(4,1.5rem)_2.5rem] items-center gap-y-1 p-3 text-right font-minecraft text-xs text-foreground ${
+                  className={`hover-card pointer-events-none absolute right-0 grid w-72 grid-cols-[1fr_repeat(4,1.5rem)_2.5rem] items-center gap-y-1 p-3 text-right font-minecraft text-xs text-foreground ${
                     cardAbove ? "bottom-full mb-2" : "top-full mt-2"
                   }`}
                 >

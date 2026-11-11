@@ -44,7 +44,7 @@ export function PlayerHead({
       onError={handleError}
       className={cn(
         "size-8 shrink-0 [image-rendering:pixelated]",
-        loadedSrc !== src && "animate-pulse bg-obsidian-raised",
+        loadedSrc !== src && "animate-pulse bg-background-raised",
         className
       )}
     />
