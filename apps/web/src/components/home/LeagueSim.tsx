@@ -151,6 +151,9 @@ export function LeagueSim() {
     setCardAbove(
       bottom + HOVER_CARD > window.innerHeight && top - HOVER_CARD >= NAVBAR
     );
+    const simBottom = row.parentElement?.getBoundingClientRect().bottom;
+    const limit = Math.min(window.innerHeight, simBottom ?? Infinity);
+    setCardAbove(bottom + HOVER_CARD > limit && top - HOVER_CARD >= NAVBAR);
     setFollowed(mob);
   }
 
