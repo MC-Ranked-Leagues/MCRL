@@ -57,27 +57,25 @@ export const getLatestWinners = query({
         const winner = registrations
           .filter((registration) => registration.averageTimeMs !== null)
           .sort(compareWeekStandingRegistrations)[0];
-        if (!winner) return [];
-
-        return [
-          {
-            leagueTier: competition.leagueTier,
-            leagueName:
-              leagues.find(
-                (league) => league.leagueTier === competition.leagueTier
-              )?.name ?? getLeagueName(competition.leagueTier),
-            winnerName: winner.playerIgn,
-            winnerUuid:
-              (await ctx.db.get("players", winner.playerId))?.uuid ?? null,
-          },
-        ];
+        return {
+          leagueTier: competition.leagueTier,
+          leagueName:
+            leagues.find(
+              (league) => league.leagueTier === competition.leagueTier
+            )?.name ?? getLeagueName(competition.leagueTier),
+          // Null for leagues with no finished runs yet.
+          winnerName: winner?.playerIgn ?? null,
+          winnerUuid: winner
+            ? ((await ctx.db.get("players", winner.playerId))?.uuid ?? null)
+            : null,
+        };
       })
     );
 
     return {
       weekNumber: week.weekNumber,
       isActive: week.activeCompetitionCount > 0,
-      winners: winners.flat().sort((a, b) => a.leagueTier - b.leagueTier),
+      winners: winners.sort((a, b) => a.leagueTier - b.leagueTier),
     };
   },
 });

@@ -149,7 +149,7 @@ export function WeekHero({
             )}
             {weekArrow(newer, "Next week", <ChevronRight className="size-5" />)}
             {isLive && (
-              <span className="ml-1 flex items-center gap-2 font-minecraft text-sm text-primary-hover uppercase pixel-shadow">
+              <span className="ml-1 flex items-center gap-2 font-minecraft max-md:hidden text-sm text-primary-hover uppercase pixel-shadow">
                 <span aria-hidden className="size-2 bg-primary" />
                 Live
               </span>

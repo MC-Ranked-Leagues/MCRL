@@ -47,7 +47,7 @@ function WeekContent() {
     api.weekView.getAllWeeks,
     {}
   );
-  const { data: leagues, failed: leaguesFailed } = useHttpQuery(
+  const { data: allLeagues, failed: leaguesFailed } = useHttpQuery(
     api.leagues.listLeagues,
     {}
   );
@@ -87,6 +87,14 @@ function WeekContent() {
     : weeks.some((week) => week.weekNumber === selection.weekNumber)
       ? selection.weekNumber
       : newestWeekNumber;
+  // League 7 is left out of the picker from Week 30 on.
+  const shownWeekNumber = weekNumber ?? selection.weekNumber;
+  const leagues = allLeagues?.filter(
+    (league) =>
+      league.leagueTier !== 7 ||
+      shownWeekNumber === null ||
+      shownWeekNumber < 30
+  );
   const leagueTier = !leagues
     ? null
     : leagues.some((league) => league.leagueTier === selection.leagueTier)

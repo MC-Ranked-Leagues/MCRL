@@ -49,7 +49,22 @@ function WinnersBand() {
         <ul className="-mx-3 grid grid-cols-2 sm:grid-cols-3 lg:auto-cols-fr lg:grid-flow-col">
           {cells.map(({ leagueTier, leagueName, winnerName, winnerUuid }) => (
             <li key={leagueTier} className="min-w-0">
-              {week && winnerName !== undefined ? (
+              {winnerName === null ? (
+                <div className="flex h-full items-center gap-2.5 px-3 py-2 leading-tight">
+                  <span
+                    aria-hidden
+                    className="size-8 shrink-0 bg-background-raised"
+                  />
+                  <span className="min-w-0">
+                    <span className="block font-minecraft text-sm text-muted">
+                      {leagueName}
+                    </span>
+                    <span className="block font-minecraft text-muted">
+                      No runs yet
+                    </span>
+                  </span>
+                </div>
+              ) : week && winnerName !== undefined ? (
                 <a
                   href={getWeekHref(week.weekNumber, leagueTier)}
                   className="flex h-full items-center gap-2.5 px-3 py-2 leading-tight transition-colors hover:bg-background-raised"
