@@ -10,8 +10,9 @@ export interface GuildConfiguration {
   developerId?: string;
   // Configure both IDs to enable signup and account migration review.
   signup?: { channelId: string; reviewerId: string };
-  // Text channel for the /setup_ticket message and its private ticket threads.
-  ticketChannelId?: string;
+  // channelId holds the /setup_ticket message and its private ticket threads.
+  // libraryChannelId is a staff-only channel with one claim card per open ticket.
+  tickets?: { channelId: string; libraryChannelId: string };
   logChannelId: string;
   commandRoleId: string;
   // Set this to give registered players a role until /unreg or /em.
@@ -28,7 +29,10 @@ export const guildConfiguration: Readonly<Record<string, GuildConfiguration>> =
         channelId: "1566236429443661965",
         reviewerId: "1108291604248277062",
       },
-      ticketChannelId: "1570896044273836192",
+      tickets: {
+        channelId: "1570896044273836192",
+        libraryChannelId: "1571304770931789915",
+      },
       logChannelId: "1559931280723017899",
       commandRoleId: "1559925312794665010",
       currentWeekRoleId: "1569780942124359690",

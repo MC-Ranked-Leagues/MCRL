@@ -118,11 +118,13 @@ competition that has not used `/relegate`. Retry assignment if role updates fail
 Open or close registration for the current league. Reopening requires clearing
 all imported matches first.
 
-### `/setup_ticket message`
+### `/setup_ticket message [title]`
 
-Send the ticket message to the configured ticket channel, or update it if it
-was already sent. Write `\n` for a line break. Its button opens a private
-`Ticket #N` thread for the player, and anyone in the thread can close it.
+Send the ticket card to the configured ticket channel, or update it if it was
+already sent. `title` defaults to Support. Write `\n` for a line break. Its
+button opens a private `Ticket #N` thread for the player and posts a claim card
+in the ticket library channel. Claiming adds that staff member to the thread.
+Anyone in the thread can close it, which deletes the card.
 
 ### `/host [mc_name]`
 

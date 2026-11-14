@@ -1,6 +1,7 @@
 import {
   ApplicationIntegrationType,
   ChannelType,
+  EmbedBuilder,
   InteractionContextType,
   SlashCommandBuilder,
 } from "discord.js";
@@ -19,7 +20,13 @@ export const setupTicketCommand = {
         .setName("message")
         .setDescription("Message text. Write \\n for a line break.")
         .setRequired(true)
-        .setMaxLength(2000)
+        .setMaxLength(4000)
+    )
+    .addStringOption((option) =>
+      option
+        .setName("title")
+        .setDescription("Card title. Defaults to Support.")
+        .setMaxLength(256)
     )
     .setIntegrationTypes(ApplicationIntegrationType.GuildInstall)
     .setContexts(InteractionContextType.Guild),
@@ -27,34 +34,36 @@ export const setupTicketCommand = {
   async execute(interaction) {
     const guild = await requireCommandGuild(interaction);
     if (!guild) return;
-    if (!guild.ticketChannelId) {
+    if (!guild.tickets?.libraryChannelId) {
       await interaction.editReply(
         "Tickets are not configured for this server."
       );
       return;
     }
     const channel = await interaction.guild.channels.fetch(
-      guild.ticketChannelId
+      guild.tickets.channelId
     );
     // Private ticket threads need a regular text channel.
     if (channel?.type !== ChannelType.GuildText) {
       await interaction.editReply("The ticket channel must be a text channel.");
       return;
     }
-    // Slash command options are single-line, so allow an escaped line break.
-    const payload = {
-      content: interaction.options
-        .getString("message", true)
-        .replaceAll("\\n", "\n"),
-      components: [openTicketButton()],
-      allowedMentions: { parse: [] as never[] },
-    };
+    const embed = new EmbedBuilder()
+      .setColor(0x5865f2)
+      .setTitle(interaction.options.getString("title") ?? "Support")
+      .setDescription(
+        // Slash command options are single-line, so allow an escaped line break.
+        interaction.options.getString("message", true).replaceAll("\\n", "\n")
+      )
+      .setFooter({ text: "Only you and staff can see your ticket." });
+    const payload = { embeds: [embed], components: [openTicketButton()] };
     const savedId = getTicketMessageId(interaction.guildId);
     const previous = savedId
       ? await channel.messages.fetch(savedId).catch(() => null)
       : null;
     const message = previous
-      ? await previous.edit(payload)
+      ? // Clears plain text left by an older version of this message.
+        await previous.edit({ ...payload, content: "" })
       : await channel.send(payload);
     saveTicketMessageId(interaction.guildId, message.id);
     await interaction.editReply(
