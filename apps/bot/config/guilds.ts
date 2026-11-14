@@ -10,6 +10,8 @@ export interface GuildConfiguration {
   developerId?: string;
   // Configure both IDs to enable signup and account migration review.
   signup?: { channelId: string; reviewerId: string };
+  // Text channel for the /setup_ticket message and its private ticket threads.
+  ticketChannelId?: string;
   logChannelId: string;
   commandRoleId: string;
   // Set this to give registered players a role until /unreg or /em.

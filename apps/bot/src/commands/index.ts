@@ -26,6 +26,7 @@ import { rankedCommand } from "./ranked";
 import { twitchCommand } from "./twitch";
 import { listCommand } from "./list";
 import { linkCommand } from "./link";
+import { setupTicketCommand } from "./setup-ticket";
 
 export const commands = [
   meCommand,
@@ -43,6 +44,7 @@ export const commands = [
   unregCommand,
   assignCommand,
   toggleRegistrationCommand,
+  setupTicketCommand,
   advanceWeekCommand,
   devChangeWeekCommand,
   emCommand,

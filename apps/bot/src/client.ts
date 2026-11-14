@@ -10,6 +10,7 @@ import { commands } from "./commands";
 import { handleMigrationReview } from "./lib/account-migration-review";
 import { sendCommandLog } from "./lib/command-logging";
 import { handleSignupReview, moderateSignupChannel } from "./lib/signup-review";
+import { handleTicketButton } from "./lib/tickets";
 
 async function handleInteraction(interaction: Interaction): Promise<void> {
   if (interaction.isButton()) {
@@ -17,6 +18,8 @@ async function handleInteraction(interaction: Interaction): Promise<void> {
       await handleSignupReview(interaction);
     if (interaction.customId.startsWith("migration:"))
       await handleMigrationReview(interaction);
+    if (interaction.customId.startsWith("ticket:"))
+      await handleTicketButton(interaction);
     return;
   }
   if (!interaction.isChatInputCommand()) {

@@ -16,6 +16,8 @@ export const guilds = sqliteTable(
   {
     id: text("id").primaryKey(),
     currentWeek: integer("current_week").notNull().default(1),
+    ticketMessageId: text("ticket_message_id"),
+    ticketCount: integer("ticket_count").notNull().default(0),
   },
   (table) => [
     check("guilds_current_week_positive", sql`${table.currentWeek} > 0`),

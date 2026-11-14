@@ -22,6 +22,13 @@
       "when": 1790606226324,
       "tag": "0002_lazy_mister_sinister",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1794696816377,
+      "tag": "0003_fluffy_vulture",
+      "breakpoints": true
     }
   ]
 }

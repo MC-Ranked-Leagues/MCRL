@@ -118,6 +118,12 @@ competition that has not used `/relegate`. Retry assignment if role updates fail
 Open or close registration for the current league. Reopening requires clearing
 all imported matches first.
 
+### `/setup_ticket message`
+
+Send the ticket message to the configured ticket channel, or update it if it
+was already sent. Write `\n` for a line break. Its button opens a private
+`Ticket #N` thread for the player, and anyone in the thread can close it.
+
 ### `/host [mc_name]`
 
 Set the host Minecraft account for the active competition. Omit the name to use
