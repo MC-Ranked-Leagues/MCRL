@@ -5,23 +5,25 @@ import { PlayerHead } from "@/components/PlayerHead";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getWeekHref } from "@/lib/weekRoutes";
 
-// Stands in for the real list while it loads, so the band shows straight away.
-const PLACEHOLDER_CELLS = [1, 2, 3, 4, 5, 6].map((leagueTier) => ({
-  leagueTier,
-  leagueName: `League ${leagueTier}`,
-  winnerName: undefined,
-  winnerUuid: null,
-}));
+// League 7 is left out of the band on purpose.
+const LEAGUE_TIERS = [1, 2, 3, 4, 5, 6];
 
 function WinnersBand() {
   const week = useQuery(api.weekView.getLatestWinners);
-  // League 7 is left out of the band on purpose.
-  const cells = week
-    ? week.winners.filter(({ leagueTier }) => leagueTier !== 7)
-    : PLACEHOLDER_CELLS;
+  // Every league keeps its cell, so leagues without a winner yet show empty.
+  // While loading, `winnerName` is undefined and the cell shows a skeleton.
+  const cells = LEAGUE_TIERS.map(
+    (leagueTier) =>
+      week?.winners.find((winner) => winner.leagueTier === leagueTier) ?? {
+        leagueTier,
+        leagueName: `League ${leagueTier}`,
+        winnerName: week ? null : undefined,
+        winnerUuid: null,
+      }
+  );
 
-  // Hidden when there's nothing to show, rather than left as an empty section.
-  if (week === null || cells.length === 0) return null;
+  // Hidden when there's no week at all.
+  if (week === null) return null;
 
   return (
     <section
