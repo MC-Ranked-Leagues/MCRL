@@ -28,6 +28,7 @@ export const guildConfiguration: Readonly<Record<string, GuildConfiguration>> =
         channelId: "1566236429443661965",
         reviewerId: "1108291604248277062",
       },
+      ticketChannelId: "1570896044273836192",
       logChannelId: "1559931280723017899",
       commandRoleId: "1559925312794665010",
       currentWeekRoleId: "1569780942124359690",
