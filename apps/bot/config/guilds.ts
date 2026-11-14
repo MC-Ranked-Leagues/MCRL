@@ -62,7 +62,7 @@ export const guildConfiguration: Readonly<Record<string, GuildConfiguration>> =
         },
         6: {
           infoChannelId: "1559930160805847082",
-          chatChannelId: "1559925895177830440",
+          chatChannelId: "1559930179353182289",
           leagueRoleId: "1559925895177830440",
           maxTimeLimitMs: 30 * 60 * 1000,
         },
