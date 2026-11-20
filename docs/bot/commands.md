@@ -27,6 +27,10 @@ If you lost access to your Discord account, link a new one to your Minecraft
 account on MCSR Ranked and use `/signup` there. This moves your membership and
 league role to the new account, unless you're in an unfinished competition.
 
+### `/help`
+
+Link to the bot guide.
+
 ### `/me`
 
 Show your saved account, league, and percentage history.
@@ -145,6 +149,21 @@ are reported and excluded. The first successful import closes registration.
 Delete a match and its results, defaulting to the latest match. Registrations and
 other match numbers stay unchanged. Clearing every import removes the leaderboard
 and allows manual reopening of registration.
+
+### `/edit user match_number time`
+
+Set a player's final time in an imported match, written as `m:ss` or `m:ss.mmm`,
+then rescore that match's placements and points. A player who missed the match
+or did not finish becomes a finisher. The time cannot exceed the match's limit.
+Re-importing the match, including through `/admin_reg`, replaces edited times
+with the Ranked results.
+
+### `/adjust user points`
+
+Set a registered player's point adjustment in the active competition. A negative
+number removes points. Each use replaces the earlier adjustment instead of adding
+to it, and `points:0` clears it. Adjustments count toward standings and movement,
+survive re-imports, and are removed with the registration.
 
 ### `/em`
 

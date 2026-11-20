@@ -1,0 +1,1 @@
+ALTER TABLE `registrations` ADD `points_adjustment` real DEFAULT 0 NOT NULL;

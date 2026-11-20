@@ -16,6 +16,7 @@ type Registration = {
   uuid: string;
   ign: string;
   elo: number | null;
+  pointsAdjustment: number;
   currentPercentage: number | null;
   averageUsed: number | null;
   movement: "none" | "promote" | "demote" | null;
@@ -77,11 +78,15 @@ export function buildReplayPlan(
   )
     throw new Error("Duplicate competitions for the same league and week.");
 
-  // The week 26 backup predates this column. Never migrate or modify the source.
-  const hasCurrentPercentage = sqlite
-    .query<{ name: string }, []>("PRAGMA table_info(registrations)")
-    .all()
-    .some((column) => column.name === "current_percentage");
+  // The week 26 backup predates these columns. Never migrate or modify the source.
+  const registrationColumns = new Set(
+    sqlite
+      .query<{ name: string }, []>("PRAGMA table_info(registrations)")
+      .all()
+      .map((column) => column.name)
+  );
+  const hasCurrentPercentage = registrationColumns.has("current_percentage");
+  const hasPointsAdjustment = registrationColumns.has("points_adjustment");
 
   const competitionPlans = competitions.map((competition) => {
     const label = `League ${competition.leagueTier}, week ${weekNumber}`;
@@ -100,7 +105,8 @@ export function buildReplayPlan(
       .query<Registration, [number]>(
         `SELECT id, discord_user_id AS discordUserId, account_version AS accountVersion,
                 minecraft_uuid AS uuid, ign, elo, average_used AS averageUsed, movement,
-                ${hasCurrentPercentage ? "current_percentage" : "NULL"} AS currentPercentage
+                ${hasCurrentPercentage ? "current_percentage" : "NULL"} AS currentPercentage,
+                ${hasPointsAdjustment ? "points_adjustment" : "0"} AS pointsAdjustment
          FROM registrations WHERE competition_id = ? ORDER BY id`
       )
       .all(competition.id);
@@ -114,7 +120,12 @@ export function buildReplayPlan(
     const scores = new Map(
       registrations.map((registration) => [
         registration.id,
-        { registration, points: 0, totalTimeMs: 0, played: false },
+        {
+          registration,
+          points: registration.pointsAdjustment,
+          totalTimeMs: 0,
+          played: false,
+        },
       ])
     );
     if (
@@ -221,6 +232,7 @@ export function buildReplayPlan(
         !registration.uuid.trim() ||
         !registration.ign.trim() ||
         (registration.elo !== null && !Number.isFinite(registration.elo)) ||
+        !Number.isFinite(registration.pointsAdjustment) ||
         !["none", "promote", "demote"].includes(registration.movement ?? "")
       )
         throw new Error(
@@ -364,6 +376,16 @@ export async function publishReplayPlan(
         uuid: registration.uuid,
         ign: registration.ign,
         ...(registration.elo === null ? {} : { elo: registration.elo }),
+      });
+    }
+    for (const registration of registrations) {
+      if (registration.pointsAdjustment === 0) continue;
+      await client.mutation(api.writes.matches.setPointAdjustment, {
+        writerKey,
+        leagueTier,
+        weekNumber,
+        uuid: registration.uuid,
+        manualAdjustmentPoints: registration.pointsAdjustment,
       });
     }
     for (const match of matches)

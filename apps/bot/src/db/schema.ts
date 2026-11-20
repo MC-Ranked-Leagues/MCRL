@@ -158,6 +158,8 @@ export const registrations = sqliteTable(
     currentPercentage: real("current_percentage"),
     averageUsed: real("average_used"),
     movement: text("movement", { enum: ["none", "promote", "demote"] }),
+    // Manual /adjust points, added to match points in the standings.
+    pointsAdjustment: real("points_adjustment").notNull().default(0),
     streaming: integer("streaming", { mode: "boolean" })
       .notNull()
       .default(false),

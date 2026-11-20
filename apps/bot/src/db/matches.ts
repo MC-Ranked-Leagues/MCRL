@@ -213,6 +213,126 @@ export function clearMatch(competitionId: number, number?: number) {
   });
 }
 
+export function editMatchTime(
+  competitionId: number,
+  matchNumber: number,
+  discordUserId: string,
+  timeMs: number
+) {
+  return getDatabase().transaction((tx) => {
+    const competition = tx
+      .select()
+      .from(competitions)
+      .where(eq(competitions.id, competitionId))
+      .get();
+    if (!competition || competition.status !== "active")
+      return { status: "inactive" } as const;
+    const match = tx
+      .select()
+      .from(matches)
+      .where(
+        and(
+          eq(matches.competitionId, competitionId),
+          eq(matches.number, matchNumber),
+          eq(matches.imported, true)
+        )
+      )
+      .get();
+    if (!match) return { status: "match_not_found" } as const;
+    if (timeMs > match.timeLimitMs)
+      return { status: "over_limit", timeLimitMs: match.timeLimitMs } as const;
+    const registration = tx
+      .select()
+      .from(registrations)
+      .where(
+        and(
+          eq(registrations.competitionId, competitionId),
+          eq(registrations.discordUserId, discordUserId)
+        )
+      )
+      .get();
+    if (!registration) return { status: "not_registered" } as const;
+    // Imports store one result per registration, so this is the full roster.
+    const results = tx
+      .select()
+      .from(matchResults)
+      .where(eq(matchResults.matchId, match.id))
+      .all();
+    const edited = results.find(
+      (result) => result.registrationId === registration.id
+    );
+    if (!edited) return { status: "not_registered" } as const;
+    const previous = { status: edited.status, timeMs: edited.timeMs };
+    // A missed or DNF player becomes a finisher, so they count as participating.
+    edited.status = "finished";
+    edited.timeMs = timeMs;
+    edited.submittedAt ??= new Date();
+    scoreMatchResults(results, results.length);
+    for (const result of results)
+      tx.update(matchResults)
+        .set({
+          status: result.status,
+          timeMs: result.timeMs,
+          placement: result.placement,
+          points: result.points,
+          submittedAt: result.submittedAt,
+        })
+        .where(
+          and(
+            eq(matchResults.matchId, match.id),
+            eq(matchResults.registrationId, result.registrationId)
+          )
+        )
+        .run();
+    return {
+      status: "edited",
+      matchId: match.id,
+      ign: registration.ign,
+      previous,
+      placement: edited.placement!,
+      points: edited.points,
+    } as const;
+  });
+}
+
+// Replaces any earlier adjustment; 0 removes it.
+export function setPointsAdjustment(
+  competitionId: number,
+  discordUserId: string,
+  points: number
+) {
+  return getDatabase().transaction((tx) => {
+    const competition = tx
+      .select()
+      .from(competitions)
+      .where(eq(competitions.id, competitionId))
+      .get();
+    if (!competition || competition.status !== "active")
+      return { status: "inactive" } as const;
+    const registration = tx
+      .select()
+      .from(registrations)
+      .where(
+        and(
+          eq(registrations.competitionId, competitionId),
+          eq(registrations.discordUserId, discordUserId)
+        )
+      )
+      .get();
+    if (!registration) return { status: "not_registered" } as const;
+    tx.update(registrations)
+      .set({ pointsAdjustment: points })
+      .where(eq(registrations.id, registration.id))
+      .run();
+    return {
+      status: "adjusted",
+      ign: registration.ign,
+      uuid: registration.minecraftUuid,
+      previous: registration.pointsAdjustment,
+    } as const;
+  });
+}
+
 export function getCompetitionStandings(competitionId: number) {
   const db = getDatabase();
   const competition = db
@@ -264,7 +384,7 @@ export function getCompetitionStandings(competitionId: number) {
       ign: player.ign,
       discordUsername: player.discordUsername,
       discordUserId: player.discordUserId,
-      points: 0,
+      points: player.pointsAdjustment,
       played: 0,
       count: 0,
       totalTimeMs: 0,

@@ -438,8 +438,9 @@ export const importMatchData = mutation({
   },
 });
 
-export const setPointAdjustment = internalMutation({
+export const setPointAdjustment = mutation({
   args: {
+    writerKey: v.string(),
     leagueTier: v.number(),
     weekNumber: v.number(),
     uuid: v.string(),
@@ -451,6 +452,7 @@ export const setPointAdjustment = internalMutation({
     manualAdjustmentPoints: v.number(),
   }),
   handler: async (ctx, args) => {
+    requireWriterKey(args.writerKey);
     requireCompetitionKeys(args.leagueTier, args.weekNumber);
     requireNonemptyString(args.uuid, "uuid");
     requireFiniteNumber(args.manualAdjustmentPoints, "manualAdjustmentPoints");

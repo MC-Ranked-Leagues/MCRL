@@ -1,8 +1,10 @@
 import {
   clearMatch,
+  editMatchTime,
   getCompetitionStandings,
   getImportedMatches,
   importMatch,
+  setPointsAdjustment,
 } from "./matches";
 import { updateLeaderboardMessages } from "../lib/leaderboard-messages";
 import { registerPlayer } from "./registrations";
@@ -265,4 +267,66 @@ test("a player who misses a round remains registered and can play a later round"
       (player) => player.ign === "Player5"
     )
   ).toMatchObject({ played: 1, averageTimeMs: 550 });
+});
+
+test("editing a time rescores the whole match, including a player who missed it", () => {
+  const competition = setupMatchPlayers();
+  importMatch(competition.id, rankedMatch());
+  expect(editMatchTime(competition.id, 1, "player5", 1001)).toEqual({
+    status: "over_limit",
+    timeLimitMs: 1000,
+  });
+  expect(editMatchTime(competition.id, 1, "player5", 200)).toMatchObject({
+    status: "edited",
+    previous: { status: "missed", timeMs: null },
+    placement: 1,
+    points: 8,
+  });
+  // Six registrations score the top three; Player2 drops to fourth and gets one point.
+  expect(
+    database
+      .select()
+      .from(matchResults)
+      .all()
+      .map((row) => [row.status, row.placement, row.points, row.timeMs])
+  ).toEqual([
+    ["finished", 2, 5, 500],
+    ["finished", 2, 5, 500],
+    ["finished", 4, 1, 1000],
+    ["dnf", null, 0, null],
+    ["dnf", null, 0, null],
+    ["finished", 1, 8, 200],
+  ]);
+  expect(editMatchTime(competition.id, 2, "player5", 200).status).toBe(
+    "match_not_found"
+  );
+});
+
+test("a point adjustment replaces the earlier one and counts toward standings", () => {
+  const competition = setupMatchPlayers();
+  importMatch(competition.id, rankedMatch());
+  expect(setPointsAdjustment(competition.id, "player2", 10)).toMatchObject({
+    status: "adjusted",
+    previous: 0,
+  });
+  expect(setPointsAdjustment(competition.id, "player2", 7)).toMatchObject({
+    previous: 10,
+  });
+  expect(setPointsAdjustment(competition.id, "player1", 5).status).toBe(
+    "adjusted"
+  );
+  expect(setPointsAdjustment(competition.id, "player1", 0).status).toBe(
+    "adjusted"
+  );
+  expect(setPointsAdjustment(competition.id, "nobody", 1).status).toBe(
+    "not_registered"
+  );
+  const standings = getCompetitionStandings(competition.id)!.standings;
+  expect(standings.map((player) => [player.ign, player.points])).toEqual([
+    ["Player2", 9],
+    ["Player0", 8],
+    ["Player1", 8],
+    ["Player3", 0],
+    ["Player4", 0],
+  ]);
 });

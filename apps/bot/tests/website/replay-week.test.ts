@@ -20,15 +20,15 @@ function backup({ modern = false } = {}) {
     CREATE TABLE competitions (id, guild_id, league_number, week_number, status,
       has_used_relegate, max_time_limit_ms, started_at);
     CREATE TABLE registrations (id, competition_id, discord_user_id, account_version,
-      minecraft_uuid, ign, elo, average_used, movement${modern ? ", current_percentage" : ""});
+      minecraft_uuid, ign, elo, average_used, movement${modern ? ", current_percentage, points_adjustment" : ""});
     CREATE TABLE matches (id, competition_id, number, time_limit_ms, ranked_match_id, imported);
     CREATE TABLE match_results (match_id, registration_id, status, time_ms, placement, points);
     INSERT INTO competitions VALUES (1, 'source-guild', 3, 26, 'ended', 1, 120000, 1000);
     INSERT INTO registrations VALUES
-      (1, 1, 'alex-discord', 1, 'alex', 'Alex', NULL, 91, 'promote'${modern ? ", 100" : ""}),
-      (2, 1, 'blair-discord', 1, 'blair', 'Blair', 1200, 12, 'demote'${modern ? ", 50" : ""}),
-      (3, 1, 'casey-discord', 1, 'casey', 'Casey', NULL, 0, 'demote'${modern ? ", 0" : ""}),
-      (4, 1, 'drew-discord', 1, 'drew', 'Drew', NULL, NULL, 'none'${modern ? ", NULL" : ""});
+      (1, 1, 'alex-discord', 1, 'alex', 'Alex', NULL, 91, 'promote'${modern ? ", 100, 0" : ""}),
+      (2, 1, 'blair-discord', 1, 'blair', 'Blair', 1200, 12, 'demote'${modern ? ", 50, -2" : ""}),
+      (3, 1, 'casey-discord', 1, 'casey', 'Casey', NULL, 0, 'demote'${modern ? ", 0, 0" : ""}),
+      (4, 1, 'drew-discord', 1, 'drew', 'Drew', NULL, NULL, 'none'${modern ? ", NULL, 0" : ""});
     INSERT INTO matches VALUES (1, 1, 1, 120000, 'ranked-1', 1), (2, 1, 2, 120000, 'ranked-2', 1);
     INSERT INTO match_results VALUES
       (1, 1, 'finished', 60000, 1, 10), (2, 1, 'finished', 70000, 1, 10),
@@ -213,6 +213,28 @@ test("typed writes create registrations before results and restore all saved pla
     writerKey: "test-key",
     ...plan.players.at(-1)!,
   });
+});
+
+test("saved point adjustments are published before results", async () => {
+  const plan = buildReplayPlan(backup({ modern: true }), 26);
+  const { client, requests } = recordingClient();
+  await publishReplayPlan(client, "test-key", plan, () => {});
+  const paths = requests.map((request) => request.path);
+  const adjustments = requests.filter(
+    (request) => request.path === "writes/matches:setPointAdjustment"
+  );
+  expect(adjustments.map((request) => request.args)).toEqual([
+    {
+      writerKey: "test-key",
+      leagueTier: 3,
+      weekNumber: 26,
+      uuid: "blair",
+      manualAdjustmentPoints: -2,
+    },
+  ]);
+  expect(paths.indexOf("writes/matches:setPointAdjustment")).toBeLessThan(
+    paths.indexOf("writes/matches:importMatchData")
+  );
 });
 
 test("an existing target week is refused before any mutation", async () => {

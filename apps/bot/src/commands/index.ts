@@ -27,8 +27,12 @@ import { twitchCommand } from "./twitch";
 import { listCommand } from "./list";
 import { linkCommand } from "./link";
 import { setupTicketCommand } from "./setup-ticket";
+import { editCommand } from "./edit";
+import { adjustCommand } from "./adjust";
+import { helpCommand } from "./help";
 
 export const commands = [
+  helpCommand,
   meCommand,
   rankedCommand,
   linkCommand,
@@ -54,6 +58,8 @@ export const commands = [
   hostCommand,
   importCommand,
   clearCommand,
+  editCommand,
+  adjustCommand,
   testFillCommand,
   testClearCommand,
   testMigrateCommand,
