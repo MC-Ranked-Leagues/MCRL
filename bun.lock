@@ -109,7 +109,7 @@
     "clsx": "^2.1.1",
     "convex": "^1.49.0",
     "lucide-react": "^1.70.0",
-    "mcsrranked-sdk": "^0.2.0",
+    "mcsrranked-sdk": "^0.4.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "shadcn": "^4.23.0",
@@ -1262,7 +1262,7 @@
 
     "markdown-table": ["markdown-table@3.1.0", "", {}, "sha512-xpeSCdM+B+6P3ncfgaB7FoDbtJ30xAe6Z18TGT7AgXJsHqCElCICZovQqdRMm7kHgpTyYv36EupqewoFFSB8vw=="],
 
-    "mcsrranked-sdk": ["mcsrranked-sdk@0.2.0", "", { "dependencies": { "valibot": "^1.4.2" } }, "sha512-FJFn8+Ju94l03hZ/Siter/fMxHvcJyTqQ0Z6uCHdfuqMazI2QR6wdoDVDSBsBVbIua0tYLiddLAucfkmJlHNKg=="],
+    "mcsrranked-sdk": ["mcsrranked-sdk@0.4.0", "", { "dependencies": { "valibot": "^1.4.2" } }, "sha512-U9a5oYyIo41vRYdkE8o4ZAs4eFTKVPgIwyswrvUZ5xZ3Uz0J+0pvJfp3xQYkmI90n7Estc3+TPh+YfdnN8nnUA=="],
 
     "mdast-util-find-and-replace": ["mdast-util-find-and-replace@3.0.4", "", { "dependencies": { "@types/mdast": "^4.0.0", "escape-string-regexp": "^5.0.0", "unist-util-is": "^6.0.0", "unist-util-visit-parents": "^6.1.0" } }, "sha512-z4B5c6jrnJ1ltOQemhWYPBSAo6y42Z8Gt2yEgfgNTMcLSU59B8bfj8Z8AnAlJrBGLnqkdAUZ7jdDEqQw3KuipQ=="],
 
