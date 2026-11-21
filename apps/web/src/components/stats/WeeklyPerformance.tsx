@@ -23,6 +23,7 @@ const MOVE_TEXT = {
 export function WeeklyPerformance({ weeks }: { weeks: WeekData[] }) {
   const showsPercentages = weeks.some(hasPercentages);
   const columns = cn(COLUMNS, showsPercentages && PERCENTAGE_COLUMNS);
+  const playedCount = weeks.filter((week) => !isMissedWeek(week)).length;
 
   return (
     <section aria-labelledby="weeks-heading">
@@ -30,9 +31,9 @@ export function WeeklyPerformance({ weeks }: { weeks: WeekData[] }) {
         <h2 id="weeks-heading" className="text-pixel-md md:text-pixel-lg">
           Weeks
         </h2>
-        {weeks.length > 0 && (
+        {playedCount > 0 && (
           <span className="text-muted">
-            {weeks.length} {weeks.length === 1 ? "week" : "weeks"} played
+            {playedCount} {playedCount === 1 ? "week" : "weeks"} played
           </span>
         )}
       </div>
@@ -70,6 +71,14 @@ export function WeeklyPerformance({ weeks }: { weeks: WeekData[] }) {
         </>
       )}
     </section>
+  );
+}
+
+// A week where every match was missed still shows as a row, but the player
+// didn't play it.
+function isMissedWeek(week: WeekData) {
+  return (
+    week.matchDetails.length > 0 && week.matchDetails.every((run) => run.missed)
   );
 }
 
