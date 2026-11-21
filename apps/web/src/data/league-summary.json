@@ -1,139 +1,139 @@
 {
-  "source": "after_w30.zip",
-  "fromWeek": 21,
-  "toWeek": 30,
+  "source": "after_w32.zip",
+  "fromWeek": 23,
+  "toWeek": 32,
   "leagues": [
     {
       "league": 1,
-      "players": 93,
+      "players": 65,
       "elo": {
-        "low": 1613,
-        "median": 1785,
-        "high": 1989
+        "low": 1719,
+        "median": 1850,
+        "high": 2067
       },
       "average": {
-        "low": 624,
-        "median": 648,
-        "high": 696
+        "low": 616,
+        "median": 649,
+        "high": 686
       },
       "best": {
-        "low": 474,
-        "median": 508,
-        "high": 538
+        "low": 423,
+        "median": 447,
+        "high": 474
       }
     },
     {
       "league": 2,
-      "players": 101,
+      "players": 65,
       "elo": {
-        "low": 1440,
-        "median": 1520,
-        "high": 1611
+        "low": 1427,
+        "median": 1544,
+        "high": 1708
       },
       "average": {
-        "low": 688,
-        "median": 738,
-        "high": 762
+        "low": 703,
+        "median": 750,
+        "high": 793
       },
       "best": {
-        "low": 556,
-        "median": 580,
-        "high": 627
+        "low": 477,
+        "median": 531,
+        "high": 566
       }
     },
     {
       "league": 3,
-      "players": 122,
+      "players": 65,
       "elo": {
-        "low": 1271,
-        "median": 1351,
-        "high": 1472
+        "low": 1317,
+        "median": 1416,
+        "high": 1518
       },
       "average": {
-        "low": 764,
-        "median": 816,
-        "high": 865
+        "low": 778,
+        "median": 837,
+        "high": 906
       },
       "best": {
-        "low": 602,
-        "median": 654,
-        "high": 704
+        "low": 521,
+        "median": 592,
+        "high": 640
       }
     },
     {
       "league": 4,
-      "players": 137,
+      "players": 65,
       "elo": {
-        "low": 1173,
-        "median": 1243,
-        "high": 1303
+        "low": 1159,
+        "median": 1248,
+        "high": 1396
       },
       "average": {
-        "low": 879,
-        "median": 946,
-        "high": 1004
+        "low": 890,
+        "median": 939,
+        "high": 1000
       },
       "best": {
-        "low": 709,
-        "median": 760,
-        "high": 824
+        "low": 618,
+        "median": 671,
+        "high": 720
       }
     },
     {
       "league": 5,
-      "players": 100,
+      "players": 65,
       "elo": {
-        "low": 1038,
-        "median": 1129,
-        "high": 1205
+        "low": 1041,
+        "median": 1155,
+        "high": 1211
       },
       "average": {
-        "low": 972,
-        "median": 1048,
-        "high": 1123
+        "low": 989,
+        "median": 1052,
+        "high": 1135
       },
       "best": {
-        "low": 730,
-        "median": 838,
-        "high": 907
+        "low": 697,
+        "median": 783,
+        "high": 855
       }
     },
     {
       "league": 6,
-      "players": 80,
+      "players": 65,
       "elo": {
-        "low": 827,
-        "median": 967,
-        "high": 1089
+        "low": 892,
+        "median": 971,
+        "high": 1118
       },
       "average": {
-        "low": 1129,
-        "median": 1222,
-        "high": 1324
+        "low": 1072,
+        "median": 1190,
+        "high": 1300
       },
       "best": {
-        "low": 919,
-        "median": 1019,
-        "high": 1125
+        "low": 790,
+        "median": 870,
+        "high": 1011
       }
     },
     {
       "league": 7,
-      "players": 4,
+      "players": 3,
       "elo": {
-        "low": 538,
-        "median": 707,
-        "high": 707
+        "low": 665,
+        "median": 665,
+        "high": 665
       },
       "average": {
-        "low": 2613,
-        "median": 3508,
-        "high": 3508
+        "low": 1675,
+        "median": 1675,
+        "high": 1675
       },
       "best": {
-        "low": 2475,
-        "median": 3508,
-        "high": 3508
+        "low": 1125,
+        "median": 1125,
+        "high": 1125
       }
     }
   ]

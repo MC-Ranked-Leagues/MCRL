@@ -5,6 +5,7 @@ import {
   formatTimeDigits,
   parseTimeDigits,
   timeToDigits,
+  typicalRange,
 } from "./leagueFinder";
 
 const noStats = { elo: null, average: null, best: null };
@@ -20,6 +21,15 @@ describe("estimateLeague", () => {
   it("places slower players in League 6", () => {
     const { league } = estimateLeague({ elo: 700, average: 1500, best: 1320 });
     expect(league).toBe(6);
+  });
+
+  it("doesn't let a fast best time outweigh Elo and average", () => {
+    const { league } = estimateLeague({
+      elo: typicalRange(3, "elo")?.median ?? null,
+      average: typicalRange(3, "average")?.median ?? null,
+      best: typicalRange(1, "best")?.median ?? null,
+    });
+    expect(league).toBe(3);
   });
 
   it("works from a single stat", () => {
