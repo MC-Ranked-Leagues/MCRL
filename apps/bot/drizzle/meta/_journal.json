@@ -36,6 +36,13 @@
       "when": 1795207664649,
       "tag": "0004_wealthy_gargoyle",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1795337884669,
+      "tag": "0005_retire_league_7",
+      "breakpoints": true
     }
   ]
 }

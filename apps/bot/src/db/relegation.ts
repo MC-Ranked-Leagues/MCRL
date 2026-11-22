@@ -5,10 +5,7 @@ import { getCompetitionRegistration } from "./competitions";
 import { getCompetitionStandings } from "./matches";
 import { competitions, guilds, players, registrations } from "./schema";
 import { websiteMovementStatus } from "./publication-snapshots";
-import {
-  calculateLeagueMovement,
-  calculateLeague7Qualification,
-} from "../lib/league-movement";
+import { calculateLeagueMovement } from "../lib/league-movement";
 
 function getMovementParticipants(competitionId: number) {
   const data = getCompetitionStandings(competitionId);
@@ -37,9 +34,7 @@ export function getCompetitionMovement(competitionId: number) {
           movement: saved.movement,
         };
       })
-    : data.competition.leagueNumber === 7
-      ? calculateLeague7Qualification(participants)
-      : calculateLeagueMovement(data.competition.leagueNumber, participants);
+    : calculateLeagueMovement(data.competition.leagueNumber, participants);
   return { ...data, decisions };
 }
 
@@ -138,10 +133,10 @@ export function relegateGuild(
         const { registered, participants } = getMovementParticipants(
           competition.id
         )!;
-        const decisions =
-          competition.leagueNumber === 7
-            ? calculateLeague7Qualification(participants)
-            : calculateLeagueMovement(competition.leagueNumber, participants);
+        const decisions = calculateLeagueMovement(
+          competition.leagueNumber,
+          participants
+        );
         return { competition, decisions, registered };
       });
 
@@ -188,7 +183,7 @@ export function relegateGuild(
               { week, league: competition.leagueNumber, percentage: 85 },
             ];
             update.leagueNumber = competition.leagueNumber + 1;
-          } else if (decision.percentage !== null) {
+          } else {
             update.percentageHistory = [
               ...history,
               {
@@ -197,9 +192,6 @@ export function relegateGuild(
                 percentage: decision.percentage,
               },
             ].slice(-3);
-          } else {
-            // Nonqualifying League 7 players have no percentage history to append.
-            continue;
           }
           const updated = tx
             .update(players)

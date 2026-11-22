@@ -4,10 +4,7 @@ import {
   getImportedMatches,
   importMatch,
 } from "../../src/db/matches";
-import {
-  formatLeaderboardMessages,
-  updateLeaderboardMessages,
-} from "../../src/lib/leaderboard-messages";
+import { updateLeaderboardMessages } from "../../src/lib/leaderboard-messages";
 import {
   clearTestRegistrations,
   fillTestRegistrations,
@@ -29,7 +26,7 @@ import {
   unendCompetition,
 } from "../../src/db/competitions";
 import { setCurrentWeek } from "../../src/db/guilds";
-import { getCompetitionMovement, relegateGuild } from "../../src/db/relegation";
+import { relegateGuild } from "../../src/db/relegation";
 import {
   competitions,
   registrations,
@@ -257,40 +254,4 @@ test("processed competitions reject unend and every result-changing operation", 
       { mode: "admin" }
     )
   ).toBe("inactive");
-});
-
-test("League 7 saves qualification without averages or appended history and renders promotion arrows", () => {
-  const competition = endedMovementCompetition(7);
-  const history = [{ week: 1, league: 7, percentage: 42 }];
-  database.update(players).set({ percentageHistory: history }).run();
-  // Give the DNF a nonqualifying average while finishers still qualify by best finish.
-  database
-    .update(matches)
-    .set({ timeLimitMs: 35 * 60_000 })
-    .where(eq(matches.competitionId, competition.id))
-    .run();
-  const preview = getCompetitionMovement(competition.id)!;
-  expect(
-    preview.decisions.every((decision) => decision.averageUsed === null)
-  ).toBe(true);
-  const content = formatLeaderboardMessages(preview).join("\n");
-  expect(content).toContain(" **↑**");
-  expect(content).not.toContain("Avg:");
-  relegateGuild(input.guildId, [7]);
-  expect(getPlayer(input.guildId, "league7player0")).toMatchObject({
-    leagueNumber: 6,
-    percentageHistory: [],
-  });
-  expect(getPlayer(input.guildId, "league7player6")).toMatchObject({
-    leagueNumber: 7,
-    percentageHistory: history,
-  });
-  expect(
-    getCompetitionRegistration(competition.id)!.players.every(
-      (player) => player.averageUsed === null
-    )
-  ).toBe(true);
-  expect(
-    formatLeaderboardMessages(getCompetitionMovement(competition.id)!)
-  ).toEqual(formatLeaderboardMessages(preview));
 });

@@ -174,13 +174,8 @@ zero-average demotion rule still applies. An all-zero field uses the
 existing weekly order to select its winner. These are implementation defaults
 for cases without a separate tournament policy.
 
-League 7 qualifies separately. At least one played match and either an imported
-finish strictly under 25 minutes or a competition average strictly under 30
-minutes promotes the player to League 6. Use that competition's results,
-independently of rolling percentages. League 7 uses no percentage average
-and appends no percentage history. Qualifying promotions clear history on entering
-League 6. Automatic relegation stops at League 6; manual assignment can use any
-configured league, including League 7.
+League 7 is retired. Its remaining players moved to League 6 with cleared
+history, and League 6 is the lowest league.
 
 The final leaderboard previews the same movement calculation used by relegation
 without changing membership or history. After finalization, it uses the saved

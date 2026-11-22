@@ -368,7 +368,6 @@ export function getCompetitionStandings(competitionId: number) {
     {
       ign: string;
       registrationId: number;
-      bestFinishTimeMs: number | null;
       discordUsername: string;
       discordUserId: string;
       points: number;
@@ -380,7 +379,6 @@ export function getCompetitionStandings(competitionId: number) {
   for (const { result, player, timeLimitMs } of rows) {
     const entry = players.get(player.id) ?? {
       registrationId: player.id,
-      bestFinishTimeMs: null,
       ign: player.ign,
       discordUsername: player.discordUsername,
       discordUserId: player.discordUserId,
@@ -390,12 +388,6 @@ export function getCompetitionStandings(competitionId: number) {
       totalTimeMs: 0,
     };
     entry.points += result.points;
-    if (result.status === "finished" && result.timeMs !== null) {
-      entry.bestFinishTimeMs = Math.min(
-        entry.bestFinishTimeMs ?? Infinity,
-        result.timeMs
-      );
-    }
     entry.count++;
     entry.totalTimeMs +=
       result.status === "finished" ? result.timeMs! : timeLimitMs;

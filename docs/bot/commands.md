@@ -109,8 +109,8 @@ configured, it removes the current week role when no other registration remains.
 
 ### `/assign user league [preserve_history]`
 
-Assign league membership and replace league roles, including League 7. Works in
-any server channel. Creates missing players from their Discord-linked Ranked
+Assign league membership and replace league roles. Works in any server
+channel. Creates missing players from their Discord-linked Ranked
 account; existing players keep their account.
 
 Changing league clears percentage history unless `preserve_history:true` is set.

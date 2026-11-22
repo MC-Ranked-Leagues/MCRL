@@ -32,7 +32,7 @@ export function formatLeaderboardMessages(
         let marker = "";
         if (decision.movement === "promote") marker = " **↑**";
         if (decision.movement === "demote") marker = " **↓**";
-        // Dont show avg for league 7 lb
+        // Some older saved decisions have no average to show.
         movement =
           decision.averageUsed === null
             ? marker

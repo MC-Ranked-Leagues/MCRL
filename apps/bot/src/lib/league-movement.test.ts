@@ -1,22 +1,14 @@
 import { expect, test } from "bun:test";
 import {
   calculateLeagueMovement,
-  calculateLeague7Qualification,
   type MovementParticipant,
 } from "./league-movement";
 import { averagePercentage, formatHistoryAverage } from "./player-history";
 
-function participants(
-  count: number
-): (MovementParticipant & {
-  averageTimeMs: number;
-  bestFinishTimeMs: number | null;
-})[] {
+function participants(count: number): MovementParticipant[] {
   return Array.from({ length: count }, (_, index) => ({
     registrationId: index + 1,
     points: count - index,
-    averageTimeMs: 35 * 60_000,
-    bestFinishTimeMs: 35 * 60_000,
     history: [],
   }));
 }
@@ -117,23 +109,6 @@ test("league limits, empty fields, all-zero fields and rounded-zero quotas are s
   expect(result.slice(1).every((player) => player.movement === "demote")).toBe(
     true
   );
-});
-
-test("League 7 qualifies independently of quotas and history with strict time thresholds", () => {
-  const field = participants(5);
-  field[0]!.bestFinishTimeMs = 25 * 60_000 - 1;
-  field[1]!.bestFinishTimeMs = 25 * 60_000;
-  field[2]!.averageTimeMs = 30 * 60_000 - 1;
-  field[3]!.averageTimeMs = 30 * 60_000;
-  field[4]!.bestFinishTimeMs = null;
-  expect(
-    calculateLeague7Qualification(field).every(
-      (player) => player.averageUsed === null
-    )
-  ).toBe(true);
-  expect(
-    calculateLeague7Qualification(field).map((player) => player.movement)
-  ).toEqual(["promote", "none", "promote", "none", "none"]);
 });
 
 test("saved history averages distinguish no history from zero and report the actual entry count", () => {

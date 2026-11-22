@@ -15,7 +15,6 @@ import type { BotCommand } from "./command";
 
 // The upstream Elo suggestion informs the reviewer; it does not assign a league.
 const leagueTargets = [
-  [7, 0],
   [6, 766.1],
   [5, 1050.3],
   [4, 1215],
@@ -160,18 +159,17 @@ export const signupCommand = {
         return;
       }
       try {
-        const restoreLeague = player.leagueNumber === 7 ? 6 : player.leagueNumber;
         await syncLeagueRole(
           interaction.guild,
           config,
           interaction.user.id,
-          restoreLeague,
+          player.leagueNumber,
           "Restoring saved league"
         );
         await interaction.editReply(
           (transferred
-            ? `Moved your League ${restoreLeague} membership to this Discord account.`
-            : `Restored your League ${restoreLeague} role.`) +
+            ? `Moved your League ${player.leagueNumber} membership to this Discord account.`
+            : `Restored your League ${player.leagueNumber} role.`) +
             oldRoleNotice
         );
       } catch (error) {

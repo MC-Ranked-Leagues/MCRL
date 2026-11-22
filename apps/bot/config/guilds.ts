@@ -73,12 +73,6 @@ export const guildConfiguration: Readonly<Record<string, GuildConfiguration>> =
           leagueRoleId: "1559925895177830440",
           maxTimeLimitMs: 30 * 60 * 1000,
         },
-        7: {
-          infoChannelId: "1491881029164863670",
-          chatChannelId: "1491881089650786364",
-          leagueRoleId: "1492987738490933408",
-          maxTimeLimitMs: 60 * 60 * 1000,
-        },
       },
     },
     "1511365088718880788": {
@@ -127,12 +121,6 @@ export const guildConfiguration: Readonly<Record<string, GuildConfiguration>> =
           chatChannelId: "1548811181999792138",
           leagueRoleId: "1548811806334783588",
           maxTimeLimitMs: 30 * 60 * 1000,
-        },
-        7: {
-          infoChannelId: "1548812988226609275",
-          chatChannelId: "1548813006278893609",
-          leagueRoleId: "1548813124537163836",
-          maxTimeLimitMs: 60 * 60 * 1000,
         },
       },
     },

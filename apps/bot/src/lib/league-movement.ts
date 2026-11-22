@@ -64,25 +64,3 @@ export function calculateLeagueMovement(
 
   return decisions;
 }
-
-// Only participating players are supplied, just as for percentage-based movement.
-export function calculateLeague7Qualification(
-  participants: readonly {
-    registrationId: number;
-    averageTimeMs: number;
-    bestFinishTimeMs: number | null;
-  }[]
-) {
-  return participants.map((player) => {
-    const qualifies =
-      (player.bestFinishTimeMs !== null &&
-        player.bestFinishTimeMs < 25 * 60_000) ||
-      player.averageTimeMs < 30 * 60_000;
-    return {
-      registrationId: player.registrationId,
-      percentage: null,
-      averageUsed: null,
-      movement: qualifies ? ("promote" as const) : ("none" as const),
-    };
-  });
-}
